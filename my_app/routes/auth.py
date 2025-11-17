@@ -1,30 +1,27 @@
-
-from fastapi import APIRouter, Form, Depends, HTTPException
+# my_app/routes/auth.py
+from fastapi import APIRouter, Form, Depends, Request
 from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from database import get_db
 from db_models import User, PasswordReset
-from utils import get_password_hash, authenticate_user, create_access_token
-from datetime import datetime, timedelta
+from utils import get_password_hash, authenticate_user, create_access_token, load_whitelist
+from datetime import datetime, timedelta, timezone
 import logging
 import secrets
-from utils import load_whitelist  # ← Ajoute cet import
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
-# backend/routes/auth.py
-
+# === SIGNUP ===
 @router.post("/signup")
 def signup(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     """Créer un nouveau compte utilisateur (avec whitelist)"""
-    
-    # Vérifier si l'email est autorisé
-    whitelist = load_whitelist()  # ← Change cette ligne
-    if email not in whitelist:    # ← Change ALLOWED_EMAILS en whitelist
+    whitelist = load_whitelist()
+    if email not in whitelist:
         return RedirectResponse(url="/signup?error=Email not authorized. Contact admin.", status_code=302)
     
-    # Vérifier si l'utilisateur existe déjà
     existing = db.query(User).filter(User.email == email).first()
     if existing:
         return RedirectResponse(url="/signup?error=Email already exists", status_code=302)
@@ -37,6 +34,7 @@ def signup(email: str = Form(...), password: str = Form(...), db: Session = Depe
     logger.info(f"New user created: {email}")
     return RedirectResponse(url="/login?success=Account created", status_code=302)
 
+# === LOGIN ===
 @router.post("/login")
 def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     """Authentifier un utilisateur"""
@@ -59,9 +57,7 @@ def login(email: str = Form(...), password: str = Form(...), db: Session = Depen
     logger.info(f"User {email} logged in")
     return response
 
-
- 
-
+# === LOGOUT ===
 @router.get("/logout")
 def logout():
     """Déconnecter l'utilisateur"""
@@ -69,6 +65,24 @@ def logout():
     response.delete_cookie(key="access_token")
     return response
 
+# === FORGOT PASSWORD ===
+@router.get("/forgot-password")
+def forgot_password_page(request: Request):
+    """Afficher le formulaire forgot password"""
+    return templates.TemplateResponse("forgot-password.html", {"request": request})
+
+
+# === RESET PASSWORD ===
+@router.get("/reset-password")
+def reset_password_page(request: Request, token: str):
+    """Afficher le formulaire reset password"""
+    return templates.TemplateResponse("reset-password.html", {
+        "request": request,
+        "token": token
+    })
+
+
+from datetime import datetime, timedelta  # ← Enlève timezone
 
 @router.post("/forgot-password")
 def forgot_password(email: str = Form(...), db: Session = Depends(get_db)):
@@ -78,7 +92,7 @@ def forgot_password(email: str = Form(...), db: Session = Depends(get_db)):
         return RedirectResponse(url="/forgot-password?success=If email exists, reset link sent", status_code=302)
     
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.now(timezone.utc) + timedelta(hours=1)  # ← FIX ICI AUSSI
+    expires_at = datetime.utcnow() + timedelta(hours=1)  # ← Utilise utcnow() sans timezone
     
     db.query(PasswordReset).filter(PasswordReset.user_id == user.id).delete()
     
@@ -95,7 +109,6 @@ def forgot_password(email: str = Form(...), db: Session = Depends(get_db)):
         url=f"/forgot-password?success=Check your email&link={reset_link}", 
         status_code=302
     )
-from datetime import datetime, timedelta, timezone  # ← Ajoute timezone
 
 @router.post("/reset-password")
 def reset_password(
@@ -103,23 +116,19 @@ def reset_password(
     new_password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    """Réinitialiser le mot de passe avec un token"""
     reset = db.query(PasswordReset).filter(PasswordReset.token == token).first()
     
     if not reset:
         return RedirectResponse(url="/login?error=Invalid token", status_code=302)
     
-    # ← FIX: Utilise datetime.now(timezone.utc) au lieu de utcnow()
-    if reset.expires_at < datetime.now(timezone.utc):
+    if reset.expires_at < datetime.utcnow():  # ← Utilise utcnow() sans timezone
         db.delete(reset)
         db.commit()
         return RedirectResponse(url="/login?error=Token expired", status_code=302)
     
-    # Mettre à jour le mot de passe
     user = db.query(User).filter(User.id == reset.user_id).first()
     user.hashed_password = get_password_hash(new_password)
     
-    # Supprimer le token
     db.delete(reset)
     db.commit()
     

@@ -1,21 +1,33 @@
-# backend/utils/csv_loader.py
 import csv
-from pathlib import Path
+import os
 
-def load_events():
-    """Load events from CSV file"""
-    events = []
-    csv_path = Path('data/events.csv')
-    
-    with open(csv_path, 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        events = list(reader)
-    
-    return events
+# Permet override pour les tests
+WHITELIST_PATH = os.getenv("WHITELIST_PATH", "/app/data/whitelist.csv")
+EVENTS_PATH = os.getenv("EVENTS_PATH", "/app/data/events.csv")
 
 def load_whitelist():
-    """Load allowed emails from CSV file"""
-    with open('data/whitelist.csv', 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        emails = [row['email_address'].strip() for row in reader]
-    return emails
+    """Charger la liste des emails autorisés"""
+    whitelist = set()
+    try:
+        with open(WHITELIST_PATH, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                whitelist.add(row['email'].strip().lower())
+    except FileNotFoundError:
+        print(f"Warning: Whitelist file not found at {WHITELIST_PATH}")
+    return whitelist
+
+def load_events():
+    """Charger les événements depuis CSV"""
+    events = []
+    try:
+        with open(EVENTS_PATH, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                events.append({
+                    'date': row['date'],
+                    'max_spots': int(row['max_spots'])
+                })
+    except FileNotFoundError:
+        print(f"Warning: Events file not found at {EVENTS_PATH}")
+    return events
