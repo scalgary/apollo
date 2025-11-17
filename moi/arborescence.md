@@ -1,0 +1,42 @@
+- .dockerignore
+- .env.local
+- .git/
+- .gitignore
+- backend/
+  - allowed_emails.py
+  - auth.py
+  - database.py
+  - main.py
+  - models.py
+  - routes/
+    - __init__.py
+    - auth.py
+    - events.py
+    - pages.py
+  - static/
+  - templates/
+  - utils/
+- docker-compose.yml # needs the Dockerfile and the requirements files from my_app
+- my_app/
+  - Dockerfile
+  - data/
+    - events.csv
+    - whitelist.csv
+  - requirements.txt
+  - scripts/
+    - import_data.py
+  - services/
+    - auth_service.py
+    - event_service.py
+  - static/
+    - styles.css # tous les styles
+  - templates/
+    - dashboard.html
+    - forgot_password.html
+    - login.html
+    - reset_password.html
+    - signup.html
+  - utils/ # helper functions
+    - __init__.py
+    - csv_loader.py
+    - get_user_from_cookie.py

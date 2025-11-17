@@ -3,8 +3,9 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Event, Attendee
+from db_models import Event, Attendee
 from utils import get_user_from_cookie
+
 import logging
 
 logger = logging.getLogger(__name__)

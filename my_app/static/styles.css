@@ -1,0 +1,270 @@
+/* Reset & Base */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body { 
+    font-family: Arial, sans-serif; 
+    background: #f5f5f5; 
+}
+
+h1 { 
+    color: #333; 
+    margin-bottom: 30px; 
+    text-align: center; 
+}
+
+h2 { 
+    margin-bottom: 20px; 
+    color: #333; 
+}
+
+p { 
+    color: #666; 
+    margin-bottom: 30px; 
+    text-align: center; 
+    font-size: 14px; 
+}
+
+/* Auth Pages Layout (Login/Signup/Reset) */
+body.auth-page { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    min-height: 100vh; 
+}
+
+/* Dashboard Header */
+.header { 
+    background: white; 
+    padding: 20px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.header h1 { 
+    margin-bottom: 0;
+}
+
+.user-info { 
+    display: flex; 
+    gap: 20px; 
+    align-items: center; 
+}
+
+/* Containers */
+.container { 
+    background: white; 
+    padding: 40px; 
+    border-radius: 10px; 
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+    width: 400px; 
+}
+
+.container.dashboard { 
+    max-width: 1200px; 
+    width: auto;
+    margin: 40px auto; 
+    padding: 0 20px;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Forms */
+.form-group { 
+    margin-bottom: 20px; 
+}
+
+label { 
+    display: block; 
+    margin-bottom: 5px; 
+    color: #666; 
+}
+
+input { 
+    width: 100%; 
+    padding: 10px; 
+    border: 1px solid #ddd; 
+    border-radius: 5px; 
+    font-size: 14px; 
+}
+
+/* Buttons */
+button, .btn { 
+    padding: 10px 20px; 
+    border: none; 
+    border-radius: 5px; 
+    font-size: 16px; 
+    cursor: pointer; 
+    text-decoration: none; 
+    display: inline-block;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+}
+
+.btn-primary { 
+    background: #007bff; 
+    color: white; 
+}
+
+.btn-primary:hover { 
+    background: #0056b3; 
+}
+
+.btn-success, button[type="submit"] { 
+    background: #28a745; 
+    color: white; 
+}
+
+.btn-success:hover, button[type="submit"]:hover { 
+    background: #218838; 
+}
+
+.btn-danger { 
+    background: #dc3545; 
+    color: white; 
+}
+
+.btn-danger:hover { 
+    background: #c82333; 
+}
+
+.logout-btn { 
+    padding: 8px 16px; 
+    background: #dc3545; 
+    color: white; 
+    text-decoration: none; 
+    border-radius: 5px; 
+}
+
+.logout-btn:hover { 
+    background: #c82333; 
+}
+
+/* Links */
+.link { 
+    text-align: center; 
+    margin-top: 20px; 
+}
+
+.link a { 
+    color: #007bff; 
+    text-decoration: none; 
+}
+
+.forgot { 
+    text-align: right; 
+    margin-top: 10px; 
+    font-size: 14px; 
+}
+
+.forgot a { 
+    color: #007bff; 
+    text-decoration: none; 
+}
+
+/* Messages */
+.error { 
+    background: #f8d7da; 
+    color: #721c24; 
+    padding: 10px; 
+    border-radius: 5px; 
+    margin-bottom: 20px; 
+}
+
+.success { 
+    background: #d4edda; 
+    color: #155724; 
+    padding: 10px; 
+    border-radius: 5px; 
+    margin-bottom: 20px; 
+}
+
+/* Event Cards */
+.event-card { 
+    background: white; 
+    padding: 25px; 
+    border-radius: 10px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    margin-bottom: 20px; 
+}
+
+.event-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 15px; 
+}
+
+.event-date { 
+    font-size: 24px; 
+    font-weight: bold; 
+    color: #333; 
+}
+
+.event-stats { 
+    color: #666; 
+}
+
+.actions { 
+    display: flex; 
+    gap: 10px; 
+    align-items: center; 
+}
+
+/* Progress Bar */
+.progress-bar { 
+    background: #e9ecef; 
+    height: 20px; 
+    border-radius: 10px; 
+    overflow: hidden; 
+    margin: 15px 0; 
+}
+
+.progress-fill { 
+    background: #007bff; 
+    height: 100%; 
+    transition: width 0.3s; 
+}
+
+.progress-full { 
+    background: #dc3545; 
+}
+
+/* Badges */
+.status-badge { 
+    padding: 8px 16px; 
+    border-radius: 5px; 
+    font-weight: bold; 
+    display: inline-block; 
+}
+
+.status-going { 
+    background: #d4edda; 
+    color: #155724; 
+}
+
+.status-waiting { 
+    background: #fff3cd; 
+    color: #856404; 
+}
+
+.status-not_coming { 
+    background: #f8d7da; 
+    color: #721c24; 
+}
+
+.full-badge { 
+    background: #dc3545; 
+    color: white; 
+    padding: 5px 10px; 
+    border-radius: 5px; 
+    font-size: 14px; 
+}

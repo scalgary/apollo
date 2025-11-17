@@ -18,11 +18,11 @@ services:
 
   app:
     container_name: apollo-app
-    build: ./backend
+    build: ./my_app
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
+      - ./my_app:/app
     environment:
       DATABASE_URL: postgresql://apollo:apollo123@db:5432/apollo
       SECRET_KEY: your-secret-key-change-in-production

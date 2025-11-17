@@ -1,8 +1,8 @@
 
 from fastapi import Request
 from sqlalchemy.orm import Session
-from models import User
-from auth import SECRET_KEY, ALGORITHM
+from db_models import User
+from utils.security import SECRET_KEY, ALGORITHM
 import logging
 
 logger = logging.getLogger(__name__)

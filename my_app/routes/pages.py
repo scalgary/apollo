@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Event, Attendee
+from db_models import Event, Attendee
 from utils import get_user_from_cookie
 
 router = APIRouter()
