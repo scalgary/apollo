@@ -9,30 +9,18 @@ from utils import get_user_from_cookie
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
-
 @router.get("/", response_class=HTMLResponse)
 def home(request: Request, db: Session = Depends(get_db)):
-    """Page d'accueil - Dashboard des événements"""
+    """Page d'accueil - Redirige vers schedule"""
     user = get_user_from_cookie(request, db)
     
     if not user:
         return RedirectResponse(url="/login", status_code=302)
     
-    events = db.query(Event).order_by(Event.date).all()
-    user_statuses = {}
-    for event in events:
-        attendee = db.query(Attendee).filter(
-            Attendee.event_id == event.id,
-            Attendee.user_id == user.id
-        ).first()
-        user_statuses[event.id] = attendee.status if attendee else None
-    
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        "user": user,
-        "events": events,
-        "user_statuses": user_statuses
-    })
+    # Rediriger vers le nouveau schedule
+    return RedirectResponse(url="/schedule", status_code=302)
+
+
 
 @router.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):

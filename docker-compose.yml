@@ -32,7 +32,7 @@ services:
 
   test:
     build: ./my_app
-    command: pytest /app/tests -v --cov=app
+    command: pytest /app/tests -v --cov=.
     environment:
       # Utilise SQLite pour les tests (plus rapide, isolé)
       DATABASE_URL: sqlite:///./test.db

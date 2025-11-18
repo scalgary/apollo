@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waitlist - {{ event.date }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Waitlist</h1>
+        <div class="user-info">
+            <span>{{ user.email }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="container dashboard">
+        <h2 style="text-align: center;">{{ event.date }}</h2>
+        <p style="text-align: center; margin-bottom: 30px;">
+            {{ waitlist|length }} people waiting
+        </p>
+
+        {% if waitlist|length == 0 %}
+            <p style="text-align: center; color: #999;">No one on the waitlist</p>
+        {% else %}
+            {% for person in waitlist %}
+            <div class="waitlist-item">
+                <div class="waitlist-position">#{{ person.position }}</div>
+                <div class="waitlist-email">{{ person.email }}</div>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <div style="margin-top: 30px;">
+            <a href="/event/{{ event.id }}" class="btn btn-primary" style="width: 100%;">← Back to Event</a>
+        </div>
+    </div>
+</body>
+</html>

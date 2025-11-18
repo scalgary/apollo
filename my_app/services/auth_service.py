@@ -14,9 +14,9 @@ class AuthService:
         self.db = db
     
     def register_user(self, email: str, password: str, name: str):
-        # ← UTILISE ICI
         whitelist = load_whitelist()
         
+        # Vérifier si l'email est dans la whitelist (dict maintenant)
         if email not in whitelist:
             raise HTTPException(
                 status_code=403,
@@ -28,12 +28,17 @@ class AuthService:
         if existing:
             raise HTTPException(status_code=400, detail="Email already registered")
         
+        # Récupérer les infos de membership depuis la whitelist
+        user_info = whitelist[email]
+        
         # Create user
         hashed_pw = pwd_context.hash(password)
         user = User(
             email=email,
-            password_hash=hashed_pw,
-            name=name
+            hashed_password=hashed_pw,  # ← Attention: ton modèle utilise "hashed_password" pas "password_hash"
+            membership_type=user_info['membership_type'],
+            initial_credits=user_info['initial_credits'],
+            remaining_credits=user_info['initial_credits']
         )
         self.db.add(user)
         self.db.commit()

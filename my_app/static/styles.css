@@ -1,4 +1,77 @@
 /* Reset & Base */
+
+
+/* Mobile-first responsive */
+@media (max-width: 768px) {
+    .container.dashboard {
+        padding: 0 10px;
+        margin: 20px auto;
+    }
+    
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .event-card {
+        padding: 15px;
+    }
+    
+    .event-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .event-date {
+        font-size: 20px;
+    }
+    
+    .actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    button, .btn {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
+
+/* Liste waitlist */
+.waitlist-item {
+    background: white;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.waitlist-position {
+    font-size: 24px;
+    font-weight: bold;
+    color: #007bff;
+    margin-right: 15px;
+}
+
+.waitlist-email {
+    flex-grow: 1;
+    color: #333;
+}
+
+/* Lien cliquable pour waitlist */
+.waitlist-link {
+    color: #007bff;
+    text-decoration: underline;
+    cursor: pointer;
+    display: inline-block;
+    margin-top: 10px;
+}
+
 * { 
     margin: 0; 
     padding: 0; 

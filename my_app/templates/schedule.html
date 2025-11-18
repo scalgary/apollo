@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Apollo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Apollo</h1>
+    <div class="user-info">
+    <span>{{ user.email }}</span>
+    {% if user.membership_type == 'punch_card' %}
+        <span style="background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 5px; font-weight: bold;">
+            {{ user.remaining_credits if user.remaining_credits is not none else 0 }} credits left
+        </span>
+    {% endif %}
+    <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="container dashboard">
+        {% if events|length == 0 %}
+            <p>No events available.</p>
+        {% else %}
+            {% for event in events %}
+            <div class="event-card" style="cursor: pointer;" onclick="window.location.href='/event/{{ event.id }}'">
+                <div class="event-header">
+                    <div class="event-date">📅 {{ event.date }}</div>
+                    <div class="event-stats">
+                        <strong>{{ event.confirmed_count }}/{{ event.max_spots }}</strong> spots
+                        {% if event.waitlist_count > 0 %}
+                            • {{ event.waitlist_count }} waiting
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px;">
+                    {% if event.user_status == 'going' %}
+                        <span class="status-badge status-going">✓ Going</span>
+                    {% elif event.user_status == 'waiting' %}
+                        <span class="status-badge status-waiting">⏳ Waiting List</span>
+                    {% elif event.user_status == 'not_coming' %}
+                        <span class="status-badge status-not_coming">✗ Not Coming</span>
+                    {% else %}
+                        <span style="color: #999;">Tap to register</span>
+                    {% endif %}
+
+                    {% if event.confirmed_count >= event.max_spots %}
+                        <span class="full-badge">FULL</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>

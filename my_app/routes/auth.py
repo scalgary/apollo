@@ -19,6 +19,8 @@ templates = Jinja2Templates(directory="templates")
 def signup(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     """Créer un nouveau compte utilisateur (avec whitelist)"""
     whitelist = load_whitelist()
+    
+    # Vérifier si l'email est dans la whitelist (dict maintenant)
     if email not in whitelist:
         return RedirectResponse(url="/signup?error=Email not authorized. Contact admin.", status_code=302)
     
@@ -26,12 +28,21 @@ def signup(email: str = Form(...), password: str = Form(...), db: Session = Depe
     if existing:
         return RedirectResponse(url="/signup?error=Email already exists", status_code=302)
     
+    # Récupérer les infos de membership depuis la whitelist
+    user_info = whitelist[email]
+    
     hashed_password = get_password_hash(password)
-    user = User(email=email, hashed_password=hashed_password)
+    user = User(
+        email=email, 
+        hashed_password=hashed_password,
+        membership_type=user_info['membership_type'],
+        initial_credits=user_info['initial_credits'],
+        remaining_credits=user_info['initial_credits']  # Au début, remaining = initial
+    )
     db.add(user)
     db.commit()
     
-    logger.info(f"New user created: {email}")
+    logger.info(f"New user created: {email} ({user_info['membership_type']})")
     return RedirectResponse(url="/login?success=Account created", status_code=302)
 
 # === LOGIN ===

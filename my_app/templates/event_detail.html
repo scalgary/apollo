@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.date }} - Apollo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Event Details</h1>
+<div class="user-info">
+    <span>{{ user.email }}</span>
+    {% if user.membership_type == 'punch_card' %}
+        <span style="background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 5px; font-weight: bold;">
+            {{ user.remaining_credits if user.remaining_credits is not none else 0 }} credits left
+        </span>
+    {% endif %}
+    <a href="/logout" class="logout-btn">Logout</a>
+</div>
+    </div>
+
+    <div class="container dashboard">
+            {% if request.query_params.get('error') %}
+    <div class="error">
+        {{ request.query_params.get('error') }}
+    </div>
+    {% endif %}
+        <div class="event-card">
+            <div class="event-date" style="font-size: 28px; margin-bottom: 20px;">
+                📅 {{ event.date }}
+            </div>
+
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 5px 0; font-size: 18px;">
+                    <strong>{{ event.confirmed_count }}/{{ event.max_spots }}</strong> spots taken
+                </p>
+                <p style="margin: 5px 0; font-size: 18px;">
+                    <strong>{{ event.available_spots }}</strong> spots available
+                </p>
+                {% if event.waitlist_count > 0 %}
+                <p style="margin: 5px 0;">
+                    <a href="/event/{{ event.id }}/waitlist" class="waitlist-link">
+                        👥 {{ event.waitlist_count }} on waitlist →
+                    </a>
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <strong>Your status:</strong><br>
+                {% if event.user_status == 'going' %}
+                    <span class="status-badge status-going">✓ Going</span>
+                {% elif event.user_status == 'waiting' %}
+                    <span class="status-badge status-waiting">⏳ Waiting List</span>
+                {% elif event.user_status == 'not_coming' %}
+                    <span class="status-badge status-not_coming">✗ Not Coming</span>
+                {% else %}
+                    <span style="color: #999;">Not registered</span>
+                {% endif %}
+            </div>
+
+            <div class="actions">
+                {% if event.user_status == None %}
+                    <form action="/register/{{ event.id }}" method="POST">
+                        <button type="submit" class="btn btn-success">Register for this event</button>
+                    </form>
+                {% else %}
+                    {% if event.user_status == 'going' or event.user_status == 'waiting' %}
+                        <form action="/update-status/{{ event.id }}/not_coming" method="POST">
+                            <button type="submit" class="btn btn-danger">Withdraw</button>
+                        </form>
+                    {% elif event.user_status == 'not_coming' %}
+                        <form action="/update-status/{{ event.id }}/going" method="POST">
+                            <button type="submit" class="btn btn-success">Register Again</button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+
+                <a href="/schedule" class="btn btn-primary">← Back to Schedule</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
