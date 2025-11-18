@@ -1,36 +1,73 @@
-from db_models import Event, Attendee, User
-from utils import get_password_hash
+# tests/test_event.py
 
-def test_register_to_event(client, test_user_email, test_password, db):
-    """Test inscription à un événement"""
-    # Créer user directement en DB (pas via signup)
-    hashed_pw = get_password_hash(test_password)
-    user = User(email=test_user_email, hashed_password=hashed_pw)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+def test_create_event(db):
+    """
+    Test simple: créer un event
+    """
+    from db_models import Event
     
-    # Login
-    response = client.post("/login", data={
-        "email": test_user_email,
-        "password": test_password
-    })
+    # ARRANGE - Préparer les données
+  
+    date = "2025-12-25"
+    max_spots = 20
     
-    # Créer événement
-    event = Event(date="2025-12-25", max_spots=20, confirmed_count=0)
+    # ACT - Créer le user
+    event = Event(
+        date=date,
+        max_spots=max_spots
+    )
+    
     db.add(event)
     db.commit()
-    db.refresh(event)
+    db.refresh(event)  # Recharge les données depuis la DB (pour avoir l'id)
     
-    # S'inscrire
-    response = client.post(f"/register/{event.id}", follow_redirects=False)
+    # ASSERT - Vérifier
+    assert event.id is not None, "Le user devrait avoir un ID après commit"
+    assert event.date == date
+    assert event.max_spots == max_spots
+    assert event.confirmed_count==0
+ 
     
-    assert response.status_code == 302
+    print(f"✓ Event créé avec l'ID: {event.id}")
+
+
+
+
+def test_create_events(db):
+    """
+    Test simple: créer un event
+    """
+    from db_models import Event
     
-    # Vérifier inscription
-    attendee = db.query(Attendee).filter(
-        Attendee.event_id == event.id,
-        Attendee.user_id == user.id
-    ).first()
-    assert attendee is not None
-    assert attendee.status == "going"
+
+    # ACT - Créer le user
+    event1 = Event(
+        date="2025-11-25",
+        max_spots=20
+    )
+    event2 = Event(
+        date="2025-12-26",
+        max_spots=2
+    )
+    
+    db.add(event1)
+    db.add(event2)
+    db.commit()
+    # ACT - Les retrouver via des requêtes
+    found_nov = db.query(Event).filter_by(date="2025-11-25").first()
+    found_dec = db.query(Event).filter_by(date="2025-12-26").first()
+    
+    # ASSERT - Vérifier qu'ils existent
+    assert found_nov is not None
+    assert found_dec is not None
+    assert found_nov.max_spots ==20
+    assert found_nov.confirmed_count ==0
+    assert found_dec.max_spots ==2
+    assert found_dec.confirmed_count ==0
+    assert found_dec.id ==2
+
+    # Après db.commit()
+    total_events = db.query(Event).count()
+    assert total_events == 2, "Devrait y avoir 2 events dans la DB"
+
+

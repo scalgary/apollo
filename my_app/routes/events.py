@@ -49,7 +49,7 @@ def register_event(event_id: int, request: Request, db: Session = Depends(get_db
         event.confirmed_count += 1
     
     # DÉCRÉMENTER LES CRÉDITS pour punch_card
-    if user.membership_type == 'punch_card' and user.remaining_credits is not None:
+    if user.membership_type == 'punch_card' :
         user.remaining_credits -= 1
     
     db.commit()
@@ -78,6 +78,9 @@ def update_status(event_id: int, new_status: str, request: Request, db: Session 
     # Si passe de "going" à autre chose, libérer une place
     if old_status == 'going' and new_status != 'going':
         event.confirmed_count -= 1
+        # DÉCRÉMENTER LES CRÉDITS pour punch_card
+        if user.membership_type == 'punch_card' :
+            user.remaining_credits += 1
         
         # Promouvoir quelqu'un de la waiting list
         waiting = db.query(Attendee).filter(
