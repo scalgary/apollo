@@ -2,6 +2,8 @@
 
 def test_create_attendee_going(db):
     from db_models import Event, User, Attendee
+    from datetime import date  # ← Ajouter cet import
+
         # ARRANGE - Créer 2 users
     user1 = User(
         email="full@test.com",
@@ -22,11 +24,11 @@ def test_create_attendee_going(db):
     db.add(user1)
     db.add(user2)
     event1 = Event(
-        date="2025-11-25",
+        date=date(2025, 11, 25),
         max_spots=20
     )
     event2 = Event(
-        date="2025-12-26",
+        date=date(2025, 11, 26),
         max_spots=2
     )
     db.add(event1)
@@ -47,6 +49,8 @@ def test_create_attendee_going(db):
 
 def test_user_attends_multiple_events(db):
     from db_models import Event, User, Attendee
+    from datetime import date  # ← Ajouter cet import
+
         # ARRANGE - Créer 2 users
     user1 = User(
         email="full@test.com",
@@ -55,15 +59,15 @@ def test_user_attends_multiple_events(db):
         initial_credits=None,
         remaining_credits=None)
     event1 = Event(
-        date="2025-11-25",
+        date=date(2025, 11, 25),
         max_spots=20
     )
     event2 = Event(
-        date="2025-12-26",
+        date=date(2025, 11, 26),
         max_spots=2
     )
     event3 = Event(
-        date="2025-12-28",
+        date=date(2025, 11, 28),
         max_spots=2)
     db.add(event1)
     db.add(event2)

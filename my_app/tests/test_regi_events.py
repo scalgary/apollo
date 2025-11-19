@@ -3,6 +3,8 @@ from utils import get_password_hash
 
 def test_register_to_event(client, test_user_email, test_password, db):
     """Test inscription à un événement"""
+    from datetime import date  # ← Ajouter cet import
+
     # Créer user directement en DB (pas via signup)
     hashed_pw = get_password_hash(test_password)
     user = User(email=test_user_email, hashed_password=hashed_pw)
@@ -15,9 +17,9 @@ def test_register_to_event(client, test_user_email, test_password, db):
         "email": test_user_email,
         "password": test_password
     })
-    
+
     # Créer événement
-    event = Event(date="2025-12-25", max_spots=20, confirmed_count=0)
+    event = Event(date=date(2025, 12, 25), max_spots=20, confirmed_count=0)
     db.add(event)
     db.commit()
     db.refresh(event)

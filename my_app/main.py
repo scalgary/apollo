@@ -3,7 +3,9 @@ from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from database import Base, engine, SessionLocal, get_db
-from services.event_service import import_events_from_csv
+from services.event_service import EventService
+
+#from services.event_service import import_events_from_csv
 from routes import auth, events, pages
 
 @asynccontextmanager
@@ -17,7 +19,8 @@ async def lifespan(app: FastAPI):
     # 2. Importer les events du CSV
     db = SessionLocal()
     try:
-        import_events_from_csv(db)
+        event_service = EventService()
+        event_service.import_events_from_csv(db)
         print("✓ Events loaded from CSV")
     finally:
         db.close()
@@ -54,7 +57,8 @@ def dev_reset_events():
         db.query(Event).delete()
         db.commit()
         
-        import_events_from_csv(db)
+        event_service = EventService()
+        event_service.import_events_from_csv(db)
         return {"success": True, "message": "Events reset from CSV"}
     finally:
         db.close()

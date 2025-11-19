@@ -3,12 +3,14 @@ import sys
 sys.path.append('..')
 
 from database import SessionLocal
-from services.event_service import import_events_from_csv
+from services.event_service import EventService
+
 
 if __name__ == "__main__":
     db = SessionLocal()
     try:
-        import_events_from_csv(db)
+        event_service = EventService()
+        event_service.import_events_from_csv(db)
         print("✓ Data imported successfully")
     finally:
         db.close()

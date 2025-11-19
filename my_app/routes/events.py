@@ -114,8 +114,10 @@ def schedule_page(request: Request, db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url="/login", status_code=302)
     
-    from services.event_service import get_all_events_with_user_status
-    events = get_all_events_with_user_status(db, user.id)
+    # ← CHANGEMENT ICI
+    from services.event_service import EventService
+    event_service = EventService()
+    events = event_service.get_events_for_schedule(db, user.id)
     
     return templates.TemplateResponse("schedule.html", {
         "request": request,

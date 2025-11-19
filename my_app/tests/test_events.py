@@ -7,8 +7,9 @@ def test_create_event(db):
     from db_models import Event
     
     # ARRANGE - Préparer les données
-  
-    date = "2025-12-25"
+    from datetime import date  # ← Ajouter cet import
+    
+    date = date(2025, 12, 25)  # ✅ Objet date
     max_spots = 20
     
     # ACT - Créer le user
@@ -38,15 +39,19 @@ def test_create_events(db):
     Test simple: créer un event
     """
     from db_models import Event
+    from datetime import date  # ← Ajouter cet import
     
+    event_date1 = date(2025, 12, 25)  # ✅ Objet date
+    event_date2 = date(2025, 12, 26)  # ✅ Objet date
+
 
     # ACT - Créer le user
     event1 = Event(
-        date="2025-11-25",
+        date=event_date1,
         max_spots=20
     )
     event2 = Event(
-        date="2025-12-26",
+        date=event_date2,
         max_spots=2
     )
     
@@ -54,8 +59,8 @@ def test_create_events(db):
     db.add(event2)
     db.commit()
     # ACT - Les retrouver via des requêtes
-    found_nov = db.query(Event).filter_by(date="2025-11-25").first()
-    found_dec = db.query(Event).filter_by(date="2025-12-26").first()
+    found_nov = db.query(Event).filter_by(date=date(2025, 12, 25)).first()
+    found_dec = db.query(Event).filter_by(date=date(2025, 12, 26)).first()
     
     # ASSERT - Vérifier qu'ils existent
     assert found_nov is not None
