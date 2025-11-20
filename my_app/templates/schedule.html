@@ -10,7 +10,7 @@
     <div class="header">
         <h1>Apollo Pickleball</h1>
         <div class="user-info">
-            <span>{{ user.email }}</span>
+            <span>{{ user.display_name }}</span>
             {% if user.membership_type == 'punch_card' %}
                 <span class="credits-badge">
                     {{ user.remaining_credits if user.remaining_credits is not none else 0 }} credits left

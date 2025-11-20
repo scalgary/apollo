@@ -35,6 +35,7 @@ def signup(email: str = Form(...), password: str = Form(...), db: Session = Depe
     user = User(
         email=email, 
         hashed_password=hashed_password,
+        display_name=user_info['display_name'],
         membership_type=user_info['membership_type'],
         initial_credits=user_info['initial_credits'],
         remaining_credits=user_info['initial_credits']  # Au début, remaining = initial

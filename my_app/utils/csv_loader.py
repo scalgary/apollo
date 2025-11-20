@@ -13,13 +13,15 @@ def load_whitelist():
             reader = csv.DictReader(f)
             for row in reader:
                 email = row['email'].strip().lower()
+                display_name = row['display_name']
                 membership_type = row.get('membership_type', 'full_member').strip()
                 credits_str = row.get('credits', '').strip()
-                
                 # Si credits est vide ou pas un nombre, mettre None (unlimited)
                 credits = int(credits_str) if credits_str.isdigit() else None
+ 
                 
                 whitelist[email] = {
+                    'display_name': display_name,
                     'membership_type': membership_type,
                     'initial_credits': credits
                 }

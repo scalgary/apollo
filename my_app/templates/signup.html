@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Apollo - Sign Up</title>
-    <link rel="stylesheet" href="/static/styles.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Apollo</title>
+    <link rel="stylesheet" href="/static/login.css">
 </head>
-<body class="auth-page">
-    <div class="container">
-        <h1>🚀 Apollo</h1>
+    <div class="login-container">
+        <div class="login-box">
+        <h1>Apollo</h1>
         
         {% if request.query_params.get('error') %}
-        <div class="error">{{ request.query_params.get('error') }}</div>
+        <div class="error-message">{{ request.query_params.get('error') }}</div>
         {% endif %}
         
         <form method="POST" action="/signup">
@@ -24,10 +25,11 @@
                 <input type="password" name="password" required minlength="6">
             </div>
             
-            <button type="submit">Sign Up</button>
+            <button type="submit" class="login-signup-btn">Sign Up</button>
+
         </form>
         
-        <div class="link">
+        <p class="signup-already_login-prompt">
             Already have an account? <a href="/login">Login</a>
         </div>
     </div>

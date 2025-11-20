@@ -1,0 +1,327 @@
+/* ============================================
+   VARIABLES DE COULEURS
+   Synchronisées avec dashboard.css
+   ============================================ */
+
+:root {
+    /* TYPE 1 - Event Type 1 (actuellement BLEU) */
+    --type1-primary: #3b82f6;        /* Couleur principale */
+    --type1-primary-dark: #2563eb;   /* Couleur foncée */
+    --type1-light: #dbeafe;          /* Fond badge */
+    --type1-lighter: #eff6ff;        /* Fond ligne pâle */
+    --type1-text: #1e40af;           /* Texte */
+    
+    /* TYPE 2 - Event Type 2 (actuellement ORANGE) */
+    --type2-primary: #f97316;        /* Couleur principale */
+    --type2-primary-dark: #ea580c;   /* Couleur foncée */
+    --type2-light: #ffedd5;          /* Fond badge */
+    --type2-lighter: #fed7aa;        /* Fond ligne plus foncé */
+    --type2-text: #c2410c;           /* Texte */
+    
+    /* COULEURS GÉNÉRIQUES */
+    --color-apollo: #490fae;         /* Titre Apollo */
+    --color-logout: #dc3545;         /* Bouton logout */
+    --color-logout-hover: #c82333;
+    --color-going: #10b981;          /* Bouton GOING */
+    --color-going-hover: #059669;
+    --color-waitlist: #f59e0b;       /* Bouton WAITLIST */
+    --color-waitlist-hover: #d97706;
+    --color-rsvp: #6b7280;           /* Bouton RSVP */
+    --color-rsvp-hover: #4b5563;
+
+    --color-error: rgb(32, 32, 207);
+    --color-error-bg: white;
+}
+
+/* ============================================
+   RESET
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ============================================
+   BODY - CENTRAGE AVEC FLEXBOX
+   ============================================ */
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;  /* ← Changé de center à flex-start */
+    min-height: 100vh;
+    padding-top: 60px;  /* ← Ajoute un espace en haut */
+}
+
+/* ============================================
+   CONTENEUR PRINCIPAL
+   ============================================ */
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+}
+
+/* ============================================
+   BOÎTE DE LOGIN
+   ============================================ */
+
+.login-box {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   TITRE APOLLO
+   ============================================ */
+
+.login-box h1 {
+    color: var(--color-apollo);
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+/* Emoji fusée si tu l'utilises */
+.login-box h1::before {
+    content: "🚀 ";
+}
+
+/* ============================================
+   FORMULAIRE
+   ============================================ */
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================
+   GROUPES DE CHAMPS (Email, Password)
+   ============================================ */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--type1-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #999;
+}
+
+/* ============================================
+   LIEN "FORGOT PASSWORD"
+   ============================================ */
+
+.forgot-link {
+    display: block;
+    text-align: right;
+    margin-bottom: 20px;
+    color: var(--type1-primary);
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.2s;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+    color: var(--type1-primary-dark);
+}
+
+/* ============================================
+   BOUTON LOGIN
+   ============================================ */
+
+.login-signup-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--type1-primary), var(--type1-primary-dark));
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-signup-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.login-signup-btn:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   TEXTE "DON'T HAVE AN ACCOUNT?"
+   ============================================ */
+
+.signup-already_login-prompt {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.signup-already_login-prompt a {
+    color: var(--type1-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.signup-already_login-prompt a:hover {
+    text-decoration: underline;
+    color: var(--type1-primary-dark);
+}
+
+/* ============================================
+   MESSAGES D'ERREUR
+   ============================================ */
+
+.error-message {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    padding: 12px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 18px;
+    /*border-left: 4px solid var(--color-error);*/
+    animation: slideIn 0.3s ease;
+    text-align: center;  /* ← AJOUTE CETTE LIGNE */
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   MESSAGES DE SUCCÈS (si tu en as)
+   ============================================ */
+
+.success-message {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 12px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border-left: 4px solid #10b981;
+    animation: slideIn 0.3s ease;
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 15px;
+    }
+    
+    .login-box {
+        padding: 30px 20px;
+    }
+    
+    .login-box h1 {
+        font-size: 28px;
+        margin-bottom: 25px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group input {
+        padding: 10px;
+        font-size: 16px; /* Évite le zoom automatique sur iOS */
+    }
+    
+    .login-btn {
+        padding: 12px;
+        font-size: 15px;
+    }
+}
+
+/* ============================================
+   TABLETTE
+   ============================================ */
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .login-container {
+        max-width: 450px;
+    }
+}
+
+/* ============================================
+   ÉTATS DE CHARGEMENT (optionnel)
+   ============================================ */
+
+.login-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.login-btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Spinner de chargement si tu veux l'ajouter */
+.login-btn.loading::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    margin-left: 10px;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
