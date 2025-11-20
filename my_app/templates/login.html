@@ -3,13 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule - Apollo</title>
+    <title>Login - Apollo</title>
     <link rel="stylesheet" href="/static/login.css">
 </head>
 <body>
     <div class="login-container">
         <div class="login-box">
             <h1>Apollo</h1>
+            
+            <!-- Messages d'erreur -->
+            {% if request.query_params.get('error') %}
+            <div class="error-message">
+                {{ request.query_params.get('error') | safe }}
+            </div>
+            {% endif %}
+            
+            <!-- Messages de succès -->
+            {% if request.query_params.get('success') %}
+            <div class="success-message">
+                {{ request.query_params.get('success') }}
+            </div>
+            {% endif %}
             
             <form method="POST">
                 <div class="form-group">

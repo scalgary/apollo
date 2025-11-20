@@ -1,0 +1,74 @@
+📋 Plan Complet
+✅ Préparation (Déjà fait!)
+
+✅ Tu as get_current_user qui fonctionne
+✅ Ton signup crée déjà real_name et display_name
+✅ Ta base de données est prête
+
+
+Étape 1: Créer templates/profile.html
+Ce que tu dois créer:
+Un formulaire HTML simple avec:
+
+Affichage du real_name (en lecture seule, non modifiable)
+Champ input pour display_name (modifiable)
+Bouton "Sauvegarder"
+
+Éléments clés:
+
+<form method="POST" action="/profile/update">
+Input avec name="display_name" et value="{{ user.display_name }}"
+Gestion des messages de succès/erreur avec request.query_params
+
+
+Étape 2: Route GET /profile
+Ce que tu dois créer:
+Dans ton fichier de routes, ajouter:
+python@router.get("/profile")
+def profile_page(
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    # Rendre le template avec les données de current_user
+Ce qui se passe:
+
+L'utilisateur visite /profile
+FastAPI appelle automatiquement get_current_user
+Tu obtiens l'objet User complet
+Tu passes cet objet au template
+
+
+Étape 3: Route POST /profile/update
+Ce que tu dois créer:
+Une route qui:
+
+Reçoit le nouveau display_name depuis le formulaire
+Valide qu'il n'est pas vide
+Met à jour dans la base de données
+Redirige vers /profile avec un message de succès
+
+Éléments clés:
+
+display_name: str = Form(...)
+current_user: User = Depends(get_current_user) pour savoir quel user modifier
+current_user.display_name = nouveau_nom
+db.commit()
+RedirectResponse(url="/profile?success=...")
+
+
+Étape 4: Ajouter le Lien dans le Header
+Ce que tu dois modifier:
+Dans ton template principal (celui qui s'affiche après login), ajouter un lien:
+html<a href="/profile">Mon Profil</a>
+Tu as probablement déjà un header avec "Déconnexion", ajoute juste le lien "Mon Profil" à côté.
+
+Étape 5: Tester!
+Scénario de test:
+
+Connecte-toi avec un compte
+Clique sur "Mon Profil"
+Vérifie que tu vois ton real_name et display_name
+Change ton display_name (ex: "Alex" au lieu de "Alexandre Tremblay")
+Clique sur "Sauvegarder"
+Vérifie que le changement est sauvegardé
+Va sur la page des événements → vérifie que ton nouveau display_name s'affiche

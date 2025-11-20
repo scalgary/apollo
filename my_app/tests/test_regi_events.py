@@ -1,21 +1,15 @@
 from db_models import Event, Attendee, User
 from utils import get_password_hash
 
-def test_register_to_event(client, test_user_email, test_password, db):
+def test_register_to_event(client, test_user_email, test_password,full_member_user, db):
     """Test inscription à un événement"""
     from datetime import date  # ← Ajouter cet import
 
-    # Créer user directement en DB (pas via signup)
-    hashed_pw = get_password_hash(test_password)
-    user = User(email=test_user_email, hashed_password=hashed_pw)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
     
     # Login
     response = client.post("/login", data={
-        "email": test_user_email,
-        "password": test_password
+        "email": full_member_user.email,
+        "password": full_member_user.plain_password
     })
 
     # Créer événement
@@ -32,7 +26,7 @@ def test_register_to_event(client, test_user_email, test_password, db):
     # Vérifier inscription
     attendee = db.query(Attendee).filter(
         Attendee.event_id == event.id,
-        Attendee.user_id == user.id
+        Attendee.user_id == full_member_user.id
     ).first()
     assert attendee is not None
     assert attendee.status == "going"

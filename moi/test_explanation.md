@@ -15,3 +15,27 @@ conftest.py
     ├── test_user_email  → Email par défaut
     ├── test_password    → Password par défaut
     └── mock_auth        → Simule l'authentification
+
+
+# Installer pytest
+pip install pytest pytest-cov
+
+# Lancer tous les tests
+pytest
+
+# Avec coverage
+pytest --cov=app tests/
+
+# Un fichier spécifique
+pytest tests/test_auth.py
+
+# Un test spécifique
+pytest tests/test_auth.py::test_login_success
+
+# Mode verbose
+pytest -v
+
+docker exec apollo-app pytest tests  -v -s
+
+docker exec apollo-app pytest tests/test_users.py
+docker-compose down -v  

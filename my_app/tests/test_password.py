@@ -4,13 +4,10 @@ from utils import get_password_hash
 from datetime import datetime, timedelta
 import secrets
 
-def test_forgot_password_success(client, test_user_email, test_password, db):
+def test_forgot_password_success(client, create_user, test_user_email, test_password, db):
     """Test génération token reset"""
-    # Créer user directement en DB
-    hashed_pw = get_password_hash(test_password)
-    user = User(email=test_user_email, hashed_password=hashed_pw)
-    db.add(user)
-    db.commit()
+    user = create_user(email=test_user_email, password=test_password)
+
     
     # Demander reset
     response = client.post("/forgot-password", data={"email": test_user_email}, follow_redirects=False)
@@ -29,13 +26,11 @@ def test_forgot_password_email_not_exists(client):
     # Ne révèle pas si email existe (sécurité)
     assert response.status_code == 302
 
-def test_reset_password_success(client, test_user_email, test_password, db):
+def test_reset_password_success(client, create_user, test_user_email, test_password, db):
     """Test reset password avec token valide"""
     # Créer user
-    hashed_pw = get_password_hash(test_password)
-    user = User(email=test_user_email, hashed_password=hashed_pw)
-    db.add(user)
-    db.commit()
+    user = create_user(email=test_user_email, password=test_password)
+
     
     # Générer token
     client.post("/forgot-password", data={"email": test_user_email})
@@ -57,13 +52,11 @@ def test_reset_password_success(client, test_user_email, test_password, db):
     }, follow_redirects=False)
     assert response.status_code == 302
 
-def test_reset_password_expired_token(client, test_user_email, test_password, db):
+def test_reset_password_expired_token(client, create_user, test_user_email, test_password, db):
     """Test reset avec token expiré"""
     # Créer user
-    hashed_pw = get_password_hash(test_password)
-    user = User(email=test_user_email, hashed_password=hashed_pw)
-    db.add(user)
-    db.commit()
+    user = create_user(email=test_user_email, password=test_password)
+
     
     # Créer token expiré (datetime NAIVE pour SQLite)
     expired_token = secrets.token_urlsafe(32)

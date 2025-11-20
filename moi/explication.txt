@@ -1,0 +1,182 @@
+┌─────────────────────────────────────────────────────────────────────┐
+│                        UTILISATEUR                                  │
+│                     (Dans son navigateur)                           │
+└────────────┬────────────────────────────────┬───────────────────────┘
+             │                                │
+             │ 1. Clique sur "Mon Profil"    │ 4. Clique "Sauvegarder"
+             │                                │
+             ▼                                ▼
+      GET /profile                    POST /profile/update
+             │                                │
+             │                                │
+┌────────────▼────────────────────────────────▼───────────────────────┐
+│                        TON SERVEUR FASTAPI                          │
+│                                                                      │
+│   ┌─────────────────────┐         ┌──────────────────────┐        │
+│   │  @router.get        │         │  @router.post        │        │
+│   │  ("/profile")       │         │  ("/profile/update") │        │
+│   │                     │         │                      │        │
+│   │  def profile_page() │         │  def update_profile()│        │
+│   └──────────┬──────────┘         └──────────┬───────────┘        │
+│              │                               │                      │
+│              │ 2. Récupère user              │ 5. Met à jour DB    │
+│              │    depuis DB                  │                      │
+│              ▼                               ▼                      │
+│         ┌────────────────────────────────────────┐                │
+│         │      BASE DE DONNÉES PostgreSQL       │                │
+│         │                                        │                │
+│         │  User(                                 │                │
+│         │    real_name="Alexandre Tremblay"     │                │
+│         │    display_name="Alex" ← MODIFIÉ     │                │
+│         │  )                                     │                │
+│         └────────────────────────────────────────┘                │
+└──────────┬───────────────────────────────────┬───────────────────┘
+           │                                   │
+           │ 3. Envoie HTML                    │ 6. Redirige
+           │    avec données                   │
+           ▼                                   ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        UTILISATEUR                                  │
+│                   Voit la page profile.html                         │
+│                   Voit le message "Nom mis à jour!"                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+
+ÉTAPE 1: User clique "Mon Profil"
+─────────────────────────────────────────
+
+Navigateur                           Serveur FastAPI
+─────────                            ───────────────
+
+[Clique sur lien]
+    │
+    │ GET /profile
+    │ + Cookie JWT
+    ├──────────────────────────────►  @router.get("/profile")
+    │                                 def profile_page(
+    │                                   request: Request,
+    │                                   current_user = Depends(get_current_user)
+    │                                 ):
+    │                                     │
+    │                                     │ Décode JWT → user_id
+    │                                     │ Query DB → trouve User
+    │                                     │
+    │                                     │ User(
+    │                                     │   real_name="Alexandre"
+    │                                     │   display_name="Alexandre"
+    │                                     │ )
+    │                                     │
+    │                                     ▼
+    │                                 return templates.TemplateResponse(
+    │                                   "profile.html",
+    │                                   {"user": current_user}
+    │                                 )
+    │                                     │
+    │  HTML avec données                 │
+    │◄────────────────────────────────────┤
+    │
+    ▼
+[Affiche la page]
+
+<form action="/profile/update">
+  Nom réel: Alexandre Tremblay
+  Nom affiché: [Alexandre Tremblay]
+  [Sauvegarder]
+</form>
+
+ÉTAPE 2: User change le nom et clique "Sauvegarder"
+────────────────────────────────────────────────────
+
+Navigateur                           Serveur FastAPI
+─────────                            ───────────────
+
+[User tape "Alex"]
+[Clique "Sauvegarder"]
+    │
+    │ POST /profile/update
+    │ Body: display_name=Alex
+    │ + Cookie JWT
+    ├──────────────────────────────►  @router.post("/profile/update")
+    │                                 def update_profile(
+    │                                   display_name: str = Form(...),
+    │                                   current_user = Depends(get_current_user),
+    │                                   db = Depends(get_db)
+    │                                 ):
+    │                                     │
+    │                                     │ Reçoit: display_name = "Alex"
+    │                                     │
+    │                                     │ Valide: pas vide? ✓
+    │                                     │
+    │                                     │ Met à jour:
+    │                                     │ current_user.display_name = "Alex"
+    │                                     │ db.commit()
+    │                                     │
+    │                                     ▼
+    │                                 return RedirectResponse(
+    │                                   url="/profile?success=Nom mis à jour"
+    │                                 )
+    │                                     │
+    │  Redirect /profile                 │
+    │◄────────────────────────────────────┤
+    │
+    │ GET /profile?success=Nom mis à jour
+    ├──────────────────────────────►  @router.get("/profile")
+    │                                 [Même process qu'avant]
+    │                                     │
+    │  HTML avec nouveau nom             │
+    │◄────────────────────────────────────┤
+    │
+    ▼
+[Affiche la page avec ✓ "Nom mis à jour!"]
+
+Nom réel: Alexandre Tremblay
+Nom affiché: [Alex]  ← CHANGÉ!
+
+FICHIER: templates/profile.html
+───────────────────────────────────────────────────────
+
+<form method="POST" action="/profile/update">
+                           ─────┬─────────
+                                │
+                                │ Cette URL doit matcher ↓
+                                │
+                    ┌───────────┴────────────┐
+                    │                        │
+                    ▼                        │
+                                             │
+FICHIER: routes/auth.py (ou routes.py)      │
+───────────────────────────────────────────  │
+                                             │
+@router.post("/profile/update") ◄────────────┘
+            ─────┬─────────
+                 │
+                 └─ Même nom!
+
+
+TON APPLICATION APOLLO
+══════════════════════════════════════════════════
+
+Authentification:
+├── GET  /login          → Affiche formulaire login
+├── POST /login          → Traite le login
+├── GET  /signup         → Affiche formulaire signup
+├── POST /signup         → Traite le signup
+└── GET  /logout         → Déconnexion
+
+Profil: (CE QUE TU VAS CRÉER)
+├── GET  /profile        → Affiche la page profil
+└── POST /profile/update → Modifie le display_name
+         ─────┬─────────
+              │
+              └─ Nom que TU inventes!
+                 Tu aurais pu choisir:
+                 - /profile/save
+                 - /update-name
+                 - /change-display-name
+                 - /profil/modifier
+                 - n'importe quoi!
+
+Événements: (probablement existants)
+├── GET  /schedule       → Liste des événements
+├── POST /events/register → S'inscrire à un événement
+└── ...

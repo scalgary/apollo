@@ -1,4 +1,4 @@
-email,display_name,membership_type,credits
+email,real_name,membership_type,credits
 user1@example.com,User L.,full_member,
 user2@example.com,John Doe,punch_card,10
 user3@example.com,Sonia,punch_card,1

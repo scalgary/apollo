@@ -8,7 +8,9 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, nullable=False, index=True)
-    display_name = Column(String)
+    display_name = Column(String, nullable=False)
+    real_name = Column(String, nullable=False)
+
     hashed_password = Column(String, nullable=False)
     membership_type = Column(String, default='full_member')  # 'full_member' ou 'punch_card'
     initial_credits = Column(Integer, nullable=True)  # Nombre total de crédits autorisés (None = unlimited)

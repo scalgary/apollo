@@ -16,7 +16,10 @@ templates = Jinja2Templates(directory="templates")
 
 # === SIGNUP ===
 @router.post("/signup")
-def signup(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+def signup(email: str = Form(...), 
+           password: str = Form(...), 
+           display_name: str = Form(""),  # NEW: optional (empty by default)
+           db: Session = Depends(get_db)):
     """Créer un nouveau compte utilisateur (avec whitelist)"""
     whitelist = load_whitelist()
     
@@ -30,12 +33,13 @@ def signup(email: str = Form(...), password: str = Form(...), db: Session = Depe
     
     # Récupérer les infos de membership depuis la whitelist
     user_info = whitelist[email]
-    
+
     hashed_password = get_password_hash(password)
     user = User(
         email=email, 
         hashed_password=hashed_password,
-        display_name=user_info['display_name'],
+        real_name=user_info['real_name'],
+        display_name=display_name,
         membership_type=user_info['membership_type'],
         initial_credits=user_info['initial_credits'],
         remaining_credits=user_info['initial_credits']  # Au début, remaining = initial
@@ -50,11 +54,34 @@ def signup(email: str = Form(...), password: str = Form(...), db: Session = Depe
 @router.post("/login")
 def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     """Authentifier un utilisateur"""
-    user = authenticate_user(db, email, password)
     
+    # 1. Vérifier si email est dans la whitelist
+    whitelist = load_whitelist()
+    
+    if email not in whitelist:
+        # Email pas autorisé - message générique pour sécurité
+        return RedirectResponse(
+            url="/login?error=Invalid credentials", 
+            status_code=302
+        )
+    
+    # 2. Email dans whitelist - vérifier si compte existe
+    user = db.query(User).filter(User.email == email).first()
+    
+    if not user:
+        # Dans whitelist mais pas encore inscrit
+        return RedirectResponse(
+            url="/login?error=Please sign up first.", 
+            status_code=302
+        )
+
+    # 3. Compte existe - vérifier password
+    user = authenticate_user(db, email, password)#super important
+
     if not user:
         return RedirectResponse(url="/login?error=Invalid credentials", status_code=302)
     
+    # 4. Tout est bon - login réussi
     access_token = create_access_token(data={"sub": user.id})
     
     response = RedirectResponse(url="/", status_code=302)

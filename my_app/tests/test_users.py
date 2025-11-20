@@ -14,6 +14,8 @@ def test_create_full_member_user(db):
     user = User(
         email=email,
         hashed_password=password_hash,
+        real_name = "User fullmember",
+        display_name = "User F",
         membership_type='full_member',
         initial_credits=None,
         remaining_credits=None
@@ -47,6 +49,8 @@ def test_create_punch_card_user(db):
     user = User(
         email=email,
         hashed_password=password_hash,
+        real_name = "Punchcard",
+        display_name = "Punchcard",
         membership_type='punch_card',
         initial_credits=10,      # Capacité totale
         remaining_credits=10     # Ce qui reste (au début = total)
@@ -76,6 +80,8 @@ def test_query_users_from_db(db):
     full_member = User(
         email="full@test.com",
         hashed_password="hash1",
+        real_name = "User fullmember",
+        display_name = "User F",
         membership_type='full_member',
         initial_credits=None,
         remaining_credits=None
@@ -84,6 +90,8 @@ def test_query_users_from_db(db):
     punch_card = User(
         email="punch@test.com",
         hashed_password="hash2",
+        real_name = "Punchcard",
+        display_name = "Punchcard",
         membership_type='punch_card',
         initial_credits=5,
         remaining_credits=3  # A déjà utilisé 2 crédits
@@ -111,6 +119,25 @@ def test_query_users_from_db(db):
     
     print(f"✓ Retrouvé {total_users} users dans la DB")
 
+def test_full_and_punch_together(full_member_user, punch_card_user, db):
+    from db_models import User
+
+    """Test avec les deux types d'users"""
+    
+    # Les deux users sont automatiquement créés par les fixtures
+    assert full_member_user.membership_type == "full_member"
+    assert full_member_user.email == "fullmember@test.com"
+    assert full_member_user.remaining_credits is None
+    
+    assert punch_card_user.membership_type == "punch_card"
+    assert punch_card_user.email == "punchcard@test.com"
+    assert punch_card_user.remaining_credits == 3
+    
+    # Tu as 2 users dans la DB
+    assert db.query(User).count() == 2
+    
+    # Maintenant fais tes tests avec ces deux users
+    # Par exemple: tester l'inscription aux événements
 
 def test_db_is_empty_at_start(db):
     """

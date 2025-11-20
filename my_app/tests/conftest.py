@@ -54,15 +54,14 @@ def test_password():
 @pytest.fixture(autouse=True)
 def setup_test_whitelist(tmp_path, monkeypatch):
     """Créer une whitelist de test avec le bon format"""
-    
     # Créer le CSV whitelist avec les colonnes correctes
     whitelist_file = tmp_path / "whitelist.csv"
     whitelist_file.write_text(
-        "email,membership_type,credits\n"
-        "test@example.com,full_member,\n"
-        "user2@example.com,punch_card,10\n"
-        "fullmember@test.com,full_member,\n"
-        "punchcard@test.com,punch_card,10\n"
+        "email,real_name,membership_type,credits\n"
+        "test@example.com,John,full_member,\n"
+        "user2@example.com,John Doe,punch_card,10\n"
+        "fullmember@test.com,Paul Bret,full_member,\n"
+        "punchcard@test.com,Sonia,punch_card,10\n"
     )
     
     # Mock le path de la whitelist
@@ -83,14 +82,15 @@ def setup_test_whitelist(tmp_path, monkeypatch):
 def full_member_user(db):
     """Fixture: créer un full member"""
     from db_models import User
-        # ARRANGE - Préparer les données
-    email = "fullmember@test.com"
-    password_hash = "fake_hash_for_now"
+    from utils import get_password_hash
     
-    # ACT - Créer le user
+    password = "testpass123"  # ← Le vrai password en clair
+    
     user = User(
-        email=email,
-        hashed_password=password_hash,
+        email="fullmember@test.com",
+        hashed_password=get_password_hash(password),  # ← Hash le password
+        real_name="Test Full",
+        display_name="Full Test",
         membership_type='full_member',
         initial_credits=None,
         remaining_credits=None
@@ -98,6 +98,10 @@ def full_member_user(db):
     db.add(user)
     db.commit()
     db.refresh(user)
+    
+    # IMPORTANT: Attache le password en clair à l'objet pour les tests
+    user.plain_password = password  # ← Ajoute cette ligne
+    
     return user
 
     # À toi d'écrire!
@@ -109,11 +113,17 @@ def full_member_user(db):
 def punch_card_user(db):
     """Fixture: créer un punch card user avec 3 crédits"""
     from db_models import User
+    from utils import get_password_hash
+
     email = "punchcard@test.com"
-    password_hash = "fake_hash_for_now"
+    password = "testpass123"  # ← Le vrai password en clair
+    real_name="Test Punch"
+    display_name="Punch Test"
     user = User(
         email=email,
-        hashed_password=password_hash,
+        hashed_password=get_password_hash(password),  # ← Hash le password
+        real_name=real_name,
+        display_name=display_name,
         membership_type='punch_card',
         initial_credits=10,      # Capacité totale
         remaining_credits=3     # Ce qui reste (au début = total)
@@ -121,6 +131,8 @@ def punch_card_user(db):
     db.add(user)
     db.commit()
     db.refresh(user)
+    user.plain_password = password  # ← Ajoute cette ligne
+
     return user
 
 
@@ -164,3 +176,44 @@ def mock_auth_punch_card(monkeypatch, punch_card_user):
     from routes import events
     monkeypatch.setattr(events, "get_user_from_cookie", fake_get_user)
 
+# ============================================
+# FIXTURE FACTORY POUR CRÉER DES USERS
+# ============================================
+
+@pytest.fixture
+def create_user(db):
+    """
+    Factory fixture to create test users with all required fields.
+    Flexible - you can customize any field.
+    
+    Usage:
+        user = create_user()  # Uses defaults
+        user = create_user(email="custom@test.com", display_name="Custom")
+    """
+    from db_models import User
+    from utils import get_password_hash
+    
+    def _create_user(
+        email="test@example.com",
+        password="testpass123",
+        real_name="Test User",
+        display_name="Test User",
+        membership_type="full_member",
+        initial_credits=None,
+        remaining_credits=None
+    ):
+        user = User(
+            email=email,
+            hashed_password=get_password_hash(password),
+            real_name=real_name,
+            display_name=display_name,
+            membership_type=membership_type,
+            initial_credits=initial_credits,
+            remaining_credits=remaining_credits
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return user
+    
+    return _create_user

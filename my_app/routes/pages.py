@@ -41,3 +41,4 @@ def forgot_password_page(request: Request):
 def reset_password_page(request: Request, token: str = None):
     """Page reset password"""
     return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+

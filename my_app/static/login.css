@@ -29,8 +29,8 @@
     --color-rsvp: #6b7280;           /* Bouton RSVP */
     --color-rsvp-hover: #4b5563;
 
-    --color-error: rgb(32, 32, 207);
-    --color-error-bg: white;
+    --color-error: white;
+    --color-error-bg: rgb(223, 93, 93);
 }
 
 /* ============================================
@@ -221,6 +221,9 @@ body {
     /*border-left: 4px solid var(--color-error);*/
     animation: slideIn 0.3s ease;
     text-align: center;  /* ← AJOUTE CETTE LIGNE */
+
+    /*border-left: 4px solid #10b981;*/
+    animation: slideIn 0.3s ease;
 }
 
 @keyframes slideIn {

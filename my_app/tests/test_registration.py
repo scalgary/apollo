@@ -1,28 +1,9 @@
 
 
-def test_create_attendee_going(db):
+def test_create_attendee_going(full_member_user, punch_card_user, db):
     from db_models import Event, User, Attendee
-    from datetime import date  # ← Ajouter cet import
+    from datetime import date
 
-        # ARRANGE - Créer 2 users
-    user1 = User(
-        email="full@test.com",
-        hashed_password="hash1",
-        membership_type='full_member',
-        initial_credits=None,
-        remaining_credits=None
-    )
-    
-    user2 = User(
-        email="punch@test.com",
-        hashed_password="hash2",
-        membership_type='punch_card',
-        initial_credits=5,
-        remaining_credits=3  # A déjà utilisé 2 crédits
-    )
-    
-    db.add(user1)
-    db.add(user2)
     event1 = Event(
         date=date(2025, 11, 25),
         max_spots=20
@@ -34,30 +15,35 @@ def test_create_attendee_going(db):
     db.add(event1)
     db.add(event2)
     db.commit()
-    attendee = Attendee(user_id=user1.id, event_id=event2.id)
+    
+    # Créer attendee pour full_member_user seulement
+    attendee = Attendee(user_id=full_member_user.id, event_id=event2.id)
     db.add(attendee)
     db.commit()
     db.refresh(attendee)
-        # ASSERT
+    
+    # ASSERT - full_member_user est inscrit
     assert attendee.id is not None
-    assert attendee.user_id == user1.id
+    assert attendee.user_id == full_member_user.id
     assert attendee.event_id == event2.id
     assert attendee.status == 'going'
+    
+    # ASSERT - punch_card_user N'est PAS inscrit
+    punch_attendee = db.query(Attendee).filter(
+        Attendee.user_id == punch_card_user.id,
+        Attendee.event_id == event2.id
+    ).first()
+    
+    assert punch_attendee is None  # ← Vérifier qu'il n'existe pas
 
 
 
 
-def test_user_attends_multiple_events(db):
+def test_user_attends_multiple_events(full_member_user,db):
     from db_models import Event, User, Attendee
     from datetime import date  # ← Ajouter cet import
 
-        # ARRANGE - Créer 2 users
-    user1 = User(
-        email="full@test.com",
-        hashed_password="hash1",
-        membership_type='full_member',
-        initial_credits=None,
-        remaining_credits=None)
+
     event1 = Event(
         date=date(2025, 11, 25),
         max_spots=20
@@ -72,11 +58,11 @@ def test_user_attends_multiple_events(db):
     db.add(event1)
     db.add(event2)
     db.add(event3)
-    db.add(user1)
+
     db.commit()
-    attendee1 = Attendee(user_id=user1.id, event_id=event1.id)
-    attendee2 = Attendee(user_id=user1.id, event_id=event2.id)
-    attendee3 = Attendee(user_id=user1.id, event_id=event3.id)
+    attendee1 = Attendee(user_id=full_member_user.id, event_id=event1.id)
+    attendee2 = Attendee(user_id=full_member_user.id, event_id=event2.id)
+    attendee3 = Attendee(user_id=full_member_user.id, event_id=event3.id)
     db.add(attendee1)
     db.add(attendee2)
     db.add(attendee3)
@@ -86,7 +72,7 @@ def test_user_attends_multiple_events(db):
     total_attendees = db.query(Attendee).count()
     assert total_attendees == 3, "Devrait y avoir exactement 3 attendees"
     # Tu pourrais vérifier les attendees de CE user
-    user1_attendees = db.query(Attendee).filter_by(user_id=user1.id).count()
+    user1_attendees = db.query(Attendee).filter_by(user_id=full_member_user.id).count()
     assert user1_attendees == 3, "User1 devrait avoir 3 inscriptions" 
 
 
