@@ -1,7 +1,8 @@
 #db_models.py
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint, Date
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint, Date, Time
 from sqlalchemy.sql import func
 from database import Base
+from sqlalchemy.orm import relationship  # ← Assurez-vous d'avoir cet import
 
 class User(Base):
     __tablename__ = 'users'
@@ -17,14 +18,19 @@ class User(Base):
     remaining_credits = Column(Integer, nullable=True)  # Crédits restants (None = unlimited)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+# Dans le même fichier db_models.py
+
 class Event(Base):
     __tablename__ = 'events'
     
     id = Column(Integer, primary_key=True, index=True)
-    date = Column(Date, nullable=False, unique=True)  # ← CHANGEMENT ICI
-    max_spots = Column(Integer, default=20)
+    date = Column(Date, nullable=False)
+    event_type_id = Column(Integer, ForeignKey('event_types.id'), nullable=False)
     confirmed_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relation : un Event appartient à un EventType
+    event_type = relationship("EventType", back_populates="events")
 
 class Attendee(Base):
     __tablename__ = 'attendees'
@@ -45,3 +51,20 @@ class PasswordReset(Base):
     token = Column(String, unique=True, nullable=False)
     expires_at = Column(DateTime(timezone=True), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ========== NOUVELLE CLASSE ==========
+class EventType(Base):
+    __tablename__ = 'event_types'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    display_name = Column(String, nullable=False)
+    default_location = Column(String, nullable=False)
+    default_time_start = Column(Time, nullable=False)
+    default_time_end = Column(Time, nullable=False)
+    default_max_capacity = Column(Integer, nullable=False)
+    color = Column(String, nullable=True)
+    
+    # Relation : un EventType peut avoir plusieurs Events
+    events = relationship("Event", back_populates="event_type")
