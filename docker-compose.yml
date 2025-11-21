@@ -40,6 +40,9 @@ services:
     volumes:
       - ./my_app:/app
     # Pas besoin de depends_on si SQLite
+    #profiles:
+    #- testing  # ← AJOUTÉ : Ne se lance que si explicitement demandé
+    #docker-compose --profile testing up test
 
 volumes:
   postgres_data:
