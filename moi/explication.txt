@@ -180,3 +180,11 @@ Profil: (CE QUE TU VAS CRÉER)
 ├── GET  /schedule       → Liste des événements
 ├── POST /events/register → S'inscrire à un événement
 └── ...
+
+
+Utilisation de jupyter:
+dockeroverride
+puis select kernel : use existing server and use token
+http://localhost:8888
+
+docker exec apollo-jupyter jupyter server list | grep -o 'token=[^ ]*'
