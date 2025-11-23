@@ -39,3 +39,8 @@ docker exec apollo-app pytest tests  -v -s
 
 docker exec apollo-app pytest tests/test_users.py
 docker-compose down -v  
+
+docker-compose -f docker-compose.yml up
+
+#remove all the process
+docker rm $(docker ps -aq)

@@ -9,7 +9,6 @@ services:
     volumes:
       - ./my_app:/app
       - ./notebooks:/app/notebooks
-      - ./my_app/jupyter_lab_config.py:/root/.jupyter/jupyter_lab_config.py  # ← NOUVELLE LIGNE
     environment:
       DATABASE_URL: postgresql://apollo:apollo123@db:5432/apollo
       SECRET_KEY: your-secret-key-change-in-production
