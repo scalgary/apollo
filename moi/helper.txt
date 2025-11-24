@@ -1,0 +1,13 @@
+
+FICHIER="docker-compose.yml" && git show jupyter:$FICHIER > /tmp/jupyter.txt && git show main:$FICHIER > /tmp/event.txt && /usr/local/bin/code --wait --diff /tmp/event.txt /tmp/jupyter.txt
+
+FICHIER="docker-compose.override.yml" && git show jupyter:$FICHIER > /tmp/jupyter.txt && git show event_type:$FICHIER > /tmp/event.txt && /usr/local/bin/code --wait --diff /tmp/event.txt /tmp/jupyter.txt
+
+FICHIER="moi/explication.txt" && git show jupyter:$FICHIER > /tmp/jupyter.txt && git show event_type:$FICHIER > /tmp/event.txt && /usr/local/bin/code --wait --diff /tmp/event.txt /tmp/jupyter.txt
+
+FICHIER="moi/test_explanation.md" && git show jupyter:$FICHIER > /tmp/jupyter.txt && git show event_type:$FICHIER > /tmp/event.txt && /usr/local/bin/code --wait --diff /tmp/event.txt /tmp/jupyter.txt
+
+FICHIER="moi/test_explanation.md" && git show jupyter:$FICHIER > /tmp/jupyter.txt && git show event_type:$FICHIER > /tmp/event.txt && /usr/local/bin/code --wait --diff /tmp/event.txt /tmp/jupyter.txt
+
+
+FICHIER="docker-compose.yml" && git show jupyter:$FICHIER > /tmp/jupyter.txt && git show main:$FICHIER > /tmp/event.txt && /usr/local/bin/code --wait --diff /tmp/event.txt /tmp/jupyter.txt

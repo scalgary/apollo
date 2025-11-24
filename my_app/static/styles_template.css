@@ -53,14 +53,10 @@ body {
 .header {
     background: white;
     padding: 15px 20px;
-    border-bottom: 1px solid #e0e0e0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-bottom: 0;
 }
 
-.header-content {
-    max-width: 800px;
-    margin: 0 auto;
-}
 .header-top {
     display: flex;
     justify-content: space-between;
@@ -150,14 +146,11 @@ body {
    SCHEDULE CONTAINER
    ============================================ */
 
-/* ============================================
-   SCHEDULE CONTAINER
-   ============================================ */
-
 .schedule-container {
     max-width: 800px;
     margin: 0 auto;
     background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .schedule-container h2 {
@@ -330,26 +323,18 @@ body {
     transform: scale(1.05);
 }
 
-
 /* ============================================
    RESPONSIVE
    ============================================ */
 
 @media (max-width: 768px) {
     .schedule-container {
-        margin: 0;  /* Enlève le centrage */
-        max-width: none;  /* Enlève la limite de largeur */
-    }
-    
-    .header-content {
-        max-width: none;  /* Le header prend toute la largeur */
+        margin: 0;
     }
 
     .header {
         padding: 12px 15px;
     }
-
-
 
     .header-top {
         margin-bottom: 10px;

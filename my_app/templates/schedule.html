@@ -3,74 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Apollo</title>
+    <title>Schedule - Apollo</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <div class="header">
-        <h1>Apollo Pickleball</h1>
-        <div class="user-info">
-            <span>{{ user.display_name }}</span>
-            {% if user.membership_type == 'punch_card' %}
-                <span class="credits-badge">
-                    {{ user.remaining_credits if user.remaining_credits is not none else 0 }} credits left
-                </span>
-            {% endif %}
+    <!-- ===================================
+         HEADER avec display name
+         =================================== -->
+<div class="header">
+    <div class="header-content">
+        <!-- Ligne 1 : Titre + Logout -->
+        <div class="header-top">
+            <h1>Apollo Pickleball</h1>
             <a href="/logout" class="logout-btn">Logout</a>
         </div>
+        
+        <!-- Ligne 2 : Display name + Badges membership -->
+        <div class="user-info">
+            <span class="user-display-name">John Smith</span>
+            <span class="membership-badge type-1">Full Member - Cedarbrae</span>
+            <span class="membership-badge type-2">Full Member - Calgary JCC</span>
+        </div>
     </div>
+</div>
 
-    <div class="container">
+    <!-- ===================================
+         SCHEDULE avec événements colorés
+         =================================== -->
+    <div class="schedule-container">
         <h2>Upcoming Events</h2>
         
-        {% if events|length == 0 %}
-            <p class="no-events">No upcoming events.</p>
-        {% else %}
-            <div class="events-list">
-                {% for event in events %}
-                <div class="event-row" onclick="window.location.href='/event/{{ event.id }}'">
-                    <!-- Date à gauche -->
-                    <div class="date-section">
-                        <div class="month">{{ event.month }}.</div>
-                        <div class="day">{{ event.day }}</div>
-                        <div class="weekday">{{ event.weekday }}</div>
-                    </div>
-                    
-                    <!-- Infos à droite -->
- <div class="event-details">
-    <div class="event-capacity">
-        👥 {{ event.confirmed_count }}/{{ event.max_spots }}
-    </div>
-    
-   <!-- DEBUG : Afficher la valeur exacte -->
-    <!-- <div style="font-size: 12px; color: red;">  -->
-        <!-- DEBUG: user_status = "{{ event.user_status }}" -->
-    <!-- </div> -->
-    
-    <!-- Statut utilisateur -->
-<!-- Statut utilisateur -->
-{% if event.user_status == 'going' %}
-    <button class="status-btn status-going">GOING</button>
-{% elif event.user_status == 'waiting' %}
-    <button class="status-btn status-waitlist">WAITLIST</button>
-{% else %}
-    <button class="status-btn status-rsvp">RSVP</button>
-{% endif %}
-</div>
-                        
-                        <!-- Statut utilisateur -->
-                        {% if event.user_status == 'confirmed' %}
-                            <button class="status-btn status-going">GOING</button>
-                        {% elif event.user_status == 'waiting' %}
-                            <button class="status-btn status-waitlist">WAITLIST</button>
-                        {% else %}
-                            <button class="status-btn status-rsvp">RSVP</button>
-                        {% endif %}
-                    </div>
+        <div class="events-table">
+            
+            <!-- ============ Event Type 1 : Cedarbrae (BLEU) ============ -->
+            <div class="event-row type-1">
+                <!-- Date dans une card colorée -->
+                <div class="date-card type-1">
+                    <div class="month">Nov.</div>
+                    <div class="day">20</div>
+                    <div class="weekday">Thu</div>
                 </div>
-                {% endfor %}
+                
+                <div class="event-info">
+                    <h3 class="event-title type-1">Cedarbrae Competitive Thursdays</h3>
+                    <p class="event-location">📍 Cedarbrae Community Centre</p>
+                    <p class="event-time">🕒 6:00pm - 7:59pm MST</p>
+                    <p class="event-capacity">👥 12/20</p>
+                </div>
+                
+                <div class="status-section">
+                    <button class="status-badge status-going">GOING</button>
+                </div>
             </div>
-        {% endif %}
+
+            <!-- ============ Event Type 2 : Calgary JCC (ORANGE) ============ -->
+            <div class="event-row type-2">
+                <div class="date-card type-2">
+                    <div class="month">Nov.</div>
+                    <div class="day">23</div>
+                    <div class="weekday">Sun</div>
+                </div>
+                
+                <div class="event-info">
+                    <h3 class="event-title type-2">Calgary JCC Open Play Sundays</h3>
+                    <p class="event-location">📍 1607 90 Ave SW, Calgary</p>
+                    <p class="event-time">🕒 3:30pm - 5:30pm MST</p>
+                    <p class="event-capacity">👥 20/20</p>
+                </div>
+                
+                <div class="status-section">
+                    <button class="status-badge status-waitlist">WAITLIST</button>
+                </div>
+            </div>
+
+            <!-- ============ Event Type 1 : Cedarbrae (BLEU) ============ -->
+            <div class="event-row type-1">
+                <div class="date-card type-1">
+                    <div class="month">Nov.</div>
+                    <div class="day">27</div>
+                    <div class="weekday">Thu</div>
+                </div>
+                
+                <div class="event-info">
+                    <h3 class="event-title type-1">Cedarbrae Competitive Thursdays</h3>
+                    <p class="event-location">📍 Cedarbrae Community Centre</p>
+                    <p class="event-time">🕒 6:00pm - 7:59pm MST</p>
+                    <p class="event-capacity">👥 15/20</p>
+                </div>
+                
+                <div class="status-section">
+                    <button class="status-badge status-rsvp">RSVP</button>
+                </div>
+            </div>
+
+            <!-- ============ Event Type 2 : Autre lieu (ORANGE) ============ -->
+            <div class="event-row type-2">
+                <div class="date-card type-2">
+                    <div class="month">Dec.</div>
+                    <div class="day">01</div>
+                    <div class="weekday">Fri</div>
+                </div>
+                
+                <div class="event-info">
+                    <h3 class="event-title type-2">Friday Night Pickleball</h3>
+                    <p class="event-location">📍 Downtown Sports Complex</p>
+                    <p class="event-time">🕒 7:00pm - 9:00pm MST</p>
+                    <p class="event-capacity">👥 8/16</p>
+                </div>
+                
+                <div class="status-section">
+                    <button class="status-badge status-going">GOING</button>
+                </div>
+            </div>
+
+            <!-- ============ Event Type 1 : Cedarbrae (BLEU) ============ -->
+            <div class="event-row type-1">
+                <div class="date-card type-1">
+                    <div class="month">Dec.</div>
+                    <div class="day">05</div>
+                    <div class="weekday">Tue</div>
+                </div>
+                
+                <div class="event-info">
+                    <h3 class="event-title type-1">Cedarbrae Competitive Thursdays</h3>
+                    <p class="event-location">📍 Cedarbrae Community Centre</p>
+                    <p class="event-time">🕒 6:00pm - 7:59pm MST</p>
+                    <p class="event-capacity">👥 10/20</p>
+                </div>
+                
+                <div class="status-section">
+                    <button class="status-badge status-rsvp">RSVP</button>
+                </div>
+            </div>
+
+            <!-- ============ Event Type 2 : Calgary JCC (ORANGE) ============ -->
+            <div class="event-row type-2">
+                <div class="date-card type-2">
+                    <div class="month">Dec.</div>
+                    <div class="day">07</div>
+                    <div class="weekday">Thu</div>
+                </div>
+                
+                <div class="event-info">
+                    <h3 class="event-title type-2">Calgary JCC Open Play Sundays</h3>
+                    <p class="event-location">📍 1607 90 Ave SW, Calgary</p>
+                    <p class="event-time">🕒 3:30pm - 5:30pm MST</p>
+                    <p class="event-capacity">👥 18/20</p>
+                </div>
+                
+                <div class="status-section">
+                    <button class="status-badge status-going">GOING</button>
+                </div>
+            </div>
+
+        </div>
     </div>
 </body>
 </html>

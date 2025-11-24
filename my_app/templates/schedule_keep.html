@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Apollo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- ===================================
+         HEADER avec display name
+         =================================== -->
+    <div class="header">
+    <div class="header-content">
+        <!-- Ligne 1 : Titre + Logout -->
+        <div class="header-top">
+        <h1>Apollo Pickleball</h1>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+        
+        <!-- Ligne 2 : Display name + Badges membership -->
+        <div class="user-info">
+            <span class="user-display-name">{{ user.display_name }}</span>
+            {% if user.membership_type == 'punch_card' %}
+                <span class=class="membership-badge type-1">
+                    {{ user.remaining_credits if user.remaining_credits is not none else 0 }} credits left
+                </span>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- ===================================
+         SCHEDULE avec événements colorés
+         =================================== -->
+    <div class="schedule-container">
+        <h2>Upcoming Events</h2>
+        
+        {% if events|length == 0 %}
+            <p class="no-events">No upcoming events.</p>
+        {% else %}
+            <div class="events-list">
+                {% for event in events %}
+                <div class="event-row" onclick="window.location.href='/event/{{ event.id }}'">
+                    <!-- Date à gauche -->
+                    <div class="date-section">
+                        <div class="month">{{ event.month }}.</div>
+                        <div class="day">{{ event.day }}</div>
+                        <div class="weekday">{{ event.weekday }}</div>
+                    </div>
+                    
+                    <!-- Infos à droite -->
+ <div class="event-details">
+    <div class="event-capacity">
+        👥 {{ event.confirmed_count }}/{{ event.max_spots }}
+    </div>
+    
+   <!-- DEBUG : Afficher la valeur exacte -->
+    <!-- <div style="font-size: 12px; color: red;">  -->
+        <!-- DEBUG: user_status = "{{ event.user_status }}" -->
+    <!-- </div> -->
+    
+    <!-- Statut utilisateur -->
+<!-- Statut utilisateur -->
+{% if event.user_status == 'going' %}
+    <button class="status-btn status-going">GOING</button>
+{% elif event.user_status == 'waiting' %}
+    <button class="status-btn status-waitlist">WAITLIST</button>
+{% else %}
+    <button class="status-btn status-rsvp">RSVP</button>
+{% endif %}
+</div>
+                        
+                        <!-- Statut utilisateur -->
+                        {% if event.user_status == 'confirmed' %}
+                            <button class="status-btn status-going">GOING</button>
+                        {% elif event.user_status == 'waiting' %}
+                            <button class="status-btn status-waitlist">WAITLIST</button>
+                        {% else %}
+                            <button class="status-btn status-rsvp">RSVP</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

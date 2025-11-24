@@ -119,7 +119,7 @@ def schedule_page(request: Request, db: Session = Depends(get_db)):
     event_service = EventService()
     events = event_service.get_events_for_schedule(db, user.id)
     
-    return templates.TemplateResponse("schedule.html", {
+    return templates.TemplateResponse("schedule_keep.html", {
         "request": request,
         "user": user,
         "events": events
