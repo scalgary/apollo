@@ -1,0 +1,77 @@
+- .DS_Store
+- .coverage
+- .pytest_cache/
+  - .gitignore
+  - CACHEDIR.TAG
+  - README.md
+  - v/
+    - cache/
+      - lastfailed
+      - nodeids
+      - stepwise
+- Dockerfile
+- data/
+  - event_types.csv
+  - events.csv
+  - whitelist.csv
+- database.py
+- db_models.py
+- main.py
+- notebooks/
+- requirements.txt
+- routes/
+  - __init__.py
+  - auth.py
+  - events.py
+  - pages.py
+- scripts/
+  - import_data.py
+  - load_test_data.py
+  - test_db_structure.py
+- services/
+  - auth_service.py
+  - event_service.py
+  - user_service.py
+- static/
+  - login.css
+  - styles.css
+  - styles_template.css
+- templates/
+  - event_detail.html
+  - forgot_password.html
+  - login.html
+  - profile.html
+  - reset_password.html
+  - schedule.html
+  - schedule_keep.html
+  - schedule_test1.html
+  - schedule_test2.html
+  - schedule_test3.html
+  - signup.html
+  - test.html
+  - waitlist.html
+- test_apollo.db
+- tests/
+  - .ipynb_checkpoints/
+    - conftest-checkpoint.py
+    - test_helpers-checkpoint.py
+  - __init__.py
+  - conftest.py
+  - integration/
+    - .ipynb_checkpoints/
+      - test-checkpoint.ipynb
+    - test.ipynb
+    - test_basic_db.py
+  - test_auth.py
+  - test_events.py
+  - test_helpers.py
+  - test_password.py
+  - test_registration.py
+  - test_registration_events.py
+  - test_users.py
+  - test_waiting_list.py
+- utils/
+  - __init__.py
+  - csv_loader.py
+  - get_user_from_cookie.py
+  - security.py

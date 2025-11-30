@@ -188,3 +188,6 @@ puis select kernel : use existing server and use token
 http://localhost:8888
 
 docker exec apollo-jupyter jupyter server list | grep -o 'token=[^ ]*'
+
+
+bdab46e0b6eaa3137790fb8d280fdd9bab287f1a293b2bce

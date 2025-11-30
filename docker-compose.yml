@@ -44,7 +44,7 @@ services:
       - .env
     command: pytest /app/tests -v
 
-  jupyter:
+  jupyter-dev:
     profiles: ["dev"]
     build: ./my_app
     ports:

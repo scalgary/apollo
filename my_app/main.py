@@ -10,24 +10,25 @@ from routes import auth, events, pages
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Exécuté au démarrage et à l'arrêt de l'app"""
-    # === STARTUP ===
-    # 1. Créer toutes les tables
     Base.metadata.create_all(bind=engine)
     print("✓ Database tables created")
     
-    # 2. Importer les events du CSV
     db = SessionLocal()
     try:
         event_service = EventService()
-        event_service.import_events_from_csv(db)
-        print("✓ Events loaded from CSV")
+        
+        # 1. Types d'abord
+        types_count = event_service.import_event_types_from_csv(db)
+        print(f"✓ {types_count} Event types loaded")
+        
+        # 2. Events ensuite
+        events_count = event_service.import_events_from_csv(db)
+        print(f"✓ {events_count} Events loaded")
+        
     finally:
         db.close()
     
-    yield  # L'app tourne
-    
-    # === SHUTDOWN ===
+    yield
     print("✓ App shutting down")
 
 # Créer l'app
@@ -50,16 +51,23 @@ def health_check():
 # === DEV ENDPOINTS ===
 @app.post("/dev/reset-events")
 def dev_reset_events():
-    """DEV ONLY - Clear and reimport events from CSV"""
     db = SessionLocal()
     try:
-        from db_models import Event
+        from db_models import Event, EventType
+        
+        # Supprimer dans l'ordre (events avant types à cause FK)
         db.query(Event).delete()
+        db.query(EventType).delete()
         db.commit()
         
         event_service = EventService()
-        event_service.import_events_from_csv(db)
-        return {"success": True, "message": "Events reset from CSV"}
+        types_count = event_service.import_event_types_from_csv(db)
+        events_count = event_service.import_events_from_csv(db)
+        
+        return {
+            "success": True, 
+            "message": f"{types_count} types, {events_count} events loaded"
+        }
     finally:
         db.close()
 

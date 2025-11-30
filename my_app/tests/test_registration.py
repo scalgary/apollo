@@ -1,112 +1,107 @@
-
-
 def test_create_attendee_going(full_member_user, punch_card_user, db):
-    from db_models import Event, User, Attendee
+    """Test: Créer des attendees pour des events"""
+    from db_models import Event, Attendee
     from datetime import date
 
     event1 = Event(
-        date=date(2025, 11, 25),
-        max_spots=20
+        event_type_id=1,  # ← NOUVEAU
+        date=date(2025, 11, 25)
     )
     event2 = Event(
-        date=date(2025, 11, 26),
-        max_spots=2
+        event_type_id=1,  # ← NOUVEAU
+        date=date(2025, 11, 26)
     )
     db.add(event1)
     db.add(event2)
     db.commit()
     
-    # Créer attendee pour full_member_user seulement
+    # Créer attendee pour full_member_user
     attendee = Attendee(user_id=full_member_user.id, event_id=event2.id)
     db.add(attendee)
     db.commit()
     db.refresh(attendee)
     
-    # ASSERT - full_member_user est inscrit
+    # ASSERT
     assert attendee.id is not None
     assert attendee.user_id == full_member_user.id
     assert attendee.event_id == event2.id
     assert attendee.status == 'going'
+    assert attendee.credit_used == 0  # ← NOUVEAU: full_member ne consomme pas de crédit
     
-    # ASSERT - punch_card_user N'est PAS inscrit
+    # punch_card_user n'est PAS inscrit
     punch_attendee = db.query(Attendee).filter(
         Attendee.user_id == punch_card_user.id,
         Attendee.event_id == event2.id
     ).first()
     
-    assert punch_attendee is None  # ← Vérifier qu'il n'existe pas
+    assert punch_attendee is None
+    
+    print("✓ Attendee créé, credit_used=0 pour full_member")
 
+def test_user_attends_multiple_events(full_member_user, db):
+    """Test: Un user s'inscrit à plusieurs events"""
+    from db_models import Event, Attendee
+    from datetime import date
 
-
-
-def test_user_attends_multiple_events(full_member_user,db):
-    from db_models import Event, User, Attendee
-    from datetime import date  # ← Ajouter cet import
-
-
-    event1 = Event(
-        date=date(2025, 11, 25),
-        max_spots=20
-    )
-    event2 = Event(
-        date=date(2025, 11, 26),
-        max_spots=2
-    )
-    event3 = Event(
-        date=date(2025, 11, 28),
-        max_spots=2)
-    db.add(event1)
-    db.add(event2)
-    db.add(event3)
-
+    event1 = Event(event_type_id=1, date=date(2025, 11, 25))
+    event2 = Event(event_type_id=1, date=date(2025, 11, 26))
+    event3 = Event(event_type_id=1, date=date(2025, 11, 28))
+    
+    db.add_all([event1, event2, event3])
     db.commit()
+    
     attendee1 = Attendee(user_id=full_member_user.id, event_id=event1.id)
     attendee2 = Attendee(user_id=full_member_user.id, event_id=event2.id)
     attendee3 = Attendee(user_id=full_member_user.id, event_id=event3.id)
-    db.add(attendee1)
-    db.add(attendee2)
-    db.add(attendee3)
+    
+    db.add_all([attendee1, attendee2, attendee3])
     db.commit()
 
-    # BONUS - Compter tous les users
+    # Vérifications
     total_attendees = db.query(Attendee).count()
-    assert total_attendees == 3, "Devrait y avoir exactement 3 attendees"
-    # Tu pourrais vérifier les attendees de CE user
-    user1_attendees = db.query(Attendee).filter_by(user_id=full_member_user.id).count()
-    assert user1_attendees == 3, "User1 devrait avoir 3 inscriptions" 
-
-
-def test_mock_auth_works(client, db, test_event, punch_card_user, mock_auth_punch_card):
-    """
-    Test: Vérifier que l'inscription fonctionne avec le mock
-    """
+    assert total_attendees == 3
     
-    # ARRANGE - État initial
-    initial_credits = punch_card_user.remaining_credits
-    assert initial_credits == 3, "Le user devrait avoir 3 crédits au départ"
+    user_attendees = db.query(Attendee).filter_by(user_id=full_member_user.id).count()
+    assert user_attendees == 3
+    
+    print("✓ User inscrit à 3 events")
+def test_mock_auth_works(client, db, test_event, punch_card_user, mock_auth_punch_card):
+    """Test: L'inscription consomme un crédit pour punch_card à J-7"""
+    from db_models import Attendee, UserEventTypeMembership
+    from datetime import date, timedelta
+    
+    # IMPORTANT: Modifier la date de l'événement pour être à J-7 ou moins
+    # Sinon le punch_card ira en waitlist automatiquement
+    test_event.date = date.today() + timedelta(days=5)  # Dans 5 jours
+    db.commit()
+    
+    # ARRANGE - Vérifier crédits initiaux
+    membership = db.query(UserEventTypeMembership).filter_by(
+        user_id=punch_card_user.id,
+        event_type_id=1
+    ).first()
+    
+    assert membership.total_credits_purchased == 10
+    assert membership.remaining_credits == 10, "Devrait avoir 10 crédits au départ"
     
     # ACT - S'inscrire
     response = client.post(f"/register/{test_event.id}")
     
     # ASSERT
+    assert response.status_code != 401, "Mock devrait bypasser auth"
     
-    # 1. Pas d'erreur d'authentification
-    assert response.status_code != 401, "Le mock devrait bypasser l'auth"
-    
-    # 2. Un Attendee a été créé
-    from db_models import Attendee
+    # Attendee créé
     attendee = db.query(Attendee).filter_by(
         user_id=punch_card_user.id,
         event_id=test_event.id
     ).first()
     
-    assert attendee is not None, "Un attendee devrait être créé"
-    assert attendee.status == 'going', "Le status devrait être 'going'"
+    assert attendee is not None, "Attendee devrait être créé"
+    assert attendee.status == 'going', "Status devrait être 'going' (event dans 5 jours)"
+    assert attendee.credit_used == 1, "credit_used devrait être 1"
     
-    # 3. Les crédits ont diminué
-    db.refresh(punch_card_user)
-    assert punch_card_user.remaining_credits == 2, f"Les crédits devraient passer de 3 à 2, mais sont à {punch_card_user.remaining_credits}"
+    # Vérifier crédits restants
+    db.refresh(membership)
+    assert membership.remaining_credits == 9, f"Devrait avoir 9 crédits, mais a {membership.remaining_credits}"
     
-    print(f"✓ Inscription réussie! Crédits: {initial_credits} → {punch_card_user.remaining_credits}")
-
-
+    print(f"✓ Inscription réussie! Crédits: 10 → 9")

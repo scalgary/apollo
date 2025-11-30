@@ -35,10 +35,8 @@ class AuthService:
         hashed_pw = pwd_context.hash(password)
         user = User(
             email=email,
-            hashed_password=hashed_pw,  # ← Attention: ton modèle utilise "hashed_password" pas "password_hash"
-            membership_type=user_info['membership_type'],
-            initial_credits=user_info['initial_credits'],
-            remaining_credits=user_info['initial_credits']
+            hashed_password=hashed_pw  # ← Attention: ton modèle utilise "hashed_password" pas "password_hash"
+     
         )
         self.db.add(user)
         self.db.commit()

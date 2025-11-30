@@ -23,39 +23,77 @@ ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
 
 # === SIGNUP ===
+
 @router.post("/signup")
 def signup(email: str = Form(...), 
            password: str = Form(...), 
            display_name: str = Form(""),
            db: Session = Depends(get_db)):
-    """Créer un nouveau compte utilisateur (avec whitelist)"""
+    """Créer un nouveau compte utilisateur avec memberships"""
+    from db_models import EventType, UserEventTypeMembership
+    
     whitelist = load_whitelist()
     
+    # 1. Vérifier whitelist
     if email not in whitelist:
-        return RedirectResponse(url="/signup?error=Email not authorized. Contact admin.", status_code=302)
+        return RedirectResponse(
+            url="/signup?error=Email not authorized. Contact admin.", 
+            status_code=302
+        )
     
+    # 2. Vérifier si existe déjà
     existing = db.query(User).filter(User.email == email).first()
     if existing:
-        return RedirectResponse(url="/signup?error=Email already exists", status_code=302)
+        return RedirectResponse(
+            url="/signup?error=Email already exists", 
+            status_code=302
+        )
     
     user_info = whitelist[email]
-
+    
+    # 3. Créer le User
     hashed_password = get_password_hash(password)
     user = User(
         email=email, 
         hashed_password=hashed_password,
         real_name=user_info['real_name'],
-        display_name=display_name,
-        membership_type=user_info['membership_type'],
-        initial_credits=user_info['initial_credits'],
-        remaining_credits=user_info['initial_credits']
+        display_name=display_name if display_name else user_info['real_name']
     )
     db.add(user)
     db.commit()
+    db.refresh(user)
     
-    logger.info(f"New user created: {email} ({user_info['membership_type']})")
+    # 4. Créer les memberships pour chaque event_type
+    for membership_data in user_info['memberships']:
+        # Trouver l'event_type_id depuis le nom
+        event_type = db.query(EventType).filter(
+            EventType.name == membership_data['event_type_name']
+        ).first()
+        
+        if not event_type:
+            logger.error(f"Event type not found: {membership_data['event_type_name']}")
+            continue
+        
+        # Calculer remaining_credits
+        if membership_data['membership_type'] == 'full_member':
+            remaining = None
+        else:
+            remaining = membership_data['total_credits_purchased'] or 0
+        
+        # Créer le membership
+        membership = UserEventTypeMembership(
+            user_id=user.id,
+            event_type_id=event_type.id,
+            membership_type=membership_data['membership_type'],
+            total_credits_purchased=membership_data['total_credits_purchased'],
+            remaining_credits=remaining
+        )
+        db.add(membership)
+    
+    db.commit()
+    
+    logger.info(f"New user created: {email} with {len(user_info['memberships'])} memberships")
     return RedirectResponse(url="/login?success=Account created", status_code=302)
-
 # === LOGIN ===
 @router.post("/login")
 def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
@@ -194,7 +232,13 @@ def reset_password(
         )
     
     # Vérifier que le token n'est pas expiré
-    if reset.expires_at < datetime.now(timezone.utc):
+    # Gérer compatibilité SQLite (retourne naive) et PostgreSQL (retourne aware)
+    expires_at = reset.expires_at
+    if expires_at.tzinfo is None:
+        # SQLite retourne naive, on ajoute UTC
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if expires_at < datetime.now(timezone.utc):
         logger.warning(f"Expired token used for user {reset.user_id}")
         db.delete(reset)
         db.commit()
@@ -213,8 +257,6 @@ def reset_password(
     
     logger.info(f"Password successfully reset for user {user.email}")
     return RedirectResponse(url="/login?success=Password reset successful! You can now login.", status_code=302)
-
-
 # === FONCTION POUR ENVOI EMAIL ===
 def send_reset_email(to_email: str, reset_link: str):
     """

@@ -21,13 +21,30 @@
         <!-- Ligne 2 : Display name + Badges membership -->
         <div class="user-info">
             <span class="user-display-name">{{ user.display_name }}</span>
-            {% if user.membership_type == 'punch_card' %}
-                <span class=class="membership-badge type-1">
-                    {{ user.remaining_credits if user.remaining_credits is not none else 0 }} credits left
-                </span>
+          <!-- Afficher seulement event_1 -->
+            <span class="membership-badge type-1">
+            {% if memberships['event_1']['type'] == 'punch_card' %}
+                Punch Card - {{ memberships['event_1']['remaining_credits'] }} 
+            {% elif memberships['event_1']['type'] == 'full_member' %}
+                Full Member 
+            {% else %}
+                No Access - {{ memberships['event_1']['display_name'] }}
             {% endif %}
+            </span>
+
+            <!-- Afficher seulement event_1 -->
+            <span class="membership-badge type-2">
+                {% if memberships['event_2']['type'] == 'punch_card' %}
+                    Punch Card - {{ memberships['event_2']['remaining_credits'] }} 
+                {% elif memberships['event_2']['type'] == 'full_member' %}
+                    Full Member 
+                {% else %}
+                No Access - {{ memberships['event_2']['display_name'] }}
+                {% endif %}
+            </span>
 
         </div>
+    </div>
     </div>
 
     <!-- ===================================
@@ -37,7 +54,7 @@
         <h2>Upcoming Events</h2>
         
         {% if events|length == 0 %}
-            <p class="no-events">No upcoming events.</p>
+        <p class="no-events">No upcoming events.</p>
         {% else %}
             <div class="events-list">
                 {% for event in events %}
@@ -50,10 +67,10 @@
                     </div>
                     
                     <!-- Infos à droite -->
- <div class="event-details">
-    <div class="event-capacity">
-        👥 {{ event.confirmed_count }}/{{ event.max_spots }}
-    </div>
+            <div class="event-details">
+                <div class="event-capacity">
+                    👥 {{ event.confirmed_count }}/{{ event.max_spots }}
+                </div>
     
    <!-- DEBUG : Afficher la valeur exacte -->
     <!-- <div style="font-size: 12px; color: red;">  -->
