@@ -1,0 +1,10 @@
+email,real_name,event_type_name,membership_type,total_credits_purchased
+user1@example.com,Alice,open_play,full_member,
+user1@example.com,Alice,competitive,punch_card,10
+user2@example.com,Bob,open_play,punch_card,3
+user2@example.com,Bob,competitive,full_member,
+user3@example.com,Charles,open_play,full_member,
+user3@example.com,Charles,competitive,full_member,
+user4@example.com,Daniel,open_play,punch_card,2
+user4@example.com,Daniel,competitive,punch_card,3
+user5@example.com,Elias,competitive,full_member,
