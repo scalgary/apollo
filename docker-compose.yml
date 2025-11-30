@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: apollo-db
+    environment:
+      POSTGRES_USER: apollo
+      POSTGRES_PASSWORD: apollo123
+      POSTGRES_DB: apollo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apollo -d apollo_db"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  app:
+    container_name: apollo-app
+    build: ./my_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./my_app:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    restart: on-failure
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  test:
+    profiles: ["dev"]
+    build: ./my_app
+    volumes:
+      - ./my_app:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    command: pytest /app/tests -v
+
+  jupyter-dev:
+    profiles: ["dev"]
+    build: ./my_app
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./my_app:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+
+volumes:
+  postgres_data:
