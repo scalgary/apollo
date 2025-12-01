@@ -42,8 +42,9 @@ def login(
         result = auth_service.authenticate(email, password)
         
         # Créer la réponse de redirection
-        redirect = RedirectResponse(url="/schedule", status_code=303)
-        
+        #redirect = RedirectResponse(url="/schedule", status_code=303)
+        redirect = RedirectResponse(url="/auth/welcome", status_code=303)
+
         # Set le cookie HTTP-only
         redirect.set_cookie(
             key="access_token",
@@ -96,3 +97,63 @@ def get_current_user_from_cookie(
         return user
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
+    
+
+# ============================================
+# GET /auth/signup - Afficher le formulaire
+# ============================================
+
+@router.get("/signup", response_class=HTMLResponse)
+def signup_page(request: Request):
+    """Affiche la page de signup"""
+    return templates.TemplateResponse("signup.html", {"request": request})
+
+
+# ============================================
+# POST /auth/signup - Traiter le formulaire
+# ============================================
+
+@router.post("/signup")
+def signup(
+    email: str = Form(...),
+    password: str = Form(...),
+    display_name: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Crée un nouveau compte utilisateur
+    
+    En cas de succès : redirige vers /auth/login avec message de succès
+    En cas d'échec : redirige vers /auth/signup avec message d'erreur
+    """
+    auth_service = AuthService(db)
+    
+    try:
+        # Créer le compte
+        auth_service.signup(email, password, display_name)  # ← Enlever "result ="
+        
+        # Rediriger vers login avec message de succès
+        return RedirectResponse(
+            url="/auth/login?success=Account created successfully! Please login.",
+            status_code=303
+        )
+        
+    except ValueError as e:
+        # Erreur - rediriger vers signup avec message
+        return RedirectResponse(
+            url=f"/auth/signup?error={str(e)}",
+            status_code=303
+        )    
+
+# Dans routes/auth.py, ajoute :
+
+@router.get("/welcome", response_class=HTMLResponse)
+def welcome_page(
+    request: Request,
+    user = Depends(get_current_user_from_cookie)
+):
+    """Page temporaire après login"""
+    return templates.TemplateResponse("welcome.html", {
+        "request": request,
+        "user": user
+    })

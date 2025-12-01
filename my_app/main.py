@@ -17,14 +17,14 @@ async def lifespan(app: FastAPI):
 
     db = SessionLocal()
     try:
-        event_service = EventService()
+        event_service = EventService(db)
 
         # 1. Types d'abord
-        types_count = event_service.import_event_types_from_csv(db)
+        types_count = event_service.import_event_types_from_csv()
         print(f"✓ {types_count} Event types loaded")
 
         # 2. Events ensuite
-        events_count = event_service.import_events_from_csv(db)
+        events_count = event_service.import_events_from_csv()
         print(f"✓ {events_count} Events loaded")
 
     finally:

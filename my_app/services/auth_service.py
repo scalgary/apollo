@@ -105,3 +105,83 @@ class AuthService:
             raise ValueError("User not found")
         
         return user
+    
+        
+    def signup(self, email: str, password: str, display_name: str) -> dict:
+        """
+        Crée un nouveau compte utilisateur
+
+        Args:
+            email: Email de l'utilisateur
+            password: Password en clair
+            display_name: Nom d'affichage choisi par l'utilisateur
+
+        Returns:
+            dict avec user_id et message de succès
+
+        Raises:
+            ValueError: Si email pas dans whitelist, déjà utilisé, ou autre erreur
+        """
+        from utils import load_whitelist
+        from db_models import UserEventTypeMembership, EventType
+
+        # 1. Vérifier que l'email est dans la whitelist
+        whitelist = load_whitelist()
+        email_lower = email.lower().strip()
+
+        if email_lower not in whitelist:
+            raise ValueError("Email not authorized. Please contact the administrator.")
+
+        # 2. Vérifier que l'email n'existe pas déjà
+        existing_user = self.get_user_by_email(email_lower)
+        if existing_user:
+            raise ValueError("An account with this email already exists. Please login instead.")
+
+        # 3. Créer le user
+        whitelist_data = whitelist[email_lower]
+        hashed_password = self.hash_password(password)
+
+        new_user = User(
+            email=email_lower,
+            hashed_password=hashed_password,
+            real_name=whitelist_data['real_name'],
+            display_name=display_name.strip()
+        )
+        self.db.add(new_user)
+        self.db.flush()  # Pour obtenir l'ID sans commit complet
+
+        # 4. Créer les memberships depuis la whitelist
+        event_types = {et.name: et.id for et in self.db.query(EventType).all()}
+
+        for membership_data in whitelist_data['memberships']:
+            event_type_name = membership_data['event_type_name']
+            
+            if event_type_name not in event_types:
+                print(f"Warning: Event type '{event_type_name}' not found, skipping")
+                continue
+            
+            membership_type = membership_data['membership_type']
+            total_credits = membership_data['total_credits_purchased']
+            
+            # Calculer remaining_credits
+            if membership_type == 'full_member':
+                remaining_credits = None  # Illimité
+            else:
+                remaining_credits = total_credits if total_credits else 0
+            
+            membership = UserEventTypeMembership(
+                user_id=new_user.id,
+                event_type_id=event_types[event_type_name],
+                membership_type=membership_type,
+                total_credits_purchased=total_credits,
+                remaining_credits=remaining_credits
+            )
+            self.db.add(membership)
+
+        # 5. Commit tout
+        self.db.commit()
+
+        return {
+            "user_id": new_user.id,
+            "message": "Account created successfully"
+        }
