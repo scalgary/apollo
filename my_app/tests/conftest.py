@@ -2,7 +2,6 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from main import app
 import os
 import sys
 from pathlib import Path
@@ -10,6 +9,7 @@ from pathlib import Path
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from database import Base, get_db
+from main import app
 
 # ============================================
 # FIXTURES DE BASE
@@ -24,11 +24,7 @@ def db():
     )
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
-    # Créer toutes les tables
-    Base.metadata.create_all(bind=engine)
-    
-    db = TestingSessionLocal()
-    
+
     # IMPORTANT: Créer les 2 event_types dans chaque DB de test
     from db_models import EventType
     open_play = EventType(
@@ -49,6 +45,11 @@ def db():
         default_max_capacity=16,
         color='#7ED321'
     )
+        # Créer toutes les tables
+    Base.metadata.create_all(bind=engine)
+    
+    db = TestingSessionLocal()
+    
     db.add(open_play)
     db.add(competitive)
     db.commit()
