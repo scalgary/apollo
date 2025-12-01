@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from database import Base, engine, SessionLocal, get_db
+from services.auth_service import AuthService
 #from services.event_service import EventService
 
 #from services.event_service import import_events_from_csv
