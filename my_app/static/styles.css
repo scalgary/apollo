@@ -1,0 +1,400 @@
+/* ============================================
+   VARIABLES DE COULEURS
+   Modifie uniquement cette section pour changer tout le thème
+   ============================================ */
+
+:root {
+    /* TYPE 1 - Event Type 1 (actuellement BLEU) */
+    --type1-primary: #3b82f6;        /* Couleur principale */
+    --type1-primary-dark: #2563eb;   /* Couleur foncée */
+    --type1-light: #dbeafe;          /* Fond badge */
+    --type1-lighter: #eff6ff;        /* Fond ligne pâle */
+    --type1-text: #1e40af;           /* Texte */
+    
+    /* TYPE 2 - Event Type 2 (actuellement ORANGE) */
+    --type2-primary: #f97316;        /* Couleur principale */
+    --type2-primary-dark: #ea580c;   /* Couleur foncée */
+    --type2-light: #ffedd5;          /* Fond badge */
+    --type2-lighter: #fed7aa;        /* Fond ligne plus foncé */
+    --type2-text: #c2410c;           /* Texte */
+    
+    /* COULEURS GÉNÉRIQUES */
+    --color-apollo: #490fae;         /* Titre Apollo */
+    --color-logout: #dc3545;         /* Bouton logout */
+    --color-logout-hover: #c82333;
+    --color-going: #10b981;          /* Bouton GOING */
+    --color-going-hover: #059669;
+    --color-waitlist: #f59e0b;       /* Bouton WAITLIST */
+    --color-waitlist-hover: #d97706;
+    --color-rsvp: #6b7280;           /* Bouton RSVP */
+    --color-rsvp-hover: #4b5563;
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.header {
+    background: white;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0;
+}
+
+.header-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.header h1 {
+    font-size: 24px;
+    color: var(--color-apollo);
+    margin: 0;
+}
+
+.logout-btn {
+    padding: 8px 16px;
+    background: var(--color-logout);
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.logout-btn:hover {
+    background: var(--color-logout-hover);
+}
+
+.user-info {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+    flex-wrap: wrap;
+}
+
+.user-display-name {
+    font-weight: 600;
+    font-size: 15px;
+    color: #333;
+}
+
+/* ============================================
+   BADGES - Utilisent les variables
+   ============================================ */
+
+.membership-badge.type-1 {
+    background: var(--type1-light);
+    color: var(--type1-text);
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    border: 2px solid var(--type1-primary);
+    font-size: 13px;
+}
+
+.membership-badge.type-2 {
+    background: var(--type2-light);
+    color: var(--type2-text);
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    border: 2px solid var(--type2-primary);
+    font-size: 13px;
+}
+
+.credits-badge.type-1 {
+    background: var(--type1-light);
+    color: var(--type1-text);
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    border: 2px solid var(--type1-primary);
+    font-size: 13px;
+}
+
+.credits-badge.type-2 {
+    background: var(--type2-light);
+    color: var(--type2-text);
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-weight: bold;
+    border: 2px solid var(--type2-primary);
+    font-size: 13px;
+}
+
+/* ============================================
+   SCHEDULE CONTAINER
+   ============================================ */
+
+/* ============================================
+   SCHEDULE CONTAINER
+   ============================================ */
+
+.schedule-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+}
+
+.schedule-container h2 {
+    padding: 20px;
+    font-size: 18px;
+    border-bottom: 1px solid #e0e0e0;
+    margin: 0;
+}
+
+/* ============================================
+   EVENT ROW - Utilisent les variables
+   ============================================ */
+
+.event-row {
+    display: flex;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Type 1 backgrounds */
+.event-row.type-1:nth-child(odd) {
+    background-color: var(--type1-light);
+}
+
+.event-row.type-1:nth-child(even) {
+    background-color: var(--type1-lighter);
+}
+
+/* Type 2 backgrounds */
+.event-row.type-2:nth-child(odd) {
+    background-color: var(--type2-lighter);
+}
+
+.event-row.type-2:nth-child(even) {
+    background-color: var(--type2-light);
+}
+
+.event-row:hover {
+    opacity: 0.9;
+    transform: translateX(2px);
+}
+
+/* ============================================
+   DATE CARD - Utilisent les variables
+   ============================================ */
+
+.date-card {
+    flex: 0 0 80px;
+    text-align: center;
+    margin-right: 20px;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.date-card.type-1 {
+    background: linear-gradient(135deg, var(--type1-primary) 0%, var(--type1-primary-dark) 100%);
+    color: white;
+}
+
+.date-card.type-2 {
+    background: linear-gradient(135deg, var(--type2-primary) 0%, var(--type2-primary-dark) 100%);
+    color: white;
+}
+
+.date-card .month {
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.date-card .day {
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 1;
+    margin: 5px 0;
+}
+
+.date-card .weekday {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+/* ============================================
+   EVENT INFO - Utilisent les variables
+   ============================================ */
+
+.event-info {
+    flex: 1;
+    padding-right: 15px;
+}
+
+.event-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.event-title.type-1 {
+    color: var(--type1-text);
+}
+
+.event-title.type-2 {
+    color: var(--type2-text);
+}
+
+.event-location,
+.event-time,
+.event-capacity {
+    font-size: 14px;
+    color: #666;
+    margin: 4px 0;
+    line-height: 1.4;
+}
+
+.event-location.hidden {
+    display: none;
+}
+
+/* ============================================
+   STATUS SECTION - Utilisent les variables
+   ============================================ */
+
+.status-section {
+    flex: 0 0 auto;
+}
+
+.status-badge {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-going {
+    background-color: var(--color-going);
+    color: white;
+}
+
+.status-going:hover {
+    background-color: var(--color-going-hover);
+    transform: scale(1.05);
+}
+
+.status-waitlist {
+    background-color: var(--color-waitlist);
+    color: white;
+}
+
+.status-waitlist:hover {
+    background-color: var(--color-waitlist-hover);
+    transform: scale(1.05);
+}
+
+.status-rsvp {
+    background-color: var(--color-rsvp);
+    color: white;
+}
+
+.status-rsvp:hover {
+    background-color: var(--color-rsvp-hover);
+    transform: scale(1.05);
+}
+
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .schedule-container {
+        margin: 0;  /* Enlève le centrage */
+        max-width: none;  /* Enlève la limite de largeur */
+    }
+    
+    .header-content {
+        max-width: none;  /* Le header prend toute la largeur */
+    }
+
+    .header {
+        padding: 12px 15px;
+    }
+
+
+
+    .header-top {
+        margin-bottom: 10px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .logout-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+
+    .user-info {
+        gap: 8px;
+        font-size: 13px;
+    }
+
+    .event-row {
+        padding: 15px;
+    }
+
+    .date-card {
+        flex: 0 0 70px;
+        margin-right: 15px;
+        padding: 8px;
+    }
+
+    .date-card .day {
+        font-size: 28px;
+    }
+
+    .event-title {
+        font-size: 14px;
+    }
+
+    .event-location,
+    .event-time,
+    .event-capacity {
+        font-size: 12px;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        font-size: 11px;
+    }
+}
