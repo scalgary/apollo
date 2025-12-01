@@ -88,67 +88,67 @@ def test_password():
 # FIXTURES DE DONNÉES
 # ============================================
 
-# @pytest.fixture
-# def full_member_user(db):
-#     """Fixture: créer un full member pour open_play"""
-#     from db_models import User, UserEventTypeMembership
-#     from utils import get_password_hash
+@pytest.fixture
+def full_member_user(db):
+    """Fixture: créer un full member pour open_play"""
+    from db_models import User, UserEventTypeMembership
+    from utils import get_password_hash
     
-#     password = "testpass123"
+    password = "testpass123"
     
-#     user = User(
-#         email="fullmember@test.com",
-#         hashed_password=get_password_hash(password),
-#         real_name="Test Full",
-#         display_name="Full Test"
-#     )
-#     db.add(user)
-#     db.commit()
-#     db.refresh(user)
+    user = User(
+        email="fullmember@test.com",
+        hashed_password=get_password_hash(password),
+        real_name="Test Full",
+        display_name="Full Test"
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
     
-#     membership = UserEventTypeMembership(
-#         user_id=user.id,
-#         event_type_id=1,
-#         membership_type='full_member',
-#         total_credits_purchased=None,
-#         remaining_credits=None  # ← AJOUTÉ (None = illimité pour full_member)
-#     )
-#     db.add(membership)
-#     db.commit()
+    membership1 = UserEventTypeMembership(
+        user_id=user.id,
+        event_type_id=1,
+        membership_type='full_member',
+        total_credits_purchased=None,
+        remaining_credits=None  # ← AJOUTÉ (None = illimité pour full_member)
+    )
+    db.add(membership1)
+    db.commit()
     
-#     user.plain_password = password
-#     return user
+    user.plain_password = password
+    return user
 
-# @pytest.fixture
-# def punch_card_user(db):
-#     """Fixture: créer un punch card user avec 10 crédits"""
-#     from db_models import User, UserEventTypeMembership
-#     from utils import get_password_hash
+@pytest.fixture
+def punch_card_user(db):
+    """Fixture: créer un punch card user avec 10 crédits"""
+    from db_models import User, UserEventTypeMembership
+    from utils import get_password_hash
 
-#     password = "testpass123"
+    password = "testpass123"
     
-#     user = User(
-#         email="punchcard@test.com",
-#         hashed_password=get_password_hash(password),
-#         real_name="Test Punch",
-#         display_name="Punch Test"
-#     )
-#     db.add(user)
-#     db.commit()
-#     db.refresh(user)
+    user = User(
+        email="punchcard@test.com",
+        hashed_password=get_password_hash(password),
+        real_name="Test Punch",
+        display_name="Punch Test"
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
     
-#     membership = UserEventTypeMembership(
-#         user_id=user.id,
-#         event_type_id=1,
-#         membership_type='punch_card',
-#         total_credits_purchased=10,
-#         remaining_credits=10  # ← AJOUTÉ (au début = total)
-#     )
-#     db.add(membership)
-#     db.commit()
+    membership = UserEventTypeMembership(
+        user_id=user.id,
+        event_type_id=1,
+        membership_type='punch_card',
+        total_credits_purchased=10,
+        remaining_credits=10  # ← AJOUTÉ (au début = total)
+    )
+    db.add(membership)
+    db.commit()
     
-#     user.plain_password = password
-#     return user
+    user.plain_password = password
+    return user
 
 # @pytest.fixture
 # def test_event(db):
@@ -169,51 +169,51 @@ def test_password():
 # FIXTURE FACTORY
 # ============================================
 
-# @pytest.fixture
-# def create_user(db):
-#     """Factory pour créer des users avec memberships"""
-#     from db_models import User, UserEventTypeMembership
-#     from utils import get_password_hash
+@pytest.fixture
+def create_user(db):
+    """Factory pour créer des users avec memberships"""
+    from db_models import User, UserEventTypeMembership
+    from utils import get_password_hash
     
-#     def _create_user(
-#         email="test@example.com",
-#         password="testpass123",
-#         real_name="Test User",
-#         display_name="Test User",
-#         event_type_id=1,
-#         membership_type="full_member",
-#         total_credits=None
-#     ):
-#         user = User(
-#             email=email,
-#             hashed_password=get_password_hash(password),
-#             real_name=real_name,
-#             display_name=display_name
-#         )
-#         db.add(user)
-#         db.commit()
-#         db.refresh(user)
+    def _create_user(
+        email="test@example.com",
+        password="testpass123",
+        real_name="Test User",
+        display_name="Test User",
+        event_type_id=1,
+        membership_type="full_member",
+        total_credits=None
+    ):
+        user = User(
+            email=email,
+            hashed_password=get_password_hash(password),
+            real_name=real_name,
+            display_name=display_name
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
         
-#         # Calculer remaining_credits
-#         if membership_type == 'full_member':
-#             remaining = None  # Illimité
-#         else:
-#             remaining = total_credits if total_credits else 0
+        # Calculer remaining_credits
+        if membership_type == 'full_member':
+            remaining = None  # Illimité
+        else:
+            remaining = total_credits if total_credits else 0
         
-#         membership = UserEventTypeMembership(
-#             user_id=user.id,
-#             event_type_id=event_type_id,
-#             membership_type=membership_type,
-#             total_credits_purchased=total_credits,
-#             remaining_credits=remaining  # ← AJOUTÉ
-#         )
-#         db.add(membership)
-#         db.commit()
+        membership = UserEventTypeMembership(
+            user_id=user.id,
+            event_type_id=event_type_id,
+            membership_type=membership_type,
+            total_credits_purchased=total_credits,
+            remaining_credits=remaining  # ← AJOUTÉ
+        )
+        db.add(membership)
+        db.commit()
         
-#         user.plain_password = password
-#         return user
+        user.plain_password = password
+        return user
     
-#     return _create_user
+    return _create_user
 # # ============================================
 # # TEST DES FIXTURES
 # # ============================================
