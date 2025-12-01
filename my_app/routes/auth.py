@@ -157,3 +157,13 @@ def welcome_page(
         "request": request,
         "user": user
     })
+
+@router.get("/forgot-password", response_class=HTMLResponse)
+def forgot_password_page(request: Request):  # ← Enlever le "user = Depends(...)"
+    """Affiche la page forgot password"""
+    return templates.TemplateResponse("forgot_password.html", {
+        "request": request
+        # Pas besoin de passer "user" ici
+    })
+
+
