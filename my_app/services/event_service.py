@@ -7,14 +7,10 @@ from utils import load_events, load_event_types
 class EventService:
     """Service pour gérer les événements"""
     
-    def __init__(self):
-        pass
+    def __init__(self, db: Session):
+        self.db = db
     
-    from utils import load_events, load_event_types  # Ajoute load_event_types
-
-
-    
-    def import_event_types_from_csv(self, db: Session):
+    def import_event_types_from_csv(self):
         """Import event types from CSV (doit être appelé AVANT import_events)"""
         event_types_data = load_event_types()
         imported_count = 0
@@ -22,7 +18,7 @@ class EventService:
         for et_data in event_types_data:
             try:
                 # Vérifier si existe déjà
-                existing = db.query(EventType).filter(
+                existing = self.db.query(EventType).filter(
                     EventType.name == et_data['name']
                 ).first()
                 
@@ -36,7 +32,7 @@ class EventService:
                         default_max_capacity=et_data['default_max_capacity'],
                         color=et_data['color']
                     )
-                    db.add(event_type)
+                    self.db.add(event_type)
                     imported_count += 1
                 else:
                     # Update si changements
@@ -51,18 +47,16 @@ class EventService:
                 print(f"Error importing event type {et_data}: {e}")
                 continue
         
-        db.commit()
+        self.db.commit()
         return imported_count
-    
-    # Garde import_events_from_csv tel quel (il est déjà bon)
 
-    def import_events_from_csv(self, db: Session):
+    def import_events_from_csv(self):
         """Import events from CSV into database"""
         events_data = load_events()
         imported_count = 0
         
         # Mapper event_type_name vers event_type_id
-        event_types = {et.name: et.id for et in db.query(EventType).all()}
+        event_types = {et.name: et.id for et in self.db.query(EventType).all()}
     
         for event_data in events_data:
             try:
@@ -75,7 +69,7 @@ class EventService:
                 event_date = datetime.strptime(event_data['date'], '%Y-%m-%d').date()
                 
                 # Check if event already exists
-                existing = db.query(Event).filter(Event.date == event_date).first()
+                existing = self.db.query(Event).filter(Event.date == event_date).first()
                 
                 if not existing:
                     event = Event(
@@ -83,22 +77,22 @@ class EventService:
                         date=event_date,
                         confirmed_count=0
                     )
-                    db.add(event)
+                    self.db.add(event)
                     imported_count += 1
                 
             except Exception as e:
                 print(f"Error importing event {event_data}: {e}")
                 continue
     
-        db.commit()
+        self.db.commit()
         return imported_count
 
-    def get_all_events_with_user_status(self, db: Session, user_id: int):
+    def get_all_events_with_user_status(self, user_id: int):
         """Récupère tous les événements avec le statut de l'utilisateur"""
         today = date.today()
         
         # Joindre Event avec EventType pour avoir default_max_capacity
-        events = db.query(Event, EventType).join(
+        events = self.db.query(Event, EventType).join(
             EventType, Event.event_type_id == EventType.id
         ).filter(Event.date >= today).order_by(Event.date).all()
         
@@ -106,13 +100,13 @@ class EventService:
     
         for event, event_type in events:
             # Chercher si l'utilisateur est inscrit
-            attendee = db.query(Attendee).filter(
+            attendee = self.db.query(Attendee).filter(
                 Attendee.event_id == event.id,
                 Attendee.user_id == user_id
             ).first()
         
             # Compter les personnes en waitlist
-            waitlist_count = db.query(Attendee).filter(
+            waitlist_count = self.db.query(Attendee).filter(
                 Attendee.event_id == event.id,
                 Attendee.status == 'waiting'
             ).count()
@@ -134,11 +128,11 @@ class EventService:
     
         return result
     
-    def get_events_for_schedule(self, db: Session, user_id: int):
+    def get_events_for_schedule(self, user_id: int):
         """Récupère les événements formatés pour la page schedule"""
         
         # Récupère les événements
-        events = self.get_all_events_with_user_status(db, user_id)
+        events = self.get_all_events_with_user_status(user_id)
         
         # Pour chaque événement, ajoute le formatage
         for event in events:
@@ -162,10 +156,10 @@ class EventService:
         
         return events
 
-    def get_waitlist_users(self, db: Session, event_id: int):
+    def get_waitlist_users(self, event_id: int):
         """Récupère la liste des utilisateurs en waitlist avec leur position"""
         
-        waitlist = db.query(Attendee, User).join(
+        waitlist = self.db.query(Attendee, User).join(
             User, Attendee.user_id == User.id
         ).filter(
             Attendee.event_id == event_id,

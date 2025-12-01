@@ -1,0 +1,3 @@
+name,display_name,default_location,default_time_start,default_time_end,default_max_capacity,color
+test_open_play,Test Indoor,Test Arena,19:00,21:00,20,#4A90E2
+test_competitive,Test Outdoor,Test Park,14:00,16:00,16,#7ED321

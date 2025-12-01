@@ -150,24 +150,67 @@ def punch_card_user(db):
     user.plain_password = password
     return user
 
-# @pytest.fixture
-# def test_event(db):
-#     """Fixture: créer un event de test (open_play, dans 7 jours)"""
-#     from db_models import Event
-#     from datetime import datetime, timedelta
-    
-#     event = Event(
-#         event_type_id=1,  # open_play
-#         date=(datetime.now().date() + timedelta(days=7))
-#     )
-#     db.add(event)
-#     db.commit()
-#     db.refresh(event)
-#     return event
 
 # ============================================
-# FIXTURE FACTORY
+# FIXTURES POUR EVENTS
 # ============================================
+
+@pytest.fixture
+def test_event(db):
+    """Fixture: créer un event de test (open_play, dans 7 jours)"""
+    from db_models import Event
+    from datetime import datetime, timedelta
+    
+    event = Event(
+        event_type_id=1,  # open_play
+        date=(datetime.now().date() + timedelta(days=7)),
+        confirmed_count=0
+    )
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    return event
+
+
+@pytest.fixture
+def create_event(db):
+    """Factory pour créer des events"""
+    from db_models import Event
+    from datetime import datetime, timedelta
+    
+    def _create_event(event_type_id=1, days_from_now=7, confirmed_count=0):
+        event = Event(
+            event_type_id=event_type_id,
+            date=(datetime.now().date() + timedelta(days=days_from_now)),
+            confirmed_count=confirmed_count
+        )
+        db.add(event)
+        db.commit()
+        db.refresh(event)
+        return event
+    
+    return _create_event
+
+
+@pytest.fixture
+def create_attendee(db):
+    """Factory pour créer des attendees"""
+    from db_models import Attendee
+    from datetime import datetime, timezone
+    
+    def _create_attendee(event, user, status='confirmed'):
+        attendee = Attendee(
+            event_id=event.id,
+            user_id=user.id,
+            status=status,
+            registered_at=datetime.now(timezone.utc)
+        )
+        db.add(attendee)
+        db.commit()
+        db.refresh(attendee)
+        return attendee
+    
+    return _create_attendee
 
 @pytest.fixture
 def create_user(db):
