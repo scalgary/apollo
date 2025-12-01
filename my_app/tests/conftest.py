@@ -2,7 +2,6 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database import Base, get_db
 from main import app
 import os
 import sys
@@ -10,6 +9,7 @@ from pathlib import Path
 
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test.db"
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from database import Base, get_db
 
 # ============================================
 # FIXTURES DE BASE
