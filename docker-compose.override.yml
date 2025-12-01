@@ -8,7 +8,6 @@ services:
       - "8888:8888"
     volumes:
       - ./my_app:/app
-      - ./notebooks:/app/notebooks
     environment:
       DATABASE_URL: postgresql://apollo:apollo123@db:5432/apollo
       SECRET_KEY: your-secret-key-change-in-production
