@@ -258,13 +258,14 @@ def create_user(db):
 
 # @pytest.fixture(autouse=True)
 # def setup_test_whitelist(tmp_path, monkeypatch):
-    """Créer une whitelist de test avec le nouveau format"""
-    whitelist_file = tmp_path / "whitelist.csv"
-    whitelist_file.write_text(
-        "email,real_name,event_type_name,membership_type,total_credits_purchased\n"
-        "user1@example.com,Test User,open_play,full_member,\n"
-        "user1@example.com,Test User,competitive,punch_card,5\n"
-    )
+    # """Créer une whitelist de test avec le nouveau format"""
+    # whitelist_file = tmp_path / "whitelist.csv"
+    # whitelist_file.write_text(
+    #     "email,real_name,event_type_name,membership_type,total_credits_purchased\n"
+    #     "user1@example.com,Test User,open_play,full_member,\n"
+    #     "user1@example.com,Test User,competitive,punch_card,5\n"
+    # )
     
-    from utils import csv_loader
-    monkeypatch.setattr(csv_loader, "WHITELIST_PATH", str(whitelist_file))
+    # from utils import csv_loader
+    # monkeypatch.setattr(csv_loader, "WHITELIST_PATH", str(whitelist_file))
+
