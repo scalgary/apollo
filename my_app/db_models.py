@@ -17,7 +17,7 @@ class EventType(Base):
     __tablename__ = 'event_types'
     
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)  # 'open_play' ou 'competitive'
+    event_type_name = Column(String, unique=True, nullable=False)  # 'open_play' ou 'competitive'
     display_name = Column(String, nullable=False)  # 'Intérieur' ou 'Extérieur'
     default_location = Column(String, nullable=False)
     default_time_start = Column(String, nullable=False)  # '19:00'

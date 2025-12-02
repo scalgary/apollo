@@ -19,7 +19,7 @@ class EventService:
             try:
                 # Vérifier si existe déjà
                 existing = self.db.query(EventType).filter(
-                    EventType.name == et_data['name']
+                    EventType.event_type_name == et_data['event_type_name']
                 ).first()
                 
                 if not existing:
@@ -56,7 +56,7 @@ class EventService:
         imported_count = 0
         
         # Mapper event_type_name vers event_type_id
-        event_types = {et.name: et.id for et in self.db.query(EventType).all()}
+        event_types = {et.event_type_name: et.id for et in self.db.query(EventType).all()}
     
         for event_data in events_data:
             try:
@@ -118,7 +118,7 @@ class EventService:
             'id': event.id,
             'date': event.date,
             'event_type_id': event_type.id,  # ← AJOUTER CETTE LIGNE
-            'event_type_name': event_type.name,
+            'event_type_name': event_type.event_type_name,
             'event_type_display': event_type.display_name,
             'max_spots': max_capacity,
             'confirmed_count': event.confirmed_count,
@@ -193,7 +193,7 @@ class EventService:
             dict: {
                 'event_1': {
                     'id': 1,
-                    'name': 'open_play',
+                    'event_type_name': 'open_play',
                     'display_name': 'JCC Sunday',
                     'location': 'Calgary Indoor Sports Arena',
                     'time_start': '19:00',
@@ -230,7 +230,7 @@ class EventService:
             # 5. Construire l'objet pour le template
             result[f'event_{index}'] = {
                 'id': event_type.id,
-                'name': event_type.name,
+                'event_type_name': event_type.event_type_name,
                 'display_name': event_type.display_name,
                 'location': event_type.default_location,
                 'time_start': event_type.default_time_start,

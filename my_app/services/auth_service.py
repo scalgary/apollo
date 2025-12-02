@@ -151,7 +151,7 @@ class AuthService:
         self.db.flush()  # Pour obtenir l'ID sans commit complet
 
         # 4. Créer les memberships depuis la whitelist
-        event_types = {et.name: et.id for et in self.db.query(EventType).all()}
+        event_types = {et.event_type_name: et.id for et in self.db.query(EventType).all()}
 
         for membership_data in whitelist_data['memberships']:
             event_type_name = membership_data['event_type_name']

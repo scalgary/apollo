@@ -1,7 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
-from my_app.routes import events
 from sqlalchemy.orm import Session
 from database import Base, engine, SessionLocal, get_db
 from services.auth_service import AuthService

@@ -55,7 +55,7 @@
             <div class="events-table">
                 {% for event in events %}
                 <!-- Déterminer quel type d'event -->
-                {% if event['event_type_id'] == memberships['event_1']['id'] %}
+                {% if event['event_type_name'] == memberships['event_1']['event_type_name'] %}
                     {% set event_type_key = 'event_1' %}
                     {% set type_class = 'type-1' %}
                 {% else %}
