@@ -78,6 +78,16 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Desktop - grands écrans */
+@media (min-width: 769px) {
+    .login-container {
+        max-width: 600px;  /* ou 550px selon préférence */
+    }
+    
+    .login-box {
+        padding: 50px;  /* plus d'espace intérieur */
+    }
+}
 /* ============================================
    TITRE APOLLO
    ============================================ */

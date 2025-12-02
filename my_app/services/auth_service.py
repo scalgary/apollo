@@ -185,3 +185,89 @@ class AuthService:
             "user_id": new_user.id,
             "message": "Account created successfully"
         }
+        
+
+    # === Password Reset ===
+
+    def create_reset_token(self, email: str) -> str:
+        """
+        Génère un token JWT pour reset password (expire en 1h)
+        
+        Args:
+            email: Email de l'utilisateur
+        
+        Returns:
+            str: Token JWT
+        
+        Raises:
+            ValueError: Si user n'existe pas
+        """
+        user = self.get_user_by_email(email)
+        if not user:
+            raise ValueError("No account found with this email")
+        
+        payload = {
+            "sub": str(user.id),
+            "purpose": "password_reset",
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1)  # Expire en 1h
+        }
+        return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+    def verify_reset_token(self, token: str) -> int:
+        """
+        Vérifie et décode un token de reset password
+        
+        Args:
+            token: Token JWT
+        
+        Returns:
+            int: user_id
+        
+        Raises:
+            ValueError: Si token invalide ou expiré
+        """
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            
+            # Vérifier que c'est bien un token de reset
+            if payload.get("purpose") != "password_reset":
+                raise ValueError("Invalid reset token")
+            
+            user_id_str = payload.get("sub")
+            if not user_id_str:
+                raise ValueError("Invalid reset token")
+            
+            return int(user_id_str)
+        
+        except JWTError as e:
+            raise ValueError(f"Invalid or expired reset token: {str(e)}")
+
+
+    def reset_password(self, token: str, new_password: str) -> dict:
+        """
+        Reset le password d'un user avec un token valide
+        
+        Args:
+            token: Token JWT de reset
+            new_password: Nouveau password en clair
+        
+        Returns:
+            dict: Message de succès
+        
+        Raises:
+            ValueError: Si token invalide ou user non trouvé
+        """
+        # Vérifier le token
+        user_id = self.verify_reset_token(token)
+        
+        # Récupérer le user
+        user = self.get_user_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+        
+        # Hash et update le password
+        user.hashed_password = self.hash_password(new_password)
+        self.db.commit()
+        
+        return {"message": "Password reset successful"}

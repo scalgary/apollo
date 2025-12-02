@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from services.auth_service import AuthService
 from database import get_db
-
+import os
 router = APIRouter(prefix="/auth", tags=["auth"])
 templates = Jinja2Templates(directory="templates")
 
@@ -167,3 +167,99 @@ def forgot_password_page(request: Request):  # ← Enlever le "user = Depends(..
     })
 
 
+# ============================================
+# POST /auth/forgot-password - Envoyer reset link
+# ============================================
+
+@router.post("/forgot-password")
+def forgot_password(
+    email: str = Form(...),
+    request: Request = None,
+    db: Session = Depends(get_db)
+):
+    """
+    Génère un token de reset et envoie l'email (ou log en dev)
+    """
+    from services.email_service import EmailService
+    
+    auth_service = AuthService(db)
+    email_service = EmailService()
+    
+    try:
+        # Générer le token
+        reset_token = auth_service.create_reset_token(email)
+        
+        # Construire le lien de reset
+        # En prod, utiliser le vrai domaine
+        base_url = os.getenv('BASE_URL', 'http://localhost:8000')
+        reset_link = f"{base_url}/auth/reset-password?token={reset_token}"
+        # AJOUTE CE PRINT ICI ⬇️
+        print("=" * 80)
+        print(f"🔗 RESET LINK: {reset_link}")
+        print("=" * 80)
+
+        # Envoyer l'email (ou logger en dev)
+        email_service.send_reset_email(email, reset_link)
+        
+        # Rediriger avec message de succès
+        return RedirectResponse(
+            url="/auth/forgot-password?success=Reset link sent! Check your email (or console in dev mode).",
+            status_code=303
+        )
+        
+    except ValueError as e:
+        # User n'existe pas - mais on ne révèle pas cette info pour la sécurité
+        # On affiche le même message de succès
+        return RedirectResponse(
+            url="/auth/forgot-password?success=If an account exists with this email, you will receive a reset link.",
+            status_code=303
+        )
+
+
+# ============================================
+# GET /auth/reset-password - Afficher formulaire
+# ============================================
+
+@router.get("/reset-password", response_class=HTMLResponse)
+def reset_password_page(
+    request: Request,
+    token: str
+):
+    """Affiche le formulaire de reset password"""
+    return templates.TemplateResponse("reset_password.html", {
+        "request": request,
+        "token": token
+    })
+
+
+# ============================================
+# POST /auth/reset-password - Traiter nouveau password
+# ============================================
+
+@router.post("/reset-password")
+def reset_password_submit(
+    token: str = Form(...),
+    new_password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Reset le password avec le token
+    """
+    auth_service = AuthService(db)
+    
+    try:
+        # Reset le password
+        auth_service.reset_password(token, new_password)
+        
+        # Rediriger vers login avec succès
+        return RedirectResponse(
+            url="/auth/login?success=Password reset successful! Please login with your new password.",
+            status_code=303
+        )
+        
+    except ValueError as e:
+        # Token invalide ou expiré
+        return RedirectResponse(
+            url="/auth/forgot-password?error=Invalid or expired reset link. Please request a new one.",
+            status_code=303
+        )
