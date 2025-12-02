@@ -5,12 +5,14 @@ from sqlalchemy.orm import Session
 from services.auth_service import AuthService
 from database import get_db
 import os
-router = APIRouter(prefix="/auth", tags=["auth"])
+#router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter()
+
 templates = Jinja2Templates(directory="templates")
 
 
 # ============================================
-# GET /auth/login - Afficher le formulaire
+# GET /login - Afficher le formulaire
 # ============================================
 
 @router.get("/login", response_class=HTMLResponse)
@@ -20,7 +22,7 @@ def login_page(request: Request):
 
 
 # ============================================
-# POST /auth/login - Traiter le formulaire
+# POST /login - Traiter le formulaire
 # ============================================
 
 @router.post("/login")
@@ -43,7 +45,7 @@ def login(
         
         # Créer la réponse de redirection
         #redirect = RedirectResponse(url="/schedule", status_code=303)
-        redirect = RedirectResponse(url="/auth/schedule", status_code=303)
+        redirect = RedirectResponse(url="/schedule", status_code=303)
 
         # Set le cookie HTTP-only
         redirect.set_cookie(
@@ -60,7 +62,7 @@ def login(
     except ValueError as e:
         # Erreur d'authentification - rediriger vers login avec message
         return RedirectResponse(
-            url="/auth/login?error=Invalid email or password",
+            url="/login?error=Invalid email or password",
             status_code=303
         )
 
@@ -100,7 +102,7 @@ def get_current_user_from_cookie(
     
 
 # ============================================
-# GET /auth/signup - Afficher le formulaire
+# GET /signup - Afficher le formulaire
 # ============================================
 
 @router.get("/signup", response_class=HTMLResponse)
@@ -110,7 +112,7 @@ def signup_page(request: Request):
 
 
 # ============================================
-# POST /auth/signup - Traiter le formulaire
+# POST /signup - Traiter le formulaire
 # ============================================
 
 @router.post("/signup")
@@ -123,8 +125,8 @@ def signup(
     """
     Crée un nouveau compte utilisateur
     
-    En cas de succès : redirige vers /auth/login avec message de succès
-    En cas d'échec : redirige vers /auth/signup avec message d'erreur
+    En cas de succès : redirige vers /login avec message de succès
+    En cas d'échec : redirige vers /signup avec message d'erreur
     """
     auth_service = AuthService(db)
     
@@ -134,14 +136,14 @@ def signup(
         
         # Rediriger vers login avec message de succès
         return RedirectResponse(
-            url="/auth/login?success=Account created successfully! Please login.",
+            url="/login?success=Account created successfully! Please login.",
             status_code=303
         )
         
     except ValueError as e:
         # Erreur - rediriger vers signup avec message
         return RedirectResponse(
-            url=f"/auth/signup?error={str(e)}",
+            url=f"/signup?error={str(e)}",
             status_code=303
         )    
 
@@ -168,7 +170,7 @@ def forgot_password_page(request: Request):  # ← Enlever le "user = Depends(..
 
 
 # ============================================
-# POST /auth/forgot-password - Envoyer reset link
+# POST /forgot-password - Envoyer reset link
 # ============================================
 
 @router.post("/forgot-password")
@@ -192,7 +194,7 @@ def forgot_password(
         # Construire le lien de reset
         # En prod, utiliser le vrai domaine
         base_url = os.getenv('BASE_URL', 'http://localhost:8000')
-        reset_link = f"{base_url}/auth/reset-password?token={reset_token}"
+        reset_link = f"{base_url}/reset-password?token={reset_token}"
         # AJOUTE CE PRINT ICI ⬇️
         print("=" * 80)
         print(f"🔗 RESET LINK: {reset_link}")
@@ -203,7 +205,7 @@ def forgot_password(
         
         # Rediriger avec message de succès
         return RedirectResponse(
-            url="/auth/forgot-password?success=Reset link sent! Check your email (or console in dev mode).",
+            url="/forgot-password?success=Reset link sent! Check your email (or console in dev mode).",
             status_code=303
         )
         
@@ -211,13 +213,13 @@ def forgot_password(
         # User n'existe pas - mais on ne révèle pas cette info pour la sécurité
         # On affiche le même message de succès
         return RedirectResponse(
-            url="/auth/forgot-password?success=If an account exists with this email, you will receive a reset link.",
+            url="/forgot-password?success=If an account exists with this email, you will receive a reset link.",
             status_code=303
         )
 
 
 # ============================================
-# GET /auth/reset-password - Afficher formulaire
+# GET /reset-password - Afficher formulaire
 # ============================================
 
 @router.get("/reset-password", response_class=HTMLResponse)
@@ -233,7 +235,7 @@ def reset_password_page(
 
 
 # ============================================
-# POST /auth/reset-password - Traiter nouveau password
+# POST /reset-password - Traiter nouveau password
 # ============================================
 
 @router.post("/reset-password")
@@ -253,14 +255,14 @@ def reset_password_submit(
         
         # Rediriger vers login avec succès
         return RedirectResponse(
-            url="/auth/login?success=Password reset successful! Please login with your new password.",
+            url="/login?success=Password reset successful! Please login with your new password.",
             status_code=303
         )
         
     except ValueError as e:
         # Token invalide ou expiré
         return RedirectResponse(
-            url="/auth/forgot-password?error=Invalid or expired reset link. Please request a new one.",
+            url="/forgot-password?error=Invalid or expired reset link. Please request a new one.",
             status_code=303
         )
     
@@ -269,10 +271,10 @@ def logout():
     """
     Déconnecte l'utilisateur en supprimant le cookie JWT
     
-    Redirige vers /auth/login
+    Redirige vers /login
     """
     # Créer la réponse de redirection
-    redirect = RedirectResponse(url="/auth/login", status_code=303)
+    redirect = RedirectResponse(url="/login", status_code=303)
     
     # Supprimer le cookie en le mettant à expiration immédiate
     redirect.delete_cookie(

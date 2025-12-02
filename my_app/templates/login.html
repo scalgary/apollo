@@ -25,7 +25,7 @@
             </div>
             {% endif %}
             
-            <form method="POST" action="/auth/login">
+            <form method="POST" action="/login">
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" required>
@@ -36,13 +36,13 @@
                     <input type="password" id="password" name="password" required>
                 </div>
                 
-                <a href="/auth/forgot-password" class="forgot-link">Forgot password?</a>
+                <a href="/forgot-password" class="forgot-link">Forgot password?</a>
                 
                 <button type="submit" class="login-signup-btn">Login</button>
             </form>
             
             <p class="signup-already_login-prompt">
-                Don't have an account? <a href="/auth/signup">Sign up</a>
+                Don't have an account? <a href="/signup">Sign up</a>
             </p>
         </div>
     </div>

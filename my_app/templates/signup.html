@@ -14,7 +14,7 @@
         <div class="error-message">{{ request.query_params.get('error') }}</div>
         {% endif %}
         
-        <form method="POST" action="/auth/signup">
+        <form method="POST" action="/signup">
             <div class="form-group">
                 <label>Email</label>
                 <input type="email" name="email" required>
@@ -33,7 +33,7 @@
         </form>
         
         <p class="signup-already_login-prompt">
-            Already have an account? <a href="/auth/login">Login</a>
+            Already have an account? <a href="/login">Login</a>
         </div>
     </div>
 </body>

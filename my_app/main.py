@@ -1,13 +1,14 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends
 from fastapi.staticfiles import StaticFiles
+from my_app.routes import events
 from sqlalchemy.orm import Session
 from database import Base, engine, SessionLocal, get_db
 from services.auth_service import AuthService
 from services.event_service import EventService
 
 #from services.event_service import import_events_from_csv
-from routes import auth, schedule
+from routes import auth, events
 #, events, pages
 
 @asynccontextmanager
@@ -43,7 +44,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Include routers
 # app.include_router(pages.router)
 app.include_router(auth.router)
-app.include_router(schedule.router)
+app.include_router(events.router)
 
 # app.include_router(events.router)
 

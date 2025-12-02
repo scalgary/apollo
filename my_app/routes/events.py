@@ -11,7 +11,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-@router.get("/auth/schedule")
+@router.get("/schedule")
 def schedule_page(
     request: Request,
     db: Session = Depends(get_db)
@@ -32,7 +32,7 @@ def schedule_page(
     
     if not token:
         # Pas de token -> rediriger vers login
-        return RedirectResponse(url="/auth/login?error=Please login first", status_code=303)
+        return RedirectResponse(url="/login?error=Please login first", status_code=303)
     
     auth_service = AuthService(db)
     
@@ -41,7 +41,7 @@ def schedule_page(
         user = auth_service.get_current_user(token)
     except ValueError:
         # Token invalide/expiré -> rediriger vers login
-        return RedirectResponse(url="/auth/login?error=Session expired", status_code=303)
+        return RedirectResponse(url="/login?error=Session expired", status_code=303)
     
     
     # 2. RÉCUPÉRER LES MEMBERSHIPS
