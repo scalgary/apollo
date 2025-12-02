@@ -7,7 +7,7 @@ from services.auth_service import AuthService
 from services.event_service import EventService
 
 #from services.event_service import import_events_from_csv
-from routes import auth
+from routes import auth, schedule
 #, events, pages
 
 @asynccontextmanager
@@ -43,6 +43,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Include routers
 # app.include_router(pages.router)
 app.include_router(auth.router)
+app.include_router(schedule.router)
+
 # app.include_router(events.router)
 
 # === HEALTH CHECK ===

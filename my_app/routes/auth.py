@@ -43,7 +43,7 @@ def login(
         
         # Créer la réponse de redirection
         #redirect = RedirectResponse(url="/schedule", status_code=303)
-        redirect = RedirectResponse(url="/auth/welcome", status_code=303)
+        redirect = RedirectResponse(url="/auth/schedule", status_code=303)
 
         # Set le cookie HTTP-only
         redirect.set_cookie(
@@ -263,3 +263,23 @@ def reset_password_submit(
             url="/auth/forgot-password?error=Invalid or expired reset link. Please request a new one.",
             status_code=303
         )
+    
+@router.get("/logout")
+def logout():
+    """
+    Déconnecte l'utilisateur en supprimant le cookie JWT
+    
+    Redirige vers /auth/login
+    """
+    # Créer la réponse de redirection
+    redirect = RedirectResponse(url="/auth/login", status_code=303)
+    
+    # Supprimer le cookie en le mettant à expiration immédiate
+    redirect.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=False,  # True en production avec HTTPS
+        samesite="lax"
+    )
+    
+    return redirect

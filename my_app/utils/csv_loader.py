@@ -113,7 +113,7 @@ def load_event_types():
         reader = csv.DictReader(f)
         for row in reader:
             event_types.append({
-                'name': row['name'],
+                'event_type_name': row['event_type_name'],
                 'display_name': row['display_name'],
                 'default_location': row['default_location'],
                 'default_time_start': row['default_time_start'],

@@ -329,7 +329,16 @@ body {
     background-color: var(--color-rsvp-hover);
     transform: scale(1.05);
 }
+.status-restricted {
+    background-color: #FFA500;  /* Orange */
+    color: white;
+}
 
+.status-no-credits {
+    background-color: #999999;  /* Gris */
+    color: white;
+    cursor: not-allowed;
+}
 
 /* ============================================
    RESPONSIVE

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from datetime import datetime, date
-from db_models import User, Event, Attendee, EventType
+from db_models import User, Event, Attendee, EventType, UserEventTypeMembership
 from utils import load_events, load_event_types
 
 
@@ -24,7 +24,7 @@ class EventService:
                 
                 if not existing:
                     event_type = EventType(
-                        name=et_data['name'],
+                        event_type_name=et_data['event_type_name'],
                         display_name=et_data['display_name'],
                         default_location=et_data['default_location'],
                         default_time_start=et_data['default_time_start'],
@@ -115,17 +115,18 @@ class EventService:
         
             # Construire le résultat
             result.append({
-                'id': event.id,
-                'date': event.date,
-                'event_type_name': event_type.name,
-                'event_type_display': event_type.display_name,
-                'max_spots': max_capacity,
-                'confirmed_count': event.confirmed_count,
-                'available_spots': max_capacity - event.confirmed_count,
-                'waitlist_count': waitlist_count,
-                'user_status': attendee.status if attendee else None
-            })
-    
+            'id': event.id,
+            'date': event.date,
+            'event_type_id': event_type.id,  # ← AJOUTER CETTE LIGNE
+            'event_type_name': event_type.name,
+            'event_type_display': event_type.display_name,
+            'max_spots': max_capacity,
+            'confirmed_count': event.confirmed_count,
+            'available_spots': max_capacity - event.confirmed_count,
+            'waitlist_count': waitlist_count,
+            'user_status': attendee.status if attendee else None
+        })
+
         return result
     
     def get_events_for_schedule(self, user_id: int):
@@ -173,5 +174,69 @@ class EventService:
                 'email': user.email,
                 'registered_at': attendee.registered_at
             })
+        
+        return result
+
+
+    def get_user_memberships_formatted(self, user_id: int):
+        """
+        Récupère les memberships de l'utilisateur formatés pour le template.
+        
+        Retourne un dict avec event_1, event_2, etc. contenant toutes les infos
+        nécessaires pour afficher les badges et filtrer les événements.
+        
+        Args:
+            db: Session SQLAlchemy
+            user_id: ID de l'utilisateur
+        
+        Returns:
+            dict: {
+                'event_1': {
+                    'id': 1,
+                    'name': 'open_play',
+                    'display_name': 'JCC Sunday',
+                    'location': 'Calgary Indoor Sports Arena',
+                    'time_start': '19:00',
+                    'time_end': '21:00',
+                    'type': 'full_member',  # ou 'punch_card' ou 'none'
+                    'remaining_credits': None  # None si full_member, sinon int
+                },
+                'event_2': {...}
+            }
+        """
+        # 1. Récupérer tous les EventTypes par ordre d'ID
+        event_types = self.db.query(EventType).order_by(EventType.id).all()
+        
+        result = {}
+        
+        # 2. Pour chaque EventType, créer une entrée event_1, event_2, etc.
+        for index, event_type in enumerate(event_types, start=1):
+            
+            # 3. Récupérer le membership de l'utilisateur pour ce type
+            membership = self.db.query(UserEventTypeMembership).filter(
+                UserEventTypeMembership.user_id == user_id,
+                UserEventTypeMembership.event_type_id == event_type.id
+            ).first()
+            
+            # 4. Déterminer type et crédits
+            if membership:
+                membership_type = membership.membership_type
+                remaining_credits = membership.remaining_credits
+            else:
+                # DÉFAUT: punch_card avec 0 crédits (pas d'accès)
+                membership_type = 'punch_card'
+                remaining_credits = 0
+            
+            # 5. Construire l'objet pour le template
+            result[f'event_{index}'] = {
+                'id': event_type.id,
+                'name': event_type.name,
+                'display_name': event_type.display_name,
+                'location': event_type.default_location,
+                'time_start': event_type.default_time_start,
+                'time_end': event_type.default_time_end,
+                'type': membership_type,
+                'remaining_credits': remaining_credits
+            }
         
         return result

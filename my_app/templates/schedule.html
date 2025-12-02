@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule - Apollo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-content">
+            <!-- Ligne 1 : Titre + Logout -->
+            <div class="header-top">
+                <h1>Apollo Pickleball</h1>
+                <a href="/auth/logout" class="logout-btn">Logout</a>
+            </div>
+            
+            <!-- Ligne 2 : Display name + Badges membership -->
+            <div class="user-info">
+                <span class="user-display-name">{{ user.display_name }}</span>
+                
+                <!-- Badge Event 1 -->
+                <span class="membership-badge type-1">
+                    {% if memberships['event_1']['type'] == 'punch_card' %}
+                        Punch Card - {{ memberships['event_1']['remaining_credits'] }}
+                    {% elif memberships['event_1']['type'] == 'full_member' %}
+                        Full Member
+                    {% else %}
+                        No Access
+                    {% endif %}
+                </span>
+
+                <!-- Badge Event 2 -->
+                <span class="membership-badge type-2">
+                    {% if memberships['event_2']['type'] == 'punch_card' %}
+                        Punch Card - {{ memberships['event_2']['remaining_credits'] }}
+                    {% elif memberships['event_2']['type'] == 'full_member' %}
+                        Full Member
+                    {% else %}
+                        No Access
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div class="schedule-container">
+        <h2>Upcoming Events</h2>
+        
+        {% if events|length == 0 %}
+            <p class="no-events">No upcoming events.</p>
+        {% else %}
+            <div class="events-table">
+                {% for event in events %}
+                <!-- Déterminer quel type d'event -->
+                {% if event['event_type_id'] == memberships['event_1']['id'] %}
+                    {% set event_type_key = 'event_1' %}
+                    {% set type_class = 'type-1' %}
+                {% else %}
+                    {% set event_type_key = 'event_2' %}
+                    {% set type_class = 'type-2' %}
+                {% endif %}
+                
+                <div class="event-row {{ type_class }}" onclick="window.location.href='/event/{{ event['id'] }}'">
+                    <!-- Date card -->
+                    <div class="date-card {{ type_class }}">
+                        <div class="month">{{ event['month'] }}</div>
+                        <div class="day">{{ event['day'] }}</div>
+                        <div class="weekday">{{ event['weekday'] }}</div>
+                    </div>
+                    
+                    <div class="event-info">
+                        <h3 class="event-title {{ type_class }}">{{ memberships[event_type_key]['display_name'] }}</h3>
+                        <p class="event-location">📍 {{ memberships[event_type_key]['location'] }}</p>
+                        <p class="event-time">🕒 {{ memberships[event_type_key]['time_start'] }} - {{ memberships[event_type_key]['time_end'] }}</p>
+                        <p class="event-capacity">👥 {{ event['confirmed_count'] }}/{{ event['max_spots'] }}</p>
+                    </div>
+                    
+                    <div class="status-section">
+                        {% if event['user_status'] == 'confirmed' %}
+                            <button class="status-badge status-going">GOING</button>
+                        {% elif event['user_status'] == 'waiting' %}
+                            <button class="status-badge status-waitlist">WAITLIST</button>
+                        {% elif event['user_status'] == 'no_credits' %}
+                            <button class="status-badge status-no-credits">OUT OF CREDITS</button>
+                        {% elif event['user_status'] == 'full_member_priority' %}
+                            <button class="status-badge status-restricted">FULL MEMBER PRIORITY</button>
+                        {% else %}
+                            <button class="status-badge status-rsvp">RSVP</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
