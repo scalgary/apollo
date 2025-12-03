@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event_type.display_name }} - Apollo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-top">
+                <h1>Apollo Pickleball</h1>
+                <a href="/schedule" class="back-btn">← Back to Schedule</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- EVENT DETAILS -->
+    <div class="event-detail-container">
+        <div class="event-box">
+
+        <!-- Titre et Date -->
+        <div class="event-header">
+            <h2>{{ event_type.display_name }}</h2>
+            <p class="event-date">
+                {{ event.date_formatted.weekday }}, {{ event.date_formatted.month }} {{ event.date_formatted.day }}, {{ event.date_formatted.year }}
+            </p>
+        </div>
+
+        <!-- Infos pratiques -->
+        <div class="event-info-box">
+            {% if event.available_spots > 0 %}
+                <p class="spots-available">👥 {{ event.available_spots }} spots available</p>
+            {% else %}
+                <p class="spots-full">Event is full - Waitlist available</p>
+            {% endif %}
+        </div>
+
+        <!-- Actions / Messages -->
+        <div class="event-actions">
+            {% if message %}
+                <!-- Message si ne peut pas s'inscrire -->
+                <div class="info-message">{{ message }}</div>
+            
+            {% elif user_status == 'confirmed' %}
+                <!-- Déjà inscrit confirmé -->
+                <div class="status-message status-going">You're going!</div>
+                <form method="POST" action="/event/{{ event.id }}/cancel">
+                    <button type="submit" class="btn-cancel">Cancel Registration</button>
+                </form>
+            
+            {% elif user_status == 'waiting' %}
+                <!-- Sur la waitlist -->
+                <div class="status-message status-waitlist">You're on the waitlist</div>
+                <form method="POST" action="/event/{{ event.id }}/cancel">
+                    <button type="submit" class="btn-cancel">Leave Waitlist</button>
+                </form>
+            
+            {% elif user_status == 'not_going' %}
+                <!-- A dit "not going" mais peut changer d'avis -->
+                <div class="status-message status-not-going">You indicated you're not going</div>
+                {% if can_register %}
+                    <form method="POST" action="/event/{{ event.id }}/register">
+                        <button type="submit" class="btn-register">Changed my mind - Register</button>
+                    </form>
+                {% endif %}
+            
+            {% else %}
+                <!-- Pas encore répondu -->
+                {% if can_register %}
+                    <div class="action-buttons">
+                        <form method="POST" action="/event/{{ event.id }}/register" style="display: inline;">
+                            <button type="submit" class="btn-going">GOING</button>
+                        </form>
+                        <form method="POST" action="/event/{{ event.id }}/not-going" style="display: inline;">
+                            <button type="submit" class="btn-not-going">NOT GOING</button>
+                        </form>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Liste des participants confirmés -->
+        {% if confirmed_participants|length > 0 %}
+        <div class="participants-section">
+            <h3>Participants ({{ confirmed_participants|length }})</h3>
+            <ul class="participants-list">
+                {% for participant in confirmed_participants %}
+                    <li>{{ participant.display_name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Waitlist -->
+        {% if waitlist|length > 0 %}
+        <div class="waitlist-section">
+            <h3>Waitlist ({{ waitlist|length }})</h3>
+            <ol class="waitlist-list">
+                {% for person in waitlist %}
+                    <li>{{ person.display_name }}</li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+    </div>
+    </div>
+
+</body>
+</html>

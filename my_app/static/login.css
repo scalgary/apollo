@@ -338,3 +338,281 @@ body {
         transform: rotate(360deg);
     }
 }
+
+/* ============================================
+   EVENT DETAIL PAGE - Style Apollo
+   ============================================ */
+
+.event-detail-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    margin: 80px auto 20px;
+}
+
+.event-box {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Desktop */
+@media (min-width: 769px) {
+    .event-detail-container {
+        max-width: 600px;
+    }
+    
+    .event-box {
+        padding: 50px;
+    }
+}
+
+/* ============================================
+   EVENT HEADER
+   ============================================ */
+
+.event-header h2 {
+    color: var(--color-apollo);
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.event-date {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+/* ============================================
+   EVENT INFO BOX
+   ============================================ */
+
+.event-info-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.event-info-box p {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.spots-available {
+    color: var(--color-going);
+    font-weight: 600;
+}
+
+.spots-full {
+    color: var(--color-logout);
+    font-weight: 600;
+}
+
+/* ============================================
+   ACTIONS & MESSAGES
+   ============================================ */
+
+.event-actions {
+    margin: 30px 0;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-going {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--color-going), var(--color-going-hover));
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-going:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-not-going {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--color-rsvp), var(--color-rsvp-hover));
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-not-going:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+}
+
+.btn-cancel,
+.btn-register {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--color-logout), var(--color-logout-hover));
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 15px;
+}
+
+.btn-cancel:hover,
+.btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+.status-message {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    text-align: center;
+    font-size: 14px;
+}
+
+.status-message.status-going {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid var(--color-going);
+}
+
+.status-message.status-waitlist {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-left: 4px solid var(--color-waitlist);
+}
+
+.status-message.status-not-going {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-left: 4px solid var(--color-logout);
+}
+
+.info-message {
+    background: var(--color-error-bg);
+    color: var(--color-error);
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    animation: slideIn 0.3s ease;
+}
+
+/* ============================================
+   PARTICIPANTS SECTIONS
+   ============================================ */
+
+.participants-section,
+.waitlist-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.participants-section h3,
+.waitlist-section h3 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #333;
+    font-weight: 600;
+}
+
+.participants-list {
+    list-style: none;
+    padding: 0;
+}
+
+.participants-list li {
+    padding: 10px 15px;
+    background: #f8f9fa;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #333;
+    transition: background 0.2s;
+}
+
+.participants-list li:hover {
+    background: #e9ecef;
+}
+
+.waitlist-list {
+    list-style: decimal;
+    padding-left: 25px;
+}
+
+.waitlist-list li {
+    padding: 8px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+
+.back-btn {
+    color: white;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.back-btn:hover {
+    opacity: 0.8;
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE
+   ============================================ */
+
+@media (max-width: 480px) {
+    .event-detail-container {
+        padding: 15px;
+    }
+    
+    .event-box {
+        padding: 30px 20px;
+    }
+    
+    .event-header h2 {
+        font-size: 24px;
+    }
+    
+    .action-buttons {
+        gap: 10px;
+    }
+    
+    .btn-going,
+    .btn-not-going,
+    .btn-cancel,
+    .btn-register {
+        padding: 12px;
+        font-size: 15px;
+    }
+}

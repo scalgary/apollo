@@ -407,3 +407,176 @@ body {
         font-size: 11px;
     }
 }
+
+/* Event Detail Page */
+.event-detail-container {
+    max-width: 600px;
+    margin: 80px auto 20px;
+    padding: 20px;
+}
+
+.event-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.event-header h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.event-date {
+    font-size: 18px;
+    color: #666;
+}
+
+.event-info-box {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.event-info-box p {
+    margin: 10px 0;
+    font-size: 16px;
+}
+
+.spots-available {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.spots-full {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Actions */
+.event-actions {
+    margin: 30px 0;
+    text-align: center;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-going {
+    background-color: #28a745;
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-not-going {
+    background-color: #6c757d;
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background-color: #dc3545;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-register {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.status-message {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.status-message.status-going {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-message.status-waitlist {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-message.status-not-going {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.info-message {
+    background-color: #e7f3ff;
+    color: #004085;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+/* Participants */
+.participants-section,
+.waitlist-section {
+    margin-top: 30px;
+}
+
+.participants-section h3,
+.waitlist-section h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.participants-list,
+.waitlist-list {
+    list-style: none;
+    padding: 0;
+}
+
+.participants-list li,
+.waitlist-list li {
+    padding: 10px;
+    background: #f8f9fa;
+    margin-bottom: 8px;
+    border-radius: 5px;
+}
+
+.waitlist-list {
+    list-style: decimal;
+    padding-left: 20px;
+}
+
+.back-btn {
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.back-btn:hover {
+    text-decoration: underline;
+}

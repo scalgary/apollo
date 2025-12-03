@@ -240,3 +240,114 @@ class EventService:
             }
         
         return result
+    
+    def get_event_details(self, event_id: int, user_id: int):
+        """
+        Récupère les détails complets d'un événement pour la page /event/{id}
+        
+        Returns:
+            dict: {
+                'event': {...},
+                'event_type': {...},
+                'user_membership': {...},
+                'user_status': str,
+                'confirmed_participants': [...],
+                'waitlist': [...]
+            }
+        """
+        from datetime import date
+        
+        # 1. Récupérer l'événement avec son type
+        event_query = self.db.query(Event, EventType).join(
+            EventType, Event.event_type_id == EventType.id
+        ).filter(Event.id == event_id).first()
+        
+        if not event_query:
+            return None
+        
+        event, event_type = event_query
+        
+        # 2. Récupérer le membership du user pour ce type d'événement
+        membership = self.db.query(UserEventTypeMembership).filter(
+            UserEventTypeMembership.user_id == user_id,
+            UserEventTypeMembership.event_type_id == event_type.id
+        ).first()
+        
+        # 3. Récupérer le statut du user pour cet événement
+        attendee = self.db.query(Attendee).filter(
+            Attendee.event_id == event_id,
+            Attendee.user_id == user_id
+        ).first()
+        
+        user_status = attendee.status if attendee else None
+        
+        # 4. Récupérer la liste des participants confirmés (ordre d'inscription)
+        confirmed = self.db.query(Attendee, User).join(
+            User, Attendee.user_id == User.id
+        ).filter(
+            Attendee.event_id == event_id,
+            Attendee.status == 'confirmed'
+        ).order_by(Attendee.registered_at).all()
+        
+        confirmed_participants = [
+            {'display_name': user.display_name}
+            for attendee, user in confirmed
+        ]
+        
+        # 5. Récupérer la waitlist (ordre d'inscription)
+        waitlist_query = self.db.query(Attendee, User).join(
+            User, Attendee.user_id == User.id
+        ).filter(
+            Attendee.event_id == event_id,
+            Attendee.status == 'waiting'
+        ).order_by(Attendee.registered_at).all()
+        
+        waitlist = [
+            {
+                'position': idx + 1,
+                'display_name': user.display_name
+            }
+            for idx, (attendee, user) in enumerate(waitlist_query)
+        ]
+        
+        # 6. Calculer les jours avant l'événement
+        today = date.today()
+        event_date = event.date
+        if hasattr(event_date, 'date'):
+            event_date = event_date.date()
+        days_until_event = (event_date - today).days
+        
+        # 7. Formater la date
+        event_date_formatted = {
+            'month': event_date.strftime('%B'),
+            'day': event_date.strftime('%d'),
+            'year': event_date.strftime('%Y'),
+            'weekday': event_date.strftime('%A')
+        }
+        
+        return {
+            'event': {
+                'id': event.id,
+                'date': event.date,
+                'date_formatted': event_date_formatted,
+                'confirmed_count': event.confirmed_count,
+                'max_capacity': event_type.default_max_capacity,
+                'available_spots': event_type.default_max_capacity - event.confirmed_count,
+                'days_until': days_until_event
+            },
+            'event_type': {
+                'id': event_type.id,
+                'event_type_name': event_type.event_type_name,
+                'display_name': event_type.display_name,
+                'location': event_type.default_location,
+                'time_start': event_type.default_time_start,
+                'time_end': event_type.default_time_end
+            },
+            'user_membership': {
+                'type': membership.membership_type if membership else 'punch_card',
+                'remaining_credits': membership.remaining_credits if membership else 0
+            },
+            'user_status': user_status,
+            'confirmed_participants': confirmed_participants,
+            'waitlist': waitlist
+        }
