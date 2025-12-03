@@ -392,7 +392,6 @@ body {
    ============================================ */
 
 .event-info-box {
-    background: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 30px;
@@ -427,44 +426,32 @@ body {
     flex-direction: column;
     gap: 15px;
 }
-
-.btn-going {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--color-going), var(--color-going-hover));
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+.action-buttons-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-.btn-going:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+/* Boutons spécifiques event */
+.btn-going {
+    background: linear-gradient(135deg, var(--color-going), var(--color-going-hover)) !important;
+    margin-top: 0 !important;
 }
 
 .btn-not-going {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--color-rsvp), var(--color-rsvp-hover));
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: linear-gradient(135deg, var(--color-rsvp), var(--color-rsvp-hover)) !important;
+    margin-top: 0 !important;
 }
 
-.btn-not-going:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(107, 114, 128, 0.3);
+.btn-cancel {
+    background: linear-gradient(135deg, var(--color-logout), var(--color-logout-hover)) !important;
+    margin-top: 15px;
 }
 
-.btn-cancel,
+.btn-toggle {
+    background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+}
+
 .btn-register {
     width: 100%;
     padding: 12px;
@@ -479,7 +466,6 @@ body {
     margin-top: 15px;
 }
 
-.btn-cancel:hover,
 .btn-register:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
@@ -615,4 +601,10 @@ body {
         padding: 12px;
         font-size: 15px;
     }
+
+    .action-buttons-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
 }
