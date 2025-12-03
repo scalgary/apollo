@@ -175,7 +175,7 @@ def event_page(
     
     
     # 5. RENDER LE TEMPLATE
-    return templates.TemplateResponse("event.html", {
+    return templates.TemplateResponse("event_detail.html", {
         "request": request,
         "user": user,
         "event": event_data['event'],
