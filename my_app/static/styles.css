@@ -580,3 +580,9 @@ body {
 .back-btn:hover {
     text-decoration: underline;
 }
+
+.status-not-going {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 2px solid #dc2626;
+}

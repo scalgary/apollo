@@ -608,3 +608,81 @@ body {
     }
 
 }
+
+/* Boutons de statut côte à côte */
+.action-buttons-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.action-buttons-row form {
+    flex: 1;
+}
+
+/* Style de base pour les boutons de statut */
+.status-btn {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #d1d5db;
+    background-color: #f3f4f6;
+    color: #6b7280;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.status-btn:hover {
+    background-color: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+/* Bouton GOING actif (vert) */
+.status-btn.btn-going.active {
+    background-color: #10b981;
+    color: white;
+    border-color: #059669;
+}
+
+.status-btn.btn-going.active:hover {
+    background-color: #059669;
+}
+
+/* Bouton NOT GOING actif (rouge) */
+.status-btn.btn-not-going.active {
+    background-color: #ef4444;
+    color: white;
+    border-color: #dc2626;
+}
+
+.status-btn.btn-not-going.active:hover {
+    background-color: #dc2626;
+}
+
+/* Message de statut */
+.status-message {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.status-message.going {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-left: 4px solid #10b981;
+}
+
+.status-message.not-going {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-left: 4px solid #ef4444;
+}
+
+.status-message.waitlist {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-left: 4px solid #f59e0b;
+}

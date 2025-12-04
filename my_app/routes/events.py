@@ -82,13 +82,13 @@ def schedule_page(
         
         # RÈGLES D'AFFICHAGE DU STATUT
         # Si déjà inscrit, on garde son statut actuel
-        if event['user_status'] in ['confirmed', 'waiting']:
+        if event['user_status'] in ['going', 'waitlist','not going']:
             # Pas besoin de changer quoi que ce soit
             pass
         
         # Si full_member, toujours RSVP disponible
         elif user_membership['type'] == 'full_member':
-            event['user_status'] = 'available'  # Nouveau statut pour template
+            event['user_status'] = 'RSVP'  # Nouveau statut pour template
         
         # Si punch_card
         elif user_membership['type'] == 'punch_card':
@@ -100,7 +100,7 @@ def schedule_page(
             elif days_until_event > 7:
                 event['user_status'] = 'full_member_priority'
             else:
-                event['user_status'] = 'available'
+                event['user_status'] = 'RSVP'
     
     
     # 5. RENDER LE TEMPLATE

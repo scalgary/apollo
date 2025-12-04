@@ -79,10 +79,12 @@
                     </div>
                     
                     <div class="status-section">
-                        {% if event['user_status'] == 'confirmed' %}
+                        {% if event['user_status'] == 'going' %}
                             <button class="status-badge status-going">GOING</button>
-                        {% elif event['user_status'] == 'waiting' %}
+                        {% elif event['user_status'] == 'waitlist' %}
                             <button class="status-badge status-waitlist">WAITLIST</button>
+                        {% elif event['user_status'] == 'not going' %}
+                            <button class="status-badge status-not-going">NOT GOING</button>
                         {% elif event['user_status'] == 'no_credits' %}
                             <button class="status-badge status-no-credits">OUT OF CREDITS</button>
                         {% elif event['user_status'] == 'full_member_priority' %}

@@ -6,6 +6,7 @@ from database import Base, engine, SessionLocal, get_db
 from services.auth_service import AuthService
 from services.event_service import EventService
 from fastapi.responses import RedirectResponse
+from routes import registrations  # ← Import
 
 #from services.event_service import import_events_from_csv
 from routes import auth, events
@@ -45,6 +46,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # app.include_router(pages.router)
 app.include_router(auth.router)
 app.include_router(events.router)
+app.include_router(registrations.router)  # ← Enregistrer le router
+
 
 @app.get("/")
 async def root():

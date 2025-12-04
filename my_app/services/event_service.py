@@ -299,16 +299,21 @@ class EventService:
             User, Attendee.user_id == User.id
         ).filter(
             Attendee.event_id == event_id,
-            Attendee.status == 'waiting'
+            Attendee.status == 'waitlist'  # ← Corrigé de 'waiting' à 'waitlist'
         ).order_by(Attendee.registered_at).all()
-        
-        waitlist = [
-            {
-                'position': idx + 1,
+
+        waitlist = []
+        user_waitlist_position = None
+
+        for idx, (attendee, user) in enumerate(waitlist_query, start=1):
+            waitlist.append({
+                'position': idx,
                 'display_name': user.display_name
-            }
-            for idx, (attendee, user) in enumerate(waitlist_query)
-        ]
+            })
+            # Si c'est le user actuel, sauvegarder sa position
+            if attendee.user_id == user_id:
+                user_waitlist_position = idx
+
         
         # 6. Calculer les jours avant l'événement
         today = date.today()
@@ -348,6 +353,8 @@ class EventService:
                 'remaining_credits': membership.remaining_credits if membership else 0
             },
             'user_status': user_status,
+            'user_waitlist_position': user_waitlist_position,  # ← AJOUTER
+
             'confirmed_participants': confirmed_participants,
             'waitlist': waitlist
         }
