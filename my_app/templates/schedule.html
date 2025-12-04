@@ -46,8 +46,13 @@
     </div>
 
     <!-- SCHEDULE -->
+     <!-- NAVBAR TABS -->
+<div class="navbar-tabs">
+    <a href="/schedule" class="tab-link active">Upcoming Events</a>
+    <a href="/community" class="tab-link">Community</a>
+</div>
+
     <div class="schedule-container">
-        <h2>Upcoming Events</h2>
         
         {% if events|length == 0 %}
             <p class="no-events">No upcoming events.</p>

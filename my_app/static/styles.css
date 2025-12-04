@@ -4,29 +4,29 @@
    ============================================ */
 
 :root {
-    /* TYPE 1 - Event Type 1 (actuellement BLEU) */
-    --type1-primary: #3b82f6;        /* Couleur principale */
-    --type1-primary-dark: #2563eb;   /* Couleur foncée */
-    --type1-light: #dbeafe;          /* Fond badge */
-    --type1-lighter: #eff6ff;        /* Fond ligne pâle */
-    --type1-text: #1e40af;           /* Texte */
+    /* TYPE 1 - Event Type 1 (BLEU) */
+    --type1-primary: #3b82f6;
+    --type1-primary-dark: #2563eb;
+    --type1-light: #dbeafe;
+    --type1-lighter: #eff6ff;
+    --type1-text: #1e40af;
     
-    /* TYPE 2 - Event Type 2 (actuellement ORANGE) */
-    --type2-primary: #f97316;        /* Couleur principale */
-    --type2-primary-dark: #ea580c;   /* Couleur foncée */
-    --type2-light: #ffedd5;          /* Fond badge */
-    --type2-lighter: #fed7aa;        /* Fond ligne plus foncé */
-    --type2-text: #c2410c;           /* Texte */
+    /* TYPE 2 - Event Type 2 (ORANGE) */
+    --type2-primary: #f97316;
+    --type2-primary-dark: #ea580c;
+    --type2-light: #ffedd5;
+    --type2-lighter: #fed7aa;
+    --type2-text: #c2410c;
     
     /* COULEURS GÉNÉRIQUES */
-    --color-apollo: #490fae;         /* Titre Apollo */
-    --color-logout: #dc3545;         /* Bouton logout */
+    --color-apollo: #490fae;
+    --color-logout: #dc3545;
     --color-logout-hover: #c82333;
-    --color-going: #10b981;          /* Bouton GOING */
+    --color-going: #10b981;
     --color-going-hover: #059669;
-    --color-waitlist: #f59e0b;       /* Bouton WAITLIST */
+    --color-waitlist: #f59e0b;
     --color-waitlist-hover: #d97706;
-    --color-rsvp: #6b7280;           /* Bouton RSVP */
+    --color-rsvp: #6b7280;
     --color-rsvp-hover: #4b5563;
 }
 
@@ -61,6 +61,7 @@ body {
     max-width: 800px;
     margin: 0 auto;
 }
+
 .header-top {
     display: flex;
     justify-content: space-between;
@@ -103,7 +104,51 @@ body {
 }
 
 /* ============================================
-   BADGES - Utilisent les variables
+   NAVBAR TABS - Pride Design
+   ============================================ */
+
+.navbar-tabs {
+    background: white;
+    border-bottom: none;
+    border-top: 4px solid;
+    border-image: linear-gradient(
+        90deg, 
+        #e40303,  /* Rouge */
+        #ff8c00,  /* Orange */
+        #ffed00,  /* Jaune */
+        #008026,  /* Vert */
+        #24408e,  /* Bleu */
+        #732982   /* Violet */
+    ) 1;
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+}
+
+.tab-link {
+    flex: 1;
+    text-align: center;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 15px;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.tab-link.active {
+    color: #732982;  /* Violet Pride */
+    border-bottom-color: #732982;
+}
+
+.tab-link:hover {
+    color: #490fae;
+    background-color: #f9fafb;
+}
+
+/* ============================================
+   BADGES MEMBERSHIP - Utilisent les variables
    ============================================ */
 
 .membership-badge.type-1 {
@@ -150,10 +195,6 @@ body {
    SCHEDULE CONTAINER
    ============================================ */
 
-/* ============================================
-   SCHEDULE CONTAINER
-   ============================================ */
-
 .schedule-container {
     max-width: 800px;
     margin: 0 auto;
@@ -180,7 +221,7 @@ body {
     transition: all 0.2s;
 }
 
-/* Type 1 backgrounds */
+/* Alternance de couleurs Type 1 (bleu) */
 .event-row.type-1:nth-child(odd) {
     background-color: var(--type1-light);
 }
@@ -189,7 +230,7 @@ body {
     background-color: var(--type1-lighter);
 }
 
-/* Type 2 backgrounds */
+/* Alternance de couleurs Type 2 (orange) */
 .event-row.type-2:nth-child(odd) {
     background-color: var(--type2-lighter);
 }
@@ -281,7 +322,7 @@ body {
 }
 
 /* ============================================
-   STATUS SECTION - Utilisent les variables
+   STATUS SECTION & BADGES
    ============================================ */
 
 .status-section {
@@ -329,86 +370,28 @@ body {
     background-color: var(--color-rsvp-hover);
     transform: scale(1.05);
 }
+
 .status-restricted {
-    background-color: #FFA500;  /* Orange */
+    background-color: #FFA500;
     color: white;
 }
 
 .status-no-credits {
-    background-color: #999999;  /* Gris */
+    background-color: #999999;
     color: white;
     cursor: not-allowed;
 }
 
-/* ============================================
-   RESPONSIVE
-   ============================================ */
-
-@media (max-width: 768px) {
-    .schedule-container {
-        margin: 0;  /* Enlève le centrage */
-        max-width: none;  /* Enlève la limite de largeur */
-    }
-    
-    .header-content {
-        max-width: none;  /* Le header prend toute la largeur */
-    }
-
-    .header {
-        padding: 12px 15px;
-    }
-
-
-
-    .header-top {
-        margin-bottom: 10px;
-    }
-
-    .header h1 {
-        font-size: 20px;
-    }
-
-    .logout-btn {
-        padding: 6px 12px;
-        font-size: 13px;
-    }
-
-    .user-info {
-        gap: 8px;
-        font-size: 13px;
-    }
-
-    .event-row {
-        padding: 15px;
-    }
-
-    .date-card {
-        flex: 0 0 70px;
-        margin-right: 15px;
-        padding: 8px;
-    }
-
-    .date-card .day {
-        font-size: 28px;
-    }
-
-    .event-title {
-        font-size: 14px;
-    }
-
-    .event-location,
-    .event-time,
-    .event-capacity {
-        font-size: 12px;
-    }
-
-    .status-badge {
-        padding: 8px 16px;
-        font-size: 11px;
-    }
+.status-not-going {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 2px solid #dc2626;
 }
 
-/* Event Detail Page */
+/* ============================================
+   EVENT DETAIL PAGE
+   ============================================ */
+
 .event-detail-container {
     max-width: 600px;
     margin: 80px auto 20px;
@@ -453,7 +436,10 @@ body {
     font-weight: bold;
 }
 
-/* Actions */
+/* ============================================
+   BOUTONS & ACTIONS - EVENT DETAIL
+   ============================================ */
+
 .event-actions {
     margin: 30px 0;
     text-align: center;
@@ -509,6 +495,10 @@ body {
     margin-top: 10px;
 }
 
+/* ============================================
+   MESSAGES DE STATUT - EVENT DETAIL
+   ============================================ */
+
 .status-message {
     padding: 15px;
     border-radius: 8px;
@@ -539,7 +529,10 @@ body {
     border-left: 4px solid #007bff;
 }
 
-/* Participants */
+/* ============================================
+   PARTICIPANTS & WAITLIST - EVENT DETAIL
+   ============================================ */
+
 .participants-section,
 .waitlist-section {
     margin-top: 30px;
@@ -581,8 +574,193 @@ body {
     text-decoration: underline;
 }
 
-.status-not-going {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 2px solid #dc2626;
+/* ============================================
+   RESPONSIVE - TABLETTE (max-width: 768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Container prend toute la largeur */
+    .schedule-container {
+        margin: 0;
+        max-width: none;
+        padding: 0;
+    }
+    
+    .header-content {
+        max-width: none;
+    }
+
+    /* Header plus compact */
+    .header {
+        padding: 10px 12px;
+    }
+
+    .header-top {
+        margin-bottom: 8px;
+    }
+
+    .header h1 {
+        font-size: 18px;
+    }
+
+    .logout-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    /* User info plus compact */
+    .user-info {
+        gap: 5px;
+        font-size: 11px;
+    }
+
+    .user-display-name {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    /* Badges beaucoup plus petits */
+    .membership-badge.type-1,
+    .membership-badge.type-2 {
+        padding: 3px 6px !important;
+        font-size: 10px !important;
+        border-width: 1px;
+    }
+
+    /* Navbar responsive */
+    .navbar-tabs {
+        max-width: none;
+    }
+    
+    .tab-link {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+
+    /* H2 Upcoming Events plus compact */
+    .schedule-container h2 {
+        padding: 10px 12px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    /* Event rows très compacts */
+    .event-row {
+        padding: 10px 12px;
+    }
+
+    /* Date card plus petit */
+    .date-card {
+        flex: 0 0 55px;
+        margin-right: 10px;
+        padding: 5px;
+    }
+
+    .date-card .month {
+        font-size: 10px;
+    }
+
+    .date-card .day {
+        font-size: 20px;
+        margin: 2px 0;
+    }
+
+    .date-card .weekday {
+        font-size: 9px;
+    }
+
+    /* Event info compact */
+    .event-info {
+        padding-right: 5px;
+    }
+
+    .event-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .event-location,
+    .event-time,
+    .event-capacity {
+        font-size: 11px;
+        margin: 1px 0;
+        line-height: 1.3;
+    }
+
+    /* Status badges plus petits */
+    .status-badge {
+        padding: 5px 10px;
+        font-size: 9px;
+        border-radius: 12px;
+        letter-spacing: 0.3px;
+    }
+}
+
+/* ============================================
+   RESPONSIVE - PETIT MOBILE (max-width: 400px)
+   ============================================ */
+
+@media (max-width: 400px) {
+    .header h1 {
+        font-size: 16px;
+    }
+
+    .logout-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .membership-badge.type-1,
+    .membership-badge.type-2 {
+        padding: 2px 5px !important;
+        font-size: 9px !important;
+    }
+
+    /* Navbar très compact */
+    .tab-link {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .date-card {
+        flex: 0 0 50px;
+        margin-right: 8px;
+        padding: 4px;
+    }
+
+    .date-card .day {
+        font-size: 18px;
+    }
+
+    .event-title {
+        font-size: 12px;
+    }
+
+    .event-location,
+    .event-time,
+    .event-capacity {
+        font-size: 10px;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        font-size: 8px;
+    }
+}
+
+/* ============================================
+   RESPONSIVE - DESKTOP (min-width: 769px)
+   ============================================ */
+
+@media (min-width: 769px) {
+    .schedule-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .header-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 }

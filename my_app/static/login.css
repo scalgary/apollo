@@ -1,40 +1,39 @@
 /* ============================================
    VARIABLES DE COULEURS
-   Synchronisées avec dashboard.css
+   Synchronisées avec styles.css
    ============================================ */
 
 :root {
-    /* TYPE 1 - Event Type 1 (actuellement BLEU) */
-    --type1-primary: #3b82f6;        /* Couleur principale */
-    --type1-primary-dark: #2563eb;   /* Couleur foncée */
-    --type1-light: #dbeafe;          /* Fond badge */
-    --type1-lighter: #eff6ff;        /* Fond ligne pâle */
-    --type1-text: #1e40af;           /* Texte */
+    /* TYPE 1 - Event Type 1 (BLEU) */
+    --type1-primary: #3b82f6;
+    --type1-primary-dark: #2563eb;
+    --type1-light: #dbeafe;
+    --type1-lighter: #eff6ff;
+    --type1-text: #1e40af;
     
-    /* TYPE 2 - Event Type 2 (actuellement ORANGE) */
-    --type2-primary: #f97316;        /* Couleur principale */
-    --type2-primary-dark: #ea580c;   /* Couleur foncée */
-    --type2-light: #ffedd5;          /* Fond badge */
-    --type2-lighter: #fed7aa;        /* Fond ligne plus foncé */
-    --type2-text: #c2410c;           /* Texte */
+    /* TYPE 2 - Event Type 2 (ORANGE) */
+    --type2-primary: #f97316;
+    --type2-primary-dark: #ea580c;
+    --type2-light: #ffedd5;
+    --type2-lighter: #fed7aa;
+    --type2-text: #c2410c;
     
     /* COULEURS GÉNÉRIQUES */
-    --color-apollo: #490fae;         /* Titre Apollo */
-    --color-logout: #dc3545;         /* Bouton logout */
+    --color-apollo: #490fae;
+    --color-logout: #dc3545;
     --color-logout-hover: #c82333;
-    --color-going: #10b981;          /* Bouton GOING */
+    --color-going: #10b981;
     --color-going-hover: #059669;
-    --color-waitlist: #f59e0b;       /* Bouton WAITLIST */
+    --color-waitlist: #f59e0b;
     --color-waitlist-hover: #d97706;
-    --color-rsvp: #6b7280;           /* Bouton RSVP */
+    --color-rsvp: #6b7280;
     --color-rsvp-hover: #4b5563;
-
     --color-error: white;
     --color-error-bg: rgb(223, 93, 93);
 }
 
 /* ============================================
-   RESET
+   RESET & BASE
    ============================================ */
 
 * {
@@ -43,22 +42,18 @@
     box-sizing: border-box;
 }
 
-/* ============================================
-   BODY - CENTRAGE AVEC FLEXBOX
-   ============================================ */
-
 body {
     font-family: Arial, sans-serif;
     background: #f5f5f5;
     display: flex;
     justify-content: center;
-    align-items: flex-start;  /* ← Changé de center à flex-start */
+    align-items: flex-start;
     min-height: 100vh;
-    padding-top: 60px;  /* ← Ajoute un espace en haut */
+    padding-top: 60px;
 }
 
 /* ============================================
-   CONTENEUR PRINCIPAL
+   LOGIN PAGE - CONTENEUR & BOÎTE
    ============================================ */
 
 .login-container {
@@ -67,30 +62,12 @@ body {
     padding: 20px;
 }
 
-/* ============================================
-   BOÎTE DE LOGIN
-   ============================================ */
-
 .login-box {
     background: white;
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
-/* Desktop - grands écrans */
-@media (min-width: 769px) {
-    .login-container {
-        max-width: 600px;  /* ou 550px selon préférence */
-    }
-    
-    .login-box {
-        padding: 50px;  /* plus d'espace intérieur */
-    }
-}
-/* ============================================
-   TITRE APOLLO
-   ============================================ */
 
 .login-box h1 {
     color: var(--color-apollo);
@@ -100,23 +77,18 @@ body {
     font-weight: bold;
 }
 
-/* Emoji fusée si tu l'utilises */
 .login-box h1::before {
     content: "🚀 ";
 }
 
 /* ============================================
-   FORMULAIRE
+   FORMULAIRE LOGIN
    ============================================ */
 
 .login-form {
     display: flex;
     flex-direction: column;
 }
-
-/* ============================================
-   GROUPES DE CHAMPS (Email, Password)
-   ============================================ */
 
 .form-group {
     margin-bottom: 20px;
@@ -150,7 +122,7 @@ body {
 }
 
 /* ============================================
-   LIEN "FORGOT PASSWORD"
+   LIENS & BOUTONS LOGIN
    ============================================ */
 
 .forgot-link {
@@ -167,10 +139,6 @@ body {
     text-decoration: underline;
     color: var(--type1-primary-dark);
 }
-
-/* ============================================
-   BOUTON LOGIN
-   ============================================ */
 
 .login-signup-btn {
     width: 100%;
@@ -194,9 +162,35 @@ body {
     transform: translateY(0);
 }
 
-/* ============================================
-   TEXTE "DON'T HAVE AN ACCOUNT?"
-   ============================================ */
+.login-signup-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.login-signup-btn:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Loading spinner */
+.login-signup-btn.loading::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    margin-left: 10px;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
 
 .signup-already_login-prompt {
     text-align: center;
@@ -218,7 +212,7 @@ body {
 }
 
 /* ============================================
-   MESSAGES D'ERREUR
+   MESSAGES - ERREUR & SUCCÈS
    ============================================ */
 
 .error-message {
@@ -228,11 +222,18 @@ body {
     border-radius: 5px;
     margin-bottom: 20px;
     font-size: 18px;
-    /*border-left: 4px solid var(--color-error);*/
+    text-align: center;
     animation: slideIn 0.3s ease;
-    text-align: center;  /* ← AJOUTE CETTE LIGNE */
+}
 
-    /*border-left: 4px solid #10b981;*/
+.success-message {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 12px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border-left: 4px solid #10b981;
     animation: slideIn 0.3s ease;
 }
 
@@ -248,99 +249,7 @@ body {
 }
 
 /* ============================================
-   MESSAGES DE SUCCÈS (si tu en as)
-   ============================================ */
-
-.success-message {
-    background: #d1fae5;
-    color: #065f46;
-    padding: 12px;
-    border-radius: 5px;
-    margin-bottom: 20px;
-    font-size: 14px;
-    border-left: 4px solid #10b981;
-    animation: slideIn 0.3s ease;
-}
-
-/* ============================================
-   RESPONSIVE - MOBILE
-   ============================================ */
-
-@media (max-width: 480px) {
-    .login-container {
-        padding: 15px;
-    }
-    
-    .login-box {
-        padding: 30px 20px;
-    }
-    
-    .login-box h1 {
-        font-size: 28px;
-        margin-bottom: 25px;
-    }
-    
-    .form-group {
-        margin-bottom: 15px;
-    }
-    
-    .form-group input {
-        padding: 10px;
-        font-size: 16px; /* Évite le zoom automatique sur iOS */
-    }
-    
-    .login-btn {
-        padding: 12px;
-        font-size: 15px;
-    }
-}
-
-/* ============================================
-   TABLETTE
-   ============================================ */
-
-@media (min-width: 481px) and (max-width: 768px) {
-    .login-container {
-        max-width: 450px;
-    }
-}
-
-/* ============================================
-   ÉTATS DE CHARGEMENT (optionnel)
-   ============================================ */
-
-.login-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.login-btn:disabled:hover {
-    transform: none;
-    box-shadow: none;
-}
-
-/* Spinner de chargement si tu veux l'ajouter */
-.login-btn.loading::after {
-    content: "";
-    width: 16px;
-    height: 16px;
-    margin-left: 10px;
-    border: 2px solid white;
-    border-top-color: transparent;
-    border-radius: 50%;
-    display: inline-block;
-    animation: spin 0.6s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* ============================================
-   EVENT DETAIL PAGE - Style Apollo
+   EVENT DETAIL PAGE - CONTENEUR & BOÎTE
    ============================================ */
 
 .event-detail-container {
@@ -357,19 +266,8 @@ body {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Desktop */
-@media (min-width: 769px) {
-    .event-detail-container {
-        max-width: 600px;
-    }
-    
-    .event-box {
-        padding: 50px;
-    }
-}
-
 /* ============================================
-   EVENT HEADER
+   EVENT DETAIL - HEADER & INFO
    ============================================ */
 
 .event-header h2 {
@@ -386,10 +284,6 @@ body {
     color: #666;
     margin-bottom: 30px;
 }
-
-/* ============================================
-   EVENT INFO BOX
-   ============================================ */
 
 .event-info-box {
     padding: 20px;
@@ -414,7 +308,7 @@ body {
 }
 
 /* ============================================
-   ACTIONS & MESSAGES
+   EVENT DETAIL - ACTIONS & BOUTONS
    ============================================ */
 
 .event-actions {
@@ -426,13 +320,18 @@ body {
     flex-direction: column;
     gap: 15px;
 }
+
 .action-buttons-row {
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
 }
 
-/* Boutons spécifiques event */
+.action-buttons-row form {
+    flex: 1;
+}
+
+/* Boutons spécifiques event detail */
 .btn-going {
     background: linear-gradient(135deg, var(--color-going), var(--color-going-hover)) !important;
     margin-top: 0 !important;
@@ -471,31 +370,78 @@ body {
     box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
-.status-message {
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
+/* ============================================
+   BOUTONS DE STATUT (GOING / NOT GOING)
+   ============================================ */
+
+.status-btn {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #d1d5db;
+    background-color: #f3f4f6;
+    color: #6b7280;
     font-weight: 600;
-    text-align: center;
-    font-size: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
+.status-btn:hover {
+    background-color: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+.status-btn.btn-going.active {
+    background-color: #10b981;
+    color: white;
+    border-color: #059669;
+}
+
+.status-btn.btn-going.active:hover {
+    background-color: #059669;
+}
+
+.status-btn.btn-not-going.active {
+    background-color: #ef4444;
+    color: white;
+    border-color: #dc2626;
+}
+
+.status-btn.btn-not-going.active:hover {
+    background-color: #dc2626;
+}
+
+/* ============================================
+   MESSAGES DE STATUT - EVENT DETAIL
+   ============================================ */
+
+.status-message {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.status-message.going,
 .status-message.status-going {
     background-color: #d1fae5;
     color: #065f46;
-    border-left: 4px solid var(--color-going);
+    border-left: 4px solid #10b981;
 }
 
-.status-message.status-waitlist {
-    background-color: #fef3c7;
-    color: #92400e;
-    border-left: 4px solid var(--color-waitlist);
-}
-
+.status-message.not-going,
 .status-message.status-not-going {
     background-color: #fee2e2;
     color: #991b1b;
-    border-left: 4px solid var(--color-logout);
+    border-left: 4px solid #ef4444;
+}
+
+.status-message.waitlist,
+.status-message.status-waitlist {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-left: 4px solid #f59e0b;
 }
 
 .info-message {
@@ -509,7 +455,7 @@ body {
 }
 
 /* ============================================
-   PARTICIPANTS SECTIONS
+   PARTICIPANTS & WAITLIST SECTIONS
    ============================================ */
 
 .participants-section,
@@ -574,30 +520,62 @@ body {
 }
 
 /* ============================================
-   RESPONSIVE - MOBILE
+   RESPONSIVE - TABLETTE (481px - 768px)
+   ============================================ */
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .login-container,
+    .event-detail-container {
+        max-width: 450px;
+    }
+}
+
+/* ============================================
+   RESPONSIVE - MOBILE (max-width: 480px)
    ============================================ */
 
 @media (max-width: 480px) {
+    .login-container,
     .event-detail-container {
         padding: 15px;
     }
     
+    .login-box,
     .event-box {
         padding: 30px 20px;
     }
     
+    .login-box h1,
     .event-header h2 {
         font-size: 24px;
     }
     
+    .login-box h1 {
+        margin-bottom: 25px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group input {
+        padding: 10px;
+        font-size: 16px; /* Évite le zoom automatique sur iOS */
+    }
+    
+    .login-signup-btn,
+    .btn-register {
+        padding: 12px;
+        font-size: 15px;
+    }
+
     .action-buttons {
         gap: 10px;
     }
     
     .btn-going,
     .btn-not-going,
-    .btn-cancel,
-    .btn-register {
+    .btn-cancel {
         padding: 12px;
         font-size: 15px;
     }
@@ -606,83 +584,20 @@ body {
         flex-direction: column;
         gap: 10px;
     }
-
 }
 
-/* Boutons de statut côte à côte */
-.action-buttons-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
+/* ============================================
+   RESPONSIVE - DESKTOP (min-width: 769px)
+   ============================================ */
 
-.action-buttons-row form {
-    flex: 1;
-}
-
-/* Style de base pour les boutons de statut */
-.status-btn {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #d1d5db;
-    background-color: #f3f4f6;
-    color: #6b7280;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.status-btn:hover {
-    background-color: #e5e7eb;
-    border-color: #9ca3af;
-}
-
-/* Bouton GOING actif (vert) */
-.status-btn.btn-going.active {
-    background-color: #10b981;
-    color: white;
-    border-color: #059669;
-}
-
-.status-btn.btn-going.active:hover {
-    background-color: #059669;
-}
-
-/* Bouton NOT GOING actif (rouge) */
-.status-btn.btn-not-going.active {
-    background-color: #ef4444;
-    color: white;
-    border-color: #dc2626;
-}
-
-.status-btn.btn-not-going.active:hover {
-    background-color: #dc2626;
-}
-
-/* Message de statut */
-.status-message {
-    margin-top: 15px;
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: 600;
-}
-
-.status-message.going {
-    background-color: #d1fae5;
-    color: #065f46;
-    border-left: 4px solid #10b981;
-}
-
-.status-message.not-going {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border-left: 4px solid #ef4444;
-}
-
-.status-message.waitlist {
-    background-color: #fef3c7;
-    color: #92400e;
-    border-left: 4px solid #f59e0b;
+@media (min-width: 769px) {
+    .login-container,
+    .event-detail-container {
+        max-width: 600px;
+    }
+    
+    .login-box,
+    .event-box {
+        padding: 50px;
+    }
 }

@@ -286,7 +286,7 @@ class EventService:
             User, Attendee.user_id == User.id
         ).filter(
             Attendee.event_id == event_id,
-            Attendee.status == 'confirmed'
+            Attendee.status == 'going'
         ).order_by(Attendee.registered_at).all()
         
         confirmed_participants = [
