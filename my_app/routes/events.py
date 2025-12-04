@@ -166,9 +166,11 @@ def event_page(
     can_register = True
     message = None
     
-    if is_punch_card and membership['remaining_credits'] == 0:
-        can_register = False
-        message = "Out of credits - Purchase more to register"
+    if user_status not in ['going', 'waitlist']:
+
+        if is_punch_card and membership['remaining_credits'] == 0:
+            can_register = False
+            message = "Out of credits - Purchase more to register"
     
     event_data['can_register'] = can_register
     event_data['message'] = message
