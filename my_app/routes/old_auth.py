@@ -19,7 +19,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 # Déterminer l'environnement (DEV ou PROD)
-ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'production')
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8000')
 
 # === SIGNUP ===
