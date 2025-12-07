@@ -209,7 +209,7 @@ body {
 }
 
 /* ============================================
-   EVENT ROW - Utilisent les variables
+   EVENT ROW - Structure principale des événements
    ============================================ */
 
 .event-row {
@@ -245,7 +245,7 @@ body {
 }
 
 /* ============================================
-   DATE CARD - Utilisent les variables
+   DATE CARD - Carte de date dans event row
    ============================================ */
 
 .date-card {
@@ -286,12 +286,12 @@ body {
 }
 
 /* ============================================
-   EVENT INFO - Utilisent les variables
+   EVENT INFO - Détails de l'événement
    ============================================ */
 
 .event-info {
-    flex: 1;
-    padding-right: 15px;
+    flex: 0 0 240px;
+    padding-right: 10px;
 }
 
 .event-title {
@@ -322,11 +322,45 @@ body {
 }
 
 /* ============================================
-   STATUS SECTION & BADGES
+   EVENT USER STATUS - Colonne de statut utilisateur
+   ============================================ */
+
+.event-user-status {
+    flex: 0 0 auto;
+    padding-left: 15px;
+}
+
+.user-status-text {
+    font-weight: 700;
+    font-size: 24px;
+    display: inline-block;
+}
+
+.user-status-going {
+    color: #10b981;
+}
+
+.user-status-waitlist {
+    color: #f59e0b;
+}
+
+.user-status-not-going {
+    color: #6b7280;
+}
+
+.user-status-unknown {
+    color: #9ca3af;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+/* ============================================
+   STATUS SECTION - Boutons d'action RSVP
    ============================================ */
 
 .status-section {
     flex: 0 0 auto;
+    margin-left: auto;
 }
 
 .status-badge {
@@ -671,8 +705,10 @@ body {
 
     /* Event info compact */
     .event-info {
+    flex: 0 0 180px;  /* Au lieu de flex: 1 */
         padding-right: 5px;
     }
+/* Event info compact */
 
     .event-title {
         font-size: 13px;
@@ -688,7 +724,25 @@ body {
         line-height: 1.3;
     }
 
+    /* User status compact sur mobile */
+    .event-user-status {
+        flex: 0 0 auto;
+        padding-left: 3px;
+    }
+
+    .user-status-text {
+        font-size: 14px;
+    }
+
+    .user-status-unknown {
+        font-size: 11px;
+    }
+
     /* Status badges plus petits */
+    .status-section {
+        margin-left: auto;
+    }
+
     .status-badge {
         padding: 5px 10px;
         font-size: 9px;
@@ -743,10 +797,23 @@ body {
         font-size: 10px;
     }
 
+    /* User status encore plus compact */
+    .user-status-text {
+        font-size: 12px;
+    }
+
     .status-badge {
         padding: 4px 8px;
         font-size: 8px;
     }
+    /* User status encore plus proche sur très petit écran */
+.event-user-status {
+    padding-left: 1px;
+}
+
+.event-info {
+    flex: 0 0 150px;  /* Encore plus petit sur très petit écran */
+}
 }
 
 /* ============================================
@@ -763,4 +830,21 @@ body {
         max-width: 800px;
         margin: 0 auto;
     }
+}
+
+
+.full-text {
+    background: linear-gradient(
+        90deg,
+        #e40303,  /* Rouge */
+        #ff8c00,  /* Orange */
+        #ffed00,  /* Jaune */
+        #008026,  /* Vert */
+        #24408e,  /* Bleu */
+        #732982   /* Violet */
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
 }

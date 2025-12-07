@@ -78,9 +78,8 @@ body {
 }
 
 .login-box h1::before {
-    content: "🚀 ";
+    content: "🏓 ";
 }
-
 /* ============================================
    FORMULAIRE LOGIN
    ============================================ */
@@ -600,4 +599,20 @@ body {
     .event-box {
         padding: 50px;
     }
+}
+
+.full-text {
+    background: linear-gradient(
+        90deg,
+        #e40303,  /* Rouge */
+        #ff8c00,  /* Orange */
+        #ffed00,  /* Jaune */
+        #008026,  /* Vert */
+        #24408e,  /* Bleu */
+        #732982   /* Violet */
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
 }
