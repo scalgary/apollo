@@ -338,6 +338,7 @@ body {
 
 .btn-not-going {
     background: linear-gradient(135deg, var(--color-rsvp), var(--color-rsvp-hover)) !important;
+    
     margin-top: 0 !important;
 }
 
@@ -378,7 +379,7 @@ body {
     padding: 12px;
     border: 2px solid #d1d5db;
     background-color: #f3f4f6;
-    color: #6b7280;
+    color: white;
     font-weight: 600;
     border-radius: 8px;
     cursor: pointer;
