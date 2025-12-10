@@ -8,7 +8,7 @@ from .security import (
     get_current_user,
     authenticate_user
 )
-
+from .emoji_data import MESSAGE_EMOJIS, COMMENT_EMOJIS
 __all__ = [
     'load_events',
     'load_whitelist',
@@ -21,5 +21,7 @@ __all__ = [
     'get_password_hash',
     'create_access_token',
     'get_current_user',
-    'authenticate_user'
+    'authenticate_user',
+    'MESSAGE_EMOJIS',
+    'COMMENT_EMOJIS'
 ]

@@ -6,6 +6,8 @@ from database import get_db
 from services.auth_service import AuthService
 from services.message_service import MessageService
 from pydantic import BaseModel
+from utils import MESSAGE_EMOJIS, COMMENT_EMOJIS
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -84,6 +86,12 @@ def community_pages(
     except ValueError:
         return RedirectResponse(url="/login?error=Session expired", status_code=303)
     
+    # Récupérer les memberships (AJOUTER CETTE LIGNE)
+    from services.event_service import EventService
+    event_service = EventService(db)
+    memberships = event_service.get_user_memberships_formatted(user.id)
+
+    
     # Récupérer tous les messages avec commentaires
     message_service = MessageService(db)
     messages = message_service.get_all_messages_with_comments()
@@ -92,8 +100,12 @@ def community_pages(
     return templates.TemplateResponse("community.html", {
         "request": request,
         "user": user,
-        "messages": messages
+        "memberships": memberships,
+        "messages": messages,
+        "message_emojis": MESSAGE_EMOJIS,  # ← AJOUTER
+        "comment_emojis": COMMENT_EMOJIS   # ← AJOUTER
     })
+
 
 
 # ============================================

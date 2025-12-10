@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community - Apollo</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- HEADER (MÊME STYLE QUE SCHEDULE) -->
+    <div class="header">
+        <div class="header-content">
+            <!-- Ligne 1 : Titre + Logout -->
+            <div class="header-top">
+                <h1><span class="full-text">Apollo Pickleball</span></h1>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+            
+            <!-- Ligne 2 : Display name + Badges membership -->
+            <div class="user-info">
+                <span class="user-display-name">{{ user.display_name }}</span>
+                
+                <!-- Badge Event 1 -->
+                <span class="membership-badge type-1">
+                    {% if memberships['event_1']['type'] == 'punch_card' %}
+                        Punch Card - {{ memberships['event_1']['remaining_credits'] }}
+                    {% elif memberships['event_1']['type'] == 'full_member' %}
+                        Full Member
+                    {% else %}
+                        No Access
+                    {% endif %}
+                </span>
+
+                <!-- Badge Event 2 -->
+                <span class="membership-badge type-2">
+                    {% if memberships['event_2']['type'] == 'punch_card' %}
+                        Punch Card - {{ memberships['event_2']['remaining_credits'] }}
+                    {% elif memberships['event_2']['type'] == 'full_member' %}
+                        Full Member
+                    {% else %}
+                        No Access
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR TABS -->
+    <div class="navbar-tabs">
+        <a href="/schedule" class="tab-link">Upcoming Events</a>
+        <a href="/community" class="tab-link active">Community</a>
+    </div>
+
+    <!-- MESSAGES FEED -->
+    <div class="messages-feed">
+        {% if messages|length == 0 %}
+            <div class="empty-state">
+                <div class="empty-icon">💬</div>
+                <p>No messages yet</p>
+                <small>Be the first to start a conversation!</small>
+            </div>
+        {% else %}
+            {% for message in messages %}
+            <div class="message-bubble" data-message-id="{{ message.id }}">
+
+                
+                <div class="message-content-wrapper">
+                    <!-- Header -->
+                    <div class="message-bubble-header">
+                        <span class="author-name" style="color: {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][message.author_id % 8] }}">
+                            {{ message.author_name }}</span>
+                        
+                        <span class="message-time">{{ message.created_at_display }}</span>
+                        {% if message.updated_at != message.created_at %}
+                            <span class="edited-badge">edited</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Contenu du message -->
+                    <div class="message-text" id="message-content-{{ message.id }}">
+                        {{ message.content }}
+                    </div>
+                    
+                    <!-- Formulaire édition (caché) -->
+                    <form class="edit-form" id="edit-form-{{ message.id }}" style="display: none;">
+                        <textarea id="edit-content-{{ message.id }}" maxlength="500">{{ message.content }}</textarea>
+                        <div class="edit-actions">
+                            <button type="button" class="btn-cancel-edit" onclick="cancelEditMessage({{ message.id }})">Cancel</button>
+                            <button type="submit" class="btn-save-edit">Save</button>
+                        </div>
+                    </form>
+                    
+                    <!-- Actions (si auteur) -->
+                    {% if message.author_id == user.id %}
+                    <div class="message-actions">
+                        <button class="action-btn" onclick="editMessage({{ message.id }})">✏️ Edit</button>
+                        <button class="action-btn delete" onclick="deleteMessage({{ message.id }})">🗑️ Delete</button>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- COMMENTAIRES -->
+                    {% if message.comments|length > 0 %}
+                    <div class="comments-container">
+                        {% for comment in message.comments %}
+                        <div class="comment-item" data-comment-id="{{ comment.id }}">
+                            
+                            <div class="comment-content-wrapper">
+                                <div class="comment-header">
+                                    <span class="comment-author" style="color: {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][comment.author_id % 8] }}"
+
+                                    >{{ comment.author_name }}</span>
+                                    
+                                    <span class="comment-time">{{ comment.created_at_display }}</span>
+                                    {% if comment.updated_at != comment.created_at %}
+                                        <span class="edited-badge">edited</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="comment-text" id="comment-content-{{ comment.id }}">
+                                    {{ comment.content }}
+                                </div>
+                                
+                                <!-- Formulaire édition commentaire -->
+                                <form class="edit-form" id="edit-comment-form-{{ comment.id }}" style="display: none;">
+                                    <textarea id="edit-comment-content-{{ comment.id }}" maxlength="500">{{ comment.content }}</textarea>
+                                    <div class="edit-actions">
+                                        <button type="button" class="btn-cancel-edit" onclick="cancelEditComment({{ comment.id }})">Cancel</button>
+                                        <button type="submit" class="btn-save-edit">Save</button>
+                                    </div>
+                                </form>
+                                
+                                <!-- Actions commentaire -->
+                                {% if comment.author_id == user.id %}
+                                <div class="comment-actions">
+                                    <button class="action-btn-small" onclick="editComment({{ comment.id }})">✏️</button>
+                                    <button class="action-btn-small delete" onclick="deleteComment({{ comment.id }})">🗑️</button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Formulaire nouveau commentaire -->
+                    <form class="comment-form" id="commentForm-{{ message.id }}">
+                        <div class="comment-input-wrapper">
+                            <textarea 
+                                id="commentContent-{{ message.id }}"
+                                placeholder="Add a comment..."
+                                maxlength="500"
+                                rows="1"
+                            ></textarea>
+                            <button type="button" class="emoji-btn-small" onclick="toggleEmojiPicker('comment-{{ message.id }}')">😊</button>
+                            <div class="emoji-picker emoji-picker-small" id="emojiPickercomment-{{ message.id }}" style="display: none;">
+                                {% for emoji in comment_emojis %}
+                                <button type="button" onclick="insertEmoji('commentContent-{{ message.id }}', '{{ emoji }}')">{{ emoji }}</button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-send">➤</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- BOUTON NOUVEAU MESSAGE (FLOATING) -->
+    <button class="fab" onclick="openNewMessageModal()">✏️</button>
+
+    <!-- MODAL NOUVEAU MESSAGE -->
+    <div class="modal" id="newMessageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>New Message</h2>
+                <button class="close-modal" onclick="closeNewMessageModal()">✕</button>
+            </div>
+            <form id="messageForm">
+                <textarea 
+                    id="messageContent" 
+                    placeholder="Share something with the community..."
+                    maxlength="500"
+                    rows="4"
+                    autofocus
+                ></textarea>
+                
+                <!-- EMOJI PICKER -->
+                <div class="emoji-toolbar">
+                    <button type="button" class="emoji-btn" onclick="toggleEmojiPicker('message')">😊</button>
+                    <div class="emoji-picker" id="emojiPickerMessage" style="display: none;">
+                        {% for emoji in message_emojis %}
+                        <button type="button" onclick="insertEmoji('messageContent', '{{ emoji }}')">{{ emoji }}</button>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <span class="char-count" id="messageCharCount">0/500</span>
+                    <button type="submit" class="btn-post">Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // ============================================
+        // MODAL NOUVEAU MESSAGE
+        // ============================================
+        function openNewMessageModal() {
+            document.getElementById('newMessageModal').classList.add('show');
+            document.getElementById('messageContent').focus();
+        }
+
+        function closeNewMessageModal() {
+            document.getElementById('newMessageModal').classList.remove('show');
+            document.getElementById('messageContent').value = '';
+            document.getElementById('messageCharCount').textContent = '0/500';
+        }
+
+        // Compteur caractères
+        const messageTextarea = document.getElementById('messageContent');
+        const charCount = document.getElementById('messageCharCount');
+        
+        messageTextarea.addEventListener('input', () => {
+            charCount.textContent = `${messageTextarea.value.length}/500`;
+        });
+
+        // Auto-resize textareas
+        document.querySelectorAll('textarea').forEach(textarea => {
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+        });
+
+        // ============================================
+        // EMOJI PICKER
+        // ============================================
+        function toggleEmojiPicker(id) {
+            const picker = document.getElementById('emojiPicker' + id);
+            if (picker) {
+                picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+            }
+        }
+
+        function insertEmoji(textareaId, emoji) {
+            const textarea = document.getElementById(textareaId);
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            
+            textarea.value = text.substring(0, start) + emoji + text.substring(end);
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+            
+            // Update char count si c'est le message principal
+            if (textareaId === 'messageContent') {
+                document.getElementById('messageCharCount').textContent = `${textarea.value.length}/500`;
+            }
+            
+            // Fermer le picker
+            document.querySelectorAll('.emoji-picker').forEach(picker => {
+                picker.style.display = 'none';
+            });
+        }
+
+        // Fermer emoji picker en cliquant ailleurs
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.emoji-btn') && !e.target.closest('.emoji-btn-small') && !e.target.closest('.emoji-picker')) {
+                document.querySelectorAll('.emoji-picker').forEach(picker => {
+                    picker.style.display = 'none';
+                });
+            }
+        });
+
+        // ============================================
+        // POSTER UN MESSAGE
+        // ============================================
+        document.getElementById('messageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const content = messageTextarea.value.trim();
+            
+            if (!content) {
+                alert('Please enter a message');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content })
+                });
+                
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to post message');
+                }
+            } catch (error) {
+                alert('Network error');
+            }
+        });
+
+        // ============================================
+        // ÉDITER UN MESSAGE
+        // ============================================
+        function editMessage(messageId) {
+            document.getElementById(`message-content-${messageId}`).style.display = 'none';
+            document.getElementById(`edit-form-${messageId}`).style.display = 'block';
+        }
+
+        function cancelEditMessage(messageId) {
+            document.getElementById(`message-content-${messageId}`).style.display = 'block';
+            document.getElementById(`edit-form-${messageId}`).style.display = 'none';
+        }
+
+        document.querySelectorAll('.message-bubble .edit-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const messageId = form.id.replace('edit-form-', '');
+                const content = document.getElementById(`edit-content-${messageId}`).value.trim();
+                
+                if (!content) {
+                    alert('Message cannot be empty');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/messages/${messageId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content })
+                    });
+                    
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert(error.detail || 'Failed to edit message');
+                    }
+                } catch (error) {
+                    alert('Network error');
+                }
+            });
+        });
+
+        // ============================================
+        // SUPPRIMER UN MESSAGE
+        // ============================================
+        async function deleteMessage(messageId) {
+            if (!confirm('Delete this message and all its comments?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/messages/${messageId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to delete message');
+                }
+            } catch (error) {
+                alert('Network error');
+            }
+        }
+
+        // ============================================
+        // POSTER UN COMMENTAIRE
+        // ============================================
+        document.querySelectorAll('.comment-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const messageId = form.id.replace('commentForm-', '');
+                const textarea = document.getElementById(`commentContent-${messageId}`);
+                const content = textarea.value.trim();
+                
+                if (!content) {
+                    alert('Please enter a comment');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/messages/${messageId}/comments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content })
+                    });
+                    
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert(error.detail || 'Failed to post comment');
+                    }
+                } catch (error) {
+                    alert('Network error');
+                }
+            });
+        });
+
+        // ============================================
+        // ÉDITER UN COMMENTAIRE
+        // ============================================
+        function editComment(commentId) {
+            document.getElementById(`comment-content-${commentId}`).style.display = 'none';
+            document.getElementById(`edit-comment-form-${commentId}`).style.display = 'block';
+        }
+
+        function cancelEditComment(commentId) {
+            document.getElementById(`comment-content-${commentId}`).style.display = 'block';
+            document.getElementById(`edit-comment-form-${commentId}`).style.display = 'none';
+        }
+
+        document.querySelectorAll('.comment-item .edit-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const commentId = form.id.replace('edit-comment-form-', '');
+                const content = document.getElementById(`edit-comment-content-${commentId}`).value.trim();
+                
+                if (!content) {
+                    alert('Comment cannot be empty');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/comments/${commentId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ content })
+                    });
+                    
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert(error.detail || 'Failed to edit comment');
+                    }
+                } catch (error) {
+                    alert('Network error');
+                }
+            });
+        });
+
+        // ============================================
+        // SUPPRIMER UN COMMENTAIRE
+        // ============================================
+        async function deleteComment(commentId) {
+            if (!confirm('Delete this comment?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/comments/${commentId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to delete comment');
+                }
+            } catch (error) {
+                alert('Network error');
+            }
+        }
+
+        // Fermer modal en cliquant en dehors
+        document.getElementById('newMessageModal').addEventListener('click', (e) => {
+            if (e.target.id === 'newMessageModal') {
+                closeNewMessageModal();
+            }
+        });
+    </script>
+</body>
+</html>
