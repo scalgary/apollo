@@ -1,5 +1,5 @@
 # backend/utils/__init__.py
-from .csv_loader import load_events, load_whitelist, load_event_types
+from .csv_loader import load_events, load_whitelist, load_event_types, load_admins
 from .get_user_from_cookie import get_user_from_cookie, get_current_user_using_from_cookie,get_current_user
 from .security import (
     verify_password,
@@ -13,6 +13,7 @@ __all__ = [
     'load_events',
     'load_whitelist',
     'load_event_types',
+    'load_admins',
     'get_user_from_cookie',
     'get_current_user_using_from_cookie',
     'get_current_user',

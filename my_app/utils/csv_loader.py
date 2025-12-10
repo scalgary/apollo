@@ -34,7 +34,7 @@ def load_whitelist():
                 real_name = row['real_name'].strip()
                 event_type_name = row['event_type_name'].strip()
                 membership_type = row['membership_type'].strip()
-                credits_str = row.get('total_credits_purchased', '').strip()
+                credits_str = (row.get('total_credits_purchased') or '').strip()
                 
                 # Convertir credits
                 total_credits = int(credits_str) if credits_str else None

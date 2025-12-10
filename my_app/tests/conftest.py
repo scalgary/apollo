@@ -28,7 +28,7 @@ def db():
     # IMPORTANT: Créer les 2 event_types dans chaque DB de test
     from db_models import EventType
     open_play = EventType(
-        name='open_play',
+        event_type_name='open_play',
         display_name='Intérieur',
         default_location='Calgary Indoor Sports Arena',
         default_time_start='19:00',
@@ -37,7 +37,7 @@ def db():
         color='#4A90E2'
     )
     competitive = EventType(
-        name='competitive',
+        event_type_name='competitive',
         display_name='Extérieur',
         default_location='Riley Park Outdoor Courts',
         default_time_start='14:00',
