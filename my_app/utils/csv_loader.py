@@ -123,3 +123,36 @@ def load_event_types():
             })
     
     return event_types
+
+
+def load_admins():
+    """
+    Charger la liste des administrateurs avec leurs emails dédiés.
+    
+    Format CSV attendu:
+    user_email,admin_email
+    john@personal.com,john.admin@apollo.com
+    
+    Retourne:
+    {
+        'john@personal.com': 'john.admin@apollo.com',
+        'sarah@personal.com': 'sarah.admin@apollo.com'
+    }
+    """
+    ADMINS_PATH = os.getenv("data/admins.csv")
+    
+    admins = {}
+    
+    try:
+        with open(ADMINS_PATH, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                user_email = row['user_email'].strip().lower()
+                admin_email = row['admin_email'].strip().lower()
+                admins[user_email] = admin_email
+                
+    except FileNotFoundError:
+        print(f"ERROR: Admins file not found at {ADMINS_PATH}")
+        raise  # Re-raise pour arrêter l'app si CSV critique manquant
+    
+    return admins
