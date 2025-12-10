@@ -12,7 +12,7 @@
         <div class="header-content">
             <!-- Ligne 1 : Titre + Logout -->
             <div class="header-top">
-                <h1>Apollo Pickleball</h1>
+<h1><span class="full-text">Apollo Pickleball</h1></span></h1>
                 <a href="/logout" class="logout-btn">Logout</a>
             </div>
             
@@ -68,37 +68,52 @@
                     {% set type_class = 'type-2' %}
                 {% endif %}
                 
-                <div class="event-row {{ type_class }}" onclick="window.location.href='/event/{{ event['id'] }}'">
-                    <!-- Date card -->
-                    <div class="date-card {{ type_class }}">
-                        <div class="month">{{ event['month'] }}</div>
-                        <div class="day">{{ event['day'] }}</div>
-                        <div class="weekday">{{ event['weekday'] }}</div>
-                    </div>
-                    
-                    <div class="event-info">
-                        <h3 class="event-title {{ type_class }}">{{ memberships[event_type_key]['display_name'] }}</h3>
-                        <p class="event-location">📍 {{ memberships[event_type_key]['location'] }}</p>
-                        <p class="event-time">🕒 {{ memberships[event_type_key]['time_start'] }} - {{ memberships[event_type_key]['time_end'] }}</p>
-                        <p class="event-capacity">👥 {{ event['confirmed_count'] }}/{{ event['max_spots'] }}</p>
-                    </div>
-                    
-                    <div class="status-section">
-                        {% if event['user_status'] == 'going' %}
-                            <button class="status-badge status-going">GOING</button>
-                        {% elif event['user_status'] == 'waitlist' %}
-                            <button class="status-badge status-waitlist">WAITLIST</button>
-                        {% elif event['user_status'] == 'not going' %}
-                            <button class="status-badge status-not-going">NOT GOING</button>
-                        {% elif event['user_status'] == 'no_credits' %}
-                            <button class="status-badge status-no-credits">OUT OF CREDITS</button>
-                        {% elif event['user_status'] == 'full_member_priority' %}
-                            <button class="status-badge status-restricted">FULL MEMBER PRIORITY</button>
-                        {% else %}
-                            <button class="status-badge status-rsvp">RSVP</button>
-                        {% endif %}
-                    </div>
-                </div>
+              <div class="event-row {{ type_class }}" onclick="window.location.href='/event/{{ event.id }}'">
+    <!-- Date card -->
+    <div class="date-card {{ type_class }}">
+        <div class="month">{{ event['month'] }}</div>
+        <div class="day">{{ event['day'] }}</div>
+        <div class="weekday">{{ event['weekday'] }}</div>
+    </div>
+    
+    <div class="event-info">
+        <h3 class="event-title {{ type_class }}">{{ memberships[event_type_key]['display_name'] }}</h3>
+        <p class="event-location">📍 {{ memberships[event_type_key]['location'] }}</p>
+        <p class="event-time">🕒 {{ memberships[event_type_key]['time_start'] }} - {{ memberships[event_type_key]['time_end'] }}</p>
+<p class="event-capacity">
+    {% if event['confirmed_count'] >= event['max_spots'] %}
+        👥 <span class="full-text">FULL</span>
+    {% else %}
+        👥 {{ event['confirmed_count'] }}/{{ event['max_spots'] }}
+    {% endif %}
+</p>
+        </div>
+
+<div class="event-user-status">
+    {% if event['user_status'] == 'going' %}
+        <span class="user-status-text user-status-going">✅ GOING</span>
+    {% elif event['user_status'] == 'waitlist' %}
+        <span class="user-status-text user-status-waitlist">⏰ WAITLIST</span>
+    {% elif event['user_status'] == 'not_going' %}
+        <span class="user-status-text user-status-not-going">❌ NOT GOING</span>
+    {% endif %}
+</div>
+ <div class="status-section">
+        {% if event['user_status'] == 'going' %}
+            <button class="status-badge status-rsvp">RSVP</button>
+        {% elif event['user_status'] == 'waitlist' %}
+            <button class="status-badge status-rsvp">RSVP</button>
+        {% elif event['user_status'] == 'not going' %}
+            <button class="status-badge status-rsvp">RSVP</button>
+        {% elif event['user_status'] == 'no_credits' %}
+            <button class="status-badge status-no-credits">OUT OF CREDITS</button>
+        {% elif event['user_status'] == 'full_member_priority' %}
+            <button class="status-badge status-restricted">FULL MEMBER PRIORITY</button>
+        {% else %}
+            <button class="status-badge status-rsvp">RSVP</button>
+        {% endif %}
+    </div>
+</div>
                 {% endfor %}
             </div>
         {% endif %}
