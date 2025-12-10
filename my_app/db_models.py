@@ -74,10 +74,9 @@ class Admin(Base):
     __tablename__ = 'admins'
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=False)
-    admin_email = Column(String, nullable=False)  # Gmail dédié admin
+    user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=True)  # ✅ Optionnel
+    admin_email = Column(String, unique=True, nullable=False)  # ✅ UNIQUE important
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-
 class Message(Base):
     __tablename__ = 'messages'
     
