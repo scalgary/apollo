@@ -141,11 +141,13 @@ def load_admins():
     admins = []
     
     try:
-        with open(ADMINS_PATH, 'r') as f:
+        with open('data/admins.csv', 'r') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                admin_email = row['admin_email'].strip().lower()
-                admins.append(admin_email)
+                admins.append({
+                'admin_email' : row['admin_email'].strip().lower(),
+                'display_name' : row['display_name'],
+                'real_name' : row['real_name']})
                 
     except FileNotFoundError:
         print(f"ERROR: Admins file not found at {ADMINS_PATH}")

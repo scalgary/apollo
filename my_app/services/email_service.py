@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
 
 class EmailService:
     """Service pour gérer l'envoi d'emails"""

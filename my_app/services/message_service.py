@@ -58,8 +58,11 @@ class MessageService:
         
         if is_admin:
             # Admin poste → notifier tous les users
+            all_admin_emails = self.admin_service.get_admin_emails()
             all_users = self.db.query(User).all()
-            to_emails = [u.email for u in all_users if u.id != user_id]  # Pas l'auteur
+            #to_emails = [u.email for u in all_users if u.id != user_id]  # Pas l'auteur
+            to_emails = [email for email in all_admin_emails if email != user.email]  # Pas l'auteur
+
         else:
             # User normal poste → notifier les admins
             to_emails = self.admin_service.get_admin_emails()
