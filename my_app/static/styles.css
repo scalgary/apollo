@@ -2016,3 +2016,215 @@ body {
     }
 }
 
+/* Message Header avec actions inline */
+.message-bubble-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.message-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.message-actions-inline {
+    display: flex;
+    gap: 6px;
+    margin-left: 10px;
+}
+
+.action-btn-icon {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+
+.action-btn-icon:hover {
+    background: #f8f9fa;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.action-btn-icon.delete:hover {
+    background: #fee;
+}
+
+/* Remove old message-actions if exists */
+.message-actions {
+    display: none;
+}
+
+.author-name {
+    font-weight: 700;
+    /* color: #2c3e50; */ /* ← Supprimer cette ligne car couleur dynamique maintenant */
+    font-size: 15px;
+}
+
+/* Bouton nouveau message - gros à gauche */
+.new-post-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s;
+    margin-bottom: 30px;
+    margin-left: 0;
+}
+
+.btn-plus {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.btn-label {
+    font-size: 16px;
+}
+
+.new-post-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.new-post-btn:active {
+    transform: translateY(0);
+}
+
+/* Comment Header avec actions inline */
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.comment-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.comment-actions-inline {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.action-btn-icon-small {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 3px;
+    border-radius: 3px;
+    transition: all 0.2s;
+    opacity: 0.6;
+}
+
+.action-btn-icon-small:hover {
+    background: #f8f9fa;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.action-btn-icon-small.delete:hover {
+    background: #fee;
+}
+
+/* Remove old comment-actions */
+.comment-actions {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .new-post-btn {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+    
+    .btn-plus {
+        font-size: 24px;
+    }
+}
+
+/* Bouton nouveau message - à droite avec rainbow */
+.new-post-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(
+        90deg,
+        #FF0000 0%,
+        #FF7F00 16.67%,
+        #FFFF00 33.33%,
+        #00FF00 50%,
+        #0000FF 66.67%,
+        #8B00FF 83.33%,
+        #FF00FF 100%
+    );
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+    margin-bottom: 30px;
+    margin-left: auto;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn-plus {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.btn-label {
+    font-size: 16px;
+}
+
+.new-post-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.new-post-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .new-post-btn {
+        padding: 12px 20px;
+        font-size: 15px;
+        margin-left: 0;
+        margin-right: auto;
+    }
+    
+    .btn-plus {
+        font-size: 24px;
+    }
+}

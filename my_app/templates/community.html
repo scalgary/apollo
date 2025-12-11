@@ -52,7 +52,16 @@
     </div>
 
     <!-- MESSAGES FEED -->
-    <div class="messages-feed">
+<div class="messages-feed">
+    <!-- Bouton nouveau message -->
+    <div class="new-message-container">
+<!-- Bouton nouveau message -->
+<button class="new-post-btn" onclick="openNewMessageModal()">
+    <span class="btn-plus">+</span>
+    <span class="btn-label">New Post</span>
+</button>
+    </div>
+
         {% if messages|length == 0 %}
             <div class="empty-state">
                 <div class="empty-icon">💬</div>
@@ -66,37 +75,40 @@
                 
                 <div class="message-content-wrapper">
                     <!-- Header -->
-                    <div class="message-bubble-header">
-                        <span class="author-name" style="color: {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][message.author_id % 8] }}">
-                            {{ message.author_name }}</span>
+<!-- Header avec actions à droite -->
+<div class="message-bubble-header">
+    <div class="message-info">
+<span class="author-name" style="color: {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][message.author_id % 8] }}">{{ message.author_name }}</span>
+        <span class="message-time">{{ message.created_at_display }}</span>
+        {% if message.updated_at != message.created_at %}
+            <span class="edited-badge">edited</span>
+        {% endif %}
+    </div>
+    
+    <!-- Actions (si auteur) -->
+    {% if message.author_id == user.id %}
+    <div class="message-actions-inline">
+        <button class="action-btn-icon" onclick="editMessage({{ message.id }})" title="Edit">✏️</button>
+        <button class="action-btn-icon delete" onclick="deleteMessage({{ message.id }})" title="Delete">🗑️</button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Contenu du message -->
+<div class="message-text" id="message-content-{{ message.id }}">
+    {{ message.content }}
+</div>
+
+<!-- Formulaire édition (caché) -->
+<form class="edit-form" id="edit-form-{{ message.id }}" style="display: none;">
+    <textarea id="edit-content-{{ message.id }}" maxlength="500">{{ message.content }}</textarea>
+    <div class="edit-actions">
+        <button type="button" class="btn-cancel-edit" onclick="cancelEditMessage({{ message.id }})">Cancel</button>
+        <button type="submit" class="btn-save-edit">Save</button>
+    </div>
+</form>
                         
-                        <span class="message-time">{{ message.created_at_display }}</span>
-                        {% if message.updated_at != message.created_at %}
-                            <span class="edited-badge">edited</span>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Contenu du message -->
-                    <div class="message-text" id="message-content-{{ message.id }}">
-                        {{ message.content }}
-                    </div>
-                    
-                    <!-- Formulaire édition (caché) -->
-                    <form class="edit-form" id="edit-form-{{ message.id }}" style="display: none;">
-                        <textarea id="edit-content-{{ message.id }}" maxlength="500">{{ message.content }}</textarea>
-                        <div class="edit-actions">
-                            <button type="button" class="btn-cancel-edit" onclick="cancelEditMessage({{ message.id }})">Cancel</button>
-                            <button type="submit" class="btn-save-edit">Save</button>
-                        </div>
-                    </form>
-                    
-                    <!-- Actions (si auteur) -->
-                    {% if message.author_id == user.id %}
-                    <div class="message-actions">
-                        <button class="action-btn" onclick="editMessage({{ message.id }})">✏️ Edit</button>
-                        <button class="action-btn delete" onclick="deleteMessage({{ message.id }})">🗑️ Delete</button>
-                    </div>
-                    {% endif %}
+ 
                     
                     <!-- COMMENTAIRES -->
                     {% if message.comments|length > 0 %}
@@ -105,29 +117,37 @@
                         <div class="comment-item" data-comment-id="{{ comment.id }}">
                             
                             <div class="comment-content-wrapper">
-                                <div class="comment-header">
-                                    <span class="comment-author" style="color: {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][comment.author_id % 8] }}"
+  <!-- Header avec actions inline -->
+<div class="comment-header">
+    <div class="comment-info">
+        <span class="comment-author" style="color: {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][comment.author_id % 8] }}">{{ comment.author_name }}</span>
+        <span class="comment-time">{{ comment.created_at_display }}</span>
+        {% if comment.updated_at != comment.created_at %}
+            <span class="edited-badge">edited</span>
+        {% endif %}
+    </div>
+    
+    <!-- Actions commentaire -->
+    {% if comment.author_id == user.id %}
+    <div class="comment-actions-inline">
+        <button class="action-btn-icon-small" onclick="editComment({{ comment.id }})" title="Edit">✏️</button>
+        <button class="action-btn-icon-small delete" onclick="deleteComment({{ comment.id }})" title="Delete">🗑️</button>
+    </div>
+    {% endif %}
+</div>
 
-                                    >{{ comment.author_name }}</span>
-                                    
-                                    <span class="comment-time">{{ comment.created_at_display }}</span>
-                                    {% if comment.updated_at != comment.created_at %}
-                                        <span class="edited-badge">edited</span>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="comment-text" id="comment-content-{{ comment.id }}">
-                                    {{ comment.content }}
-                                </div>
-                                
-                                <!-- Formulaire édition commentaire -->
-                                <form class="edit-form" id="edit-comment-form-{{ comment.id }}" style="display: none;">
-                                    <textarea id="edit-comment-content-{{ comment.id }}" maxlength="500">{{ comment.content }}</textarea>
-                                    <div class="edit-actions">
-                                        <button type="button" class="btn-cancel-edit" onclick="cancelEditComment({{ comment.id }})">Cancel</button>
-                                        <button type="submit" class="btn-save-edit">Save</button>
-                                    </div>
-                                </form>
+<div class="comment-text" id="comment-content-{{ comment.id }}">
+    {{ comment.content }}
+</div>
+
+<!-- Formulaire édition commentaire -->
+<form class="edit-form" id="edit-comment-form-{{ comment.id }}" style="display: none;">
+    <textarea id="edit-comment-content-{{ comment.id }}" maxlength="500">{{ comment.content }}</textarea>
+    <div class="edit-actions">
+        <button type="button" class="btn-cancel-edit" onclick="cancelEditComment({{ comment.id }})">Cancel</button>
+        <button type="submit" class="btn-save-edit">Save</button>
+    </div>
+</form>
                                 
                                 <!-- Actions commentaire -->
                                 {% if comment.author_id == user.id %}
@@ -167,7 +187,6 @@
     </div>
 
     <!-- BOUTON NOUVEAU MESSAGE (FLOATING) -->
-    <button class="fab" onclick="openNewMessageModal()">✏️</button>
 
     <!-- MODAL NOUVEAU MESSAGE -->
     <div class="modal" id="newMessageModal">
