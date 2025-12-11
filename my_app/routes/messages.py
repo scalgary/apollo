@@ -97,7 +97,7 @@ def community_pages(
     messages = message_service.get_all_messages_with_comments()
     
     # Render template
-    return templates.TemplateResponse("community.html", {
+    return templates.TemplateResponse("test.html", {
         "request": request,
         "user": user,
         "memberships": memberships,
