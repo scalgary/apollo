@@ -1,0 +1,9 @@
+event_type_name,period_name,display_name,location,time_start,time_end,max_capacity,color
+open_play,Fall 2025,Thursday Indoor,Calgary Indoor Sports Arena,19:00,21:00,20,#3b82f6
+open_play,Winter 2026,Thursday Indoor,Calgary Indoor Sports Arena,19:00,21:00,20,#3b82f6
+open_play,Spring 2026,Thursday Indoor,Calgary Indoor Sports Arena,19:00,21:00,20,#3b82f6
+open_play,Summer 2026,Sunday Outdoor,Riley Park Outdoor Courts,14:00,16:00,24,#10b981
+competitive,Fall 2025,Competitive Indoor,Arena B,18:00,20:00,16,#f97316
+competitive,Winter 2026,Competitive Indoor,Arena B,18:00,20:00,16,#f97316
+competitive,Spring 2026,Competitive Indoor,Arena B,18:00,20:00,16,#f97316
+competitive,Summer 2026,Competitive Outdoor,Riley Park Courts,10:00,12:00,20,#ea580c

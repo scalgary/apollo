@@ -1,30 +1,117 @@
 import csv
 import os
 
-# Permet override pour les tests
+# Paths with environment variable override for tests
 WHITELIST_PATH = os.getenv("WHITELIST_PATH", "/app/data/whitelist.csv")
 EVENTS_PATH = os.getenv("EVENTS_PATH", "/app/data/events.csv")
+MEMBERSHIP_PERIODS_PATH = os.getenv("MEMBERSHIP_PERIODS_PATH", "/app/data/membership_periods.csv")
+EVENT_TYPE_CONFIGS_PATH = os.getenv("EVENT_TYPE_CONFIGS_PATH", "/app/data/event_type_configs.csv")
+ADMINS_PATH = os.getenv("ADMINS_PATH", "/app/data/admins.csv")
+
+
+def load_membership_periods():
+    """
+    Load membership periods from CSV.
+    
+    CSV format:
+    period_name,start_date,end_date,notes
+    Fall 2025,2025-10-01,2025-12-31,Fall indoor season
+    
+    Returns:
+    [
+        {
+            'period_name': 'Fall 2025',
+            'start_date': '2025-10-01',
+            'end_date': '2025-12-31',
+            'notes': 'Fall indoor season'
+        }
+    ]
+    """
+    periods = []
+    try:
+        with open(MEMBERSHIP_PERIODS_PATH, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                periods.append({
+                    'period_name': row['period_name'].strip(),
+                    'start_date': row['start_date'].strip(),
+                    'end_date': row['end_date'].strip(),
+                    'notes': row.get('notes', '').strip()
+                })
+    except FileNotFoundError:
+        print(f"ERROR: Membership periods file not found at {MEMBERSHIP_PERIODS_PATH}")
+        raise
+    
+    return periods
+
+
+def load_event_type_configs():
+    """
+    Load event type configurations from CSV.
+    
+    CSV format:
+    event_type_name,period_name,display_name,location,time_start,time_end,max_capacity,color
+    open_play,Fall 2025,Thursday Indoor,Calgary Arena,19:00,21:00,20,#3b82f6
+    
+    Returns:
+    [
+        {
+            'event_type_name': 'open_play',
+            'period_name': 'Fall 2025',
+            'display_name': 'Thursday Indoor',
+            'location': 'Calgary Arena',
+            'time_start': '19:00',
+            'time_end': '21:00',
+            'max_capacity': 20,
+            'color': '#3b82f6'
+        }
+    ]
+    """
+    configs = []
+    try:
+        with open(EVENT_TYPE_CONFIGS_PATH, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                configs.append({
+                    'event_type_name': row['event_type_name'].strip(),
+                    'period_name': row['period_name'].strip(),
+                    'display_name': row['display_name'].strip(),
+                    'location': row['location'].strip(),
+                    'time_start': row['time_start'].strip(),
+                    'time_end': row['time_end'].strip(),
+                    'max_capacity': int(row['max_capacity']),
+                    'color': row['color'].strip()
+                })
+    except FileNotFoundError:
+        print(f"ERROR: Event type configs file not found at {EVENT_TYPE_CONFIGS_PATH}")
+        raise
+    
+    return configs
+
 
 def load_whitelist():
     """
-    Charger la liste des emails autorisés avec leurs memberships.
+    Load whitelist with memberships linked to periods.
     
-    Règles de sécurité :
-    - Si un event_type manque pour un user, il reçoit punch_card avec 0 crédits
+    CSV format:
+    email,real_name,event_type_name,membership_type,total_credits_purchased,period_name
+    user1@example.com,User One,open_play,full_member,,Fall 2025
     
-    Retourne:
+    Returns:
     {
         'user1@example.com': {
-            'real_name': 'Alice',
+            'real_name': 'User One',
             'memberships': [
-                {'event_type_name': 'open_play', 'membership_type': 'full_member', 'total_credits_purchased': None},
-                {'event_type_name': 'competitive', 'membership_type': 'punch_card', 'total_credits_purchased': 10}
+                {
+                    'event_type_name': 'open_play',
+                    'membership_type': 'full_member',
+                    'total_credits_purchased': None,
+                    'period_name': 'Fall 2025'
+                }
             ]
         }
     }
     """
-    EVENT_TYPES = ['open_play', 'competitive']
-    
     whitelist = {}
     try:
         with open(WHITELIST_PATH, 'r') as f:
@@ -35,34 +122,24 @@ def load_whitelist():
                 event_type_name = row['event_type_name'].strip()
                 membership_type = row['membership_type'].strip()
                 credits_str = (row.get('total_credits_purchased') or '').strip()
+                period_name = row['period_name'].strip()
                 
-                # Convertir credits
+                # Convert credits
                 total_credits = int(credits_str) if credits_str else None
                 
-                # Créer l'entrée user si n'existe pas
+                # Create user entry if doesn't exist
                 if email not in whitelist:
                     whitelist[email] = {
                         'real_name': real_name,
                         'memberships': []
                     }
                 
-                # Ajouter le membership
+                # Add membership with period
                 whitelist[email]['memberships'].append({
                     'event_type_name': event_type_name,
                     'membership_type': membership_type,
-                    'total_credits_purchased': total_credits
-                })
-        
-        # RÈGLE : Ajouter event_types manquants avec punch_card 0 crédits
-        for email, data in whitelist.items():
-            existing_types = {m['event_type_name'] for m in data['memberships']}
-            missing_types = set(EVENT_TYPES) - existing_types
-            
-            for event_type in missing_types:
-                data['memberships'].append({
-                    'event_type_name': event_type,
-                    'membership_type': 'punch_card',
-                    'total_credits_purchased': 0
+                    'total_credits_purchased': total_credits,
+                    'period_name': period_name
                 })
                 
     except FileNotFoundError:
@@ -70,14 +147,23 @@ def load_whitelist():
     
     return whitelist
 
+
 def load_events():
     """
-    Charger les événements depuis CSV.
+    Load events from CSV.
     
-    Format CSV attendu:
+    CSV format:
     event_type_name,date
-    open_play,2025-12-05
-    competitive,2025-12-08
+    open_play,2025-10-02
+    competitive,2025-10-05
+    
+    Returns:
+    [
+        {
+            'event_type_name': 'open_play',
+            'date': '2025-10-02'
+        }
+    ]
     """
     events = []
     try:
@@ -90,54 +176,21 @@ def load_events():
                 })
     except FileNotFoundError:
         print(f"Warning: Events file not found at {EVENTS_PATH}")
+    
     return events
-
-
-
-
-
-def load_event_types():
-    """
-    Charge event_type.csv
-    Charger les événements type depuis CSV.
-    name,display_name,default_location,default_time_start,default_time_end,default_max_capacity,color
-    open_play,Intérieur,Calgary Indoor Sports Arena,19:00,21:00,20,#4A90E2
-    competitive,Extérieur,Riley Park Outdoor Courts,14:00,16:00,16,#7ED321
-    Format CSV attendu:
-    """
-
-    import csv
-    event_types = []
-    
-    with open('data/event_types.csv', 'r') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            event_types.append({
-                'event_type_name': row['event_type_name'],
-                'display_name': row['display_name'],
-                'default_location': row['default_location'],
-                'default_time_start': row['default_time_start'],
-                'default_time_end': row['default_time_end'],
-                'default_max_capacity': int(row['default_max_capacity']),
-                'color': row['color']
-            })
-    
-    return event_types
 
 
 def load_admins():
     """
-    Charger la liste des administrateurs.
+    Load admin emails from CSV.
     
-    Format CSV attendu:
+    CSV format:
     admin_email
-    john.admin@apollo.com
+    admin@example.com
     
-    Retourne:
-    ['john.admin@apollo.com', 'sarah.admin@apollo.com']
+    Returns:
+    ['admin@example.com']
     """
-    ADMINS_PATH = os.getenv("data/admins.csv")
-    
     admins = []
     
     try:
@@ -152,4 +205,3 @@ def load_admins():
         raise
     
     return admins
-

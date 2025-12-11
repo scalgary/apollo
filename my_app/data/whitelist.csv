@@ -1,16 +1,10 @@
-email,real_name,event_type_name,membership_type,total_credits_purchased
-user1@example.com,Alice,open_play,full_member,
-user1@example.com,Alice,competitive,punch_card,1
-user2@example.com,Bob,open_play,punch_card,3
-user2@example.com,Bob,competitive,full_member,
-user3@example.com,Charles,open_play,full_member,
-user3@example.com,Charles,competitive,full_member,
-user4@example.com,Daniel,open_play,punch_card,2
-user4@example.com,Daniel,competitive,punch_card,3
-user5@example.com,Elias,competitive,full_member,
-reta@example.com,Reta,open_play,5
-reta@example.com,Reta,competitive,full_member
-sandrine@example.com,Sandrine,open_play,full_member
-sandrine@example.com,Sandrine,competitive,2
-
-
+email,real_name,event_type_name,membership_type,total_credits_purchased,period_name
+user1@example.com,User One,open_play,full_member,,Fall 2025
+user1@example.com,User One,competitive,punch_card,10,Fall 2025
+user2@example.com,User Two,open_play,full_member,,Fall 2025
+user2@example.com,User Two,competitive,full_member,,Fall 2025
+user3@example.com,User Three,open_play,punch_card,5,Fall 2025
+user4@example.com,User Four,open_play,full_member,,Winter 2026
+user5@example.com,User Five,competitive,punch_card,8,Winter 2026
+user6@example.com,User Six,open_play,full_member,,Fall 2025
+user6@example.com,User Six,competitive,punch_card,12,Fall 2025

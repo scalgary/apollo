@@ -13,39 +13,53 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-class EventType(Base):
-    __tablename__ = 'event_types'
+class MembershipPeriod(Base):
+    __tablename__ = 'membership_periods'
     
     id = Column(Integer, primary_key=True, index=True)
-    event_type_name = Column(String, unique=True, nullable=False)  # 'open_play' ou 'competitive'
-    display_name = Column(String, nullable=False)  # 'Intérieur' ou 'Extérieur'
-    default_location = Column(String, nullable=False)
-    default_time_start = Column(String, nullable=False)  # '19:00'
-    default_time_end = Column(String, nullable=False)  # '21:00'
-    default_max_capacity = Column(Integer, nullable=False)
-    color = Column(String, nullable=False)  # '#4A90E2'
+    period_name = Column(String, unique=True, nullable=False)  # 'Fall 2025'
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    notes = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class EventTypePeriodConfig(Base):
+    __tablename__ = 'event_type_period_configs'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    event_type_name = Column(String, nullable=False)  # 'open_play' ou 'competitive'
+    period_id = Column(Integer, ForeignKey('membership_periods.id'), nullable=False)
+    display_name = Column(String, nullable=False)  # 'Thursday Indoor'
+    location = Column(String, nullable=False)
+    time_start = Column(String, nullable=False)  # '19:00'
+    time_end = Column(String, nullable=False)  # '21:00'
+    max_capacity = Column(Integer, nullable=False)
+    color = Column(String, nullable=False)  # '#3b82f6'
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    __table_args__ = (UniqueConstraint('event_type_name', 'period_id', name='unique_event_type_period'),)
 
 class UserEventTypeMembership(Base):
     __tablename__ = 'user_event_type_memberships'
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    event_type_id = Column(Integer, ForeignKey('event_types.id'), nullable=False)
+    event_type_name = Column(String, nullable=False)  # 'open_play' ou 'competitive'
+    period_id = Column(Integer, ForeignKey('membership_periods.id'), nullable=False)
     membership_type = Column(String, nullable=False)
     total_credits_purchased = Column(Integer, nullable=True)
-    remaining_credits = Column(Integer, nullable=True)  # ← NOUVEAU
+    remaining_credits = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    __table_args__ = (UniqueConstraint('user_id', 'event_type_id', name='unique_user_event_type'),)
+    __table_args__ = (UniqueConstraint('user_id', 'event_type_name', 'period_id', name='unique_user_event_type_period'),)
 
 class Event(Base):
     __tablename__ = 'events'
     
     id = Column(Integer, primary_key=True, index=True)
-    event_type_id = Column(Integer, ForeignKey('event_types.id'), nullable=False)
+    event_type_name = Column(String, nullable=False)  # 'open_play' ou 'competitive'
     date = Column(Date, nullable=False, unique=True)
-    confirmed_count = Column(Integer, default=0)  # ← AJOUTE CETTE LIGNE
+    confirmed_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Attendee(Base):
@@ -55,7 +69,7 @@ class Attendee(Base):
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     event_id = Column(Integer, ForeignKey('events.id'), nullable=False)
     status = Column(String, default='going')  # 'going' ou 'waitlist'
-    credit_used = Column(Integer, default=0)  # 1 si crédit consommé, 0 sinon
+    credit_used = Column(Integer, default=0)  # 1 si credit consomme, 0 sinon
     registered_at = Column(DateTime(timezone=True), server_default=func.now())
     
     __table_args__ = (UniqueConstraint('user_id', 'event_id', name='unique_user_event'),)
@@ -74,9 +88,10 @@ class Admin(Base):
     __tablename__ = 'admins'
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=True)  # ✅ Optionnel
-    admin_email = Column(String, unique=True, nullable=False)  # ✅ UNIQUE important
+    user_id = Column(Integer, ForeignKey('users.id'), unique=True, nullable=True)
+    admin_email = Column(String, unique=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class Message(Base):
     __tablename__ = 'messages'
     
