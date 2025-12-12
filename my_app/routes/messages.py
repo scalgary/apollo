@@ -95,6 +95,7 @@ def community_pages(
     # Récupérer tous les messages avec commentaires
     message_service = MessageService(db)
     messages = message_service.get_all_messages_with_comments()
+    user_is_admin = message_service.admin_service.is_user_admin(user.id)
     
     # Render template
     return templates.TemplateResponse("community.html", {
@@ -102,6 +103,7 @@ def community_pages(
         "user": user,
         "memberships": memberships,
         "messages": messages,
+        "user_is_admin": user_is_admin,
         "message_emojis": MESSAGE_EMOJIS,  # ← AJOUTER
         "comment_emojis": COMMENT_EMOJIS   # ← AJOUTER
     })
@@ -147,7 +149,7 @@ def edit_message(
     """
     Éditer un message existant
     
-    Permissions: Seulement l'auteur
+    Permissions: Seulement l'auteur 
     """
     user = get_authenticated_user(request, db)
     message_service = MessageService(db)

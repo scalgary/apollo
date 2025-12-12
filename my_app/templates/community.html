@@ -85,13 +85,20 @@
         {% endif %}
     </div>
     
-    <!-- Actions (si auteur) -->
+    <!-- Actions (si auteur) or administrateur-->
     {% if message.author_id == user.id %}
     <div class="message-actions-inline">
         <button class="action-btn-icon" onclick="editMessage({{ message.id }})" title="Edit">✏️</button>
         <button class="action-btn-icon delete" onclick="deleteMessage({{ message.id }})" title="Delete">🗑️</button>
     </div>
+    {% else %}
+        {% if user_is_admin %}
+            <div class="message-actions-inline">
+            <button class="action-btn-icon delete" onclick="deleteMessage({{ message.id }})" title="Delete">🗑️</button>
+            </div>
+        {% endif %}
     {% endif %}
+
 </div>
 
 <!-- Contenu du message -->
