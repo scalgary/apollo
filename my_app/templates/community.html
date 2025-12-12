@@ -140,7 +140,14 @@
         <button class="action-btn-icon-small" onclick="editComment({{ comment.id }})" title="Edit">✏️</button>
         <button class="action-btn-icon-small delete" onclick="deleteComment({{ comment.id }})" title="Delete">🗑️</button>
     </div>
+    {% else %}
+        {% if user_is_admin %}
+    <div class="comment-actions-inline">
+        <button class="action-btn-icon-small delete" onclick="deleteComment({{ comment.id }})" title="Delete">🗑️</button>
+            </div>
+        {% endif %}
     {% endif %}
+
 </div>
 
 <div class="comment-text" id="comment-content-{{ comment.id }}">
