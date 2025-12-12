@@ -122,15 +122,24 @@ class AuthService:
         Raises:
             ValueError: Si email pas dans whitelist, déjà utilisé, ou autre erreur
         """
-        from utils import load_whitelist
+        # 1. Vérifier que l'email n'est pas un admin
+        from utils import load_admins, load_whitelist
         from db_models import UserEventTypeMembership, EventType
 
-        # 1. Vérifier que l'email est dans la whitelist
-        whitelist = load_whitelist()
+        admins_list = load_admins()
+        admin_emails = [admin['admin_email'] for admin in admins_list]
+
         email_lower = email.lower().strip()
+
+        if email_lower in admin_emails:
+            raise ValueError("Admin accounts cannot signup manually. Contact administrator.")
+
+        # 2. Vérifier que l'email est dans la whitelist
+        whitelist = load_whitelist()
 
         if email_lower not in whitelist:
             raise ValueError("Email not authorized. Please contact the administrator.")
+            
 
         # 2. Vérifier que l'email n'existe pas déjà
         existing_user = self.get_user_by_email(email_lower)

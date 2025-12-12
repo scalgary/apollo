@@ -7,16 +7,18 @@ from services.auth_service import AuthService
 from services.event_service import EventService
 from fastapi.responses import RedirectResponse
 from routes import registrations  # ← Import
+from routes import messages
 
 #from services.event_service import import_events_from_csv
 from routes import auth, events
 #, events, pages
 
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     print("✓ Database tables created")
-
     db = SessionLocal()
     try:
         event_service = EventService(db)
@@ -28,9 +30,16 @@ async def lifespan(app: FastAPI):
         # 2. Events ensuite
         events_count = event_service.import_events_from_csv()
         print(f"✓ {events_count} Events loaded")
+        
+        # 3. Admins (doit être après event types pour les memberships)
+        from services.admin_service import AdminService
+        admin_service = AdminService(db)
+        admins_count = admin_service.import_admins_from_csv()
+        print(f"✓ {admins_count} Admins loaded")
 
     finally:
         db.close()
+
 
     yield
     print("✓ App shutting down")
@@ -47,6 +56,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth.router)
 app.include_router(events.router)
 app.include_router(registrations.router)  # ← Enregistrer le router
+app.include_router(messages.router)
 
 
 @app.get("/")

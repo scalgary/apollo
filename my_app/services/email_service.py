@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
 
 class EmailService:
     """Service pour gérer l'envoi d'emails"""
@@ -86,3 +86,95 @@ See you on the court! 🏓
         except Exception as e:
             logger.error(f"❌ Failed to send reset email to {to_email}: {e}")
             return False
+        
+    def send_message_notification(self, to_emails: list[str], author_name: str, message_content: str, is_comment: bool = False, original_author: str = None) -> bool:
+        """
+        Envoyer notification quand un message ou commentaire est posté
+        
+        Args:
+            to_emails: Liste d'emails à notifier
+            author_name: Nom de l'auteur du message/commentaire
+            message_content: Contenu du message/commentaire
+            is_comment: True si c'est un commentaire, False si message
+            original_author: Si commentaire, nom de l'auteur du message original
+        
+        Returns:
+            bool: True si emails envoyés (ou logged en dev), False sinon
+        """
+        
+        # MODE DÉVELOPPEMENT: juste logger
+        if ENVIRONMENT == 'development':
+            logger.info("=" * 80)
+            if is_comment:
+                logger.info(f"💬 NEW COMMENT NOTIFICATION (DEV MODE)")
+                logger.info(f"📧 To: {', '.join(to_emails)}")
+                logger.info(f"👤 Author: {author_name}")
+                logger.info(f"📝 Comment on {original_author}'s message: {message_content[:50]}...")
+            else:
+                logger.info(f"📢 NEW MESSAGE NOTIFICATION (DEV MODE)")
+                logger.info(f"📧 To: {', '.join(to_emails)}")
+                logger.info(f"👤 Author: {author_name}")
+                logger.info(f"📝 Message: {message_content[:50]}...")
+            logger.info("=" * 80)
+            return True
+        
+        # MODE PRODUCTION: envoyer vrais emails
+        
+        # Vérifier configuration
+        if not all([self.email_from, self.email_password]):
+            logger.error("❌ Email configuration missing")
+            return False
+        
+        # Préparer sujet et body
+        if is_comment:
+            subject = f"Apollo - New comment from {author_name}"
+            body = f"""Hello,
+
+    {author_name} commented on {original_author}'s message:
+
+    "{message_content}"
+
+    Visit Apollo to see the full conversation: https://apollo-uenp.onrender.com/messages
+
+    See you on the court! 🏓
+
+    — The Apollo Team
+    """
+        else:
+            subject = f"Apollo - New message from {author_name}"
+            body = f"""Hello,
+
+    {author_name} posted a new message:
+
+    "{message_content}"
+
+    Visit Apollo to see the message and reply: https://apollo-uenp.onrender.com/messages
+
+    See you on the court! 🏓
+
+    — The Apollo Team
+    """
+        
+        # Envoyer à tous les destinataires
+        success_count = 0
+        for to_email in to_emails:
+            try:
+                msg = MIMEMultipart()
+                msg['From'] = self.email_from
+                msg['To'] = to_email
+                msg['Subject'] = subject
+                msg.attach(MIMEText(body, 'plain'))
+                
+                server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=10)
+                server.starttls()
+                server.login(self.email_from, self.email_password)
+                server.send_message(msg)
+                server.quit()
+                
+                logger.info(f"✅ Notification sent to {to_email}")
+                success_count += 1
+                
+            except Exception as e:
+                logger.error(f"❌ Failed to send notification to {to_email}: {e}")
+        
+        return success_count > 0

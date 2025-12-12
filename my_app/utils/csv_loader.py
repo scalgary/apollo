@@ -34,7 +34,7 @@ def load_whitelist():
                 real_name = row['real_name'].strip()
                 event_type_name = row['event_type_name'].strip()
                 membership_type = row['membership_type'].strip()
-                credits_str = row.get('total_credits_purchased', '').strip()
+                credits_str = (row.get('total_credits_purchased') or '').strip()
                 
                 # Convertir credits
                 total_credits = int(credits_str) if credits_str else None
@@ -123,3 +123,35 @@ def load_event_types():
             })
     
     return event_types
+
+
+def load_admins():
+    """
+    Charger la liste des administrateurs.
+    
+    Format CSV attendu:
+    admin_email
+    john.admin@apollo.com
+    
+    Retourne:
+    ['john.admin@apollo.com', 'sarah.admin@apollo.com']
+    """
+    ADMINS_PATH = os.getenv("data/admins.csv")
+    
+    admins = []
+    
+    try:
+        with open('data/admins.csv', 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                admins.append({
+                'admin_email' : row['admin_email'].strip().lower(),
+                'display_name' : row['display_name'],
+                'real_name' : row['real_name']})
+                
+    except FileNotFoundError:
+        print(f"ERROR: Admins file not found at {ADMINS_PATH}")
+        raise
+    
+    return admins
+
