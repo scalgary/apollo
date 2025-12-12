@@ -53,29 +53,20 @@ class MessageService:
         self.db.commit()
         self.db.refresh(new_message)
         
-        # Envoyer notifications email
-        is_admin = self.admin_service.is_user_admin(user_id)
-        
-        if is_admin:
-            # Admin poste → notifier tous les users
-            all_admin_emails = self.admin_service.get_admin_emails()
-            all_users = self.db.query(User).all()
-            #to_emails = [u.email for u in all_users if u.id != user_id]  # Pas l'auteur
-            #to_emails = [email for email in all_admin_emails if email != user.email]  # Pas l'auteur
-            to_emails = [email for email in all_admin_emails ]  # test
-
-
-        else:
-            # User normal poste → notifier les admins
-            to_emails = self.admin_service.get_admin_emails()
+        # Envoyer notifications email aux admins (async)
+        to_emails = self.admin_service.get_admin_emails()
         
         if to_emails:
-            self.email_service.send_message_notification(
-                to_emails=to_emails,
-                author_name=user.display_name,
-                message_content=content,
-                is_comment=False
-            )
+            try:
+                import threading
+                email_thread = threading.Thread(
+                    target=self.email_service.send_message_notification,
+                    args=(to_emails, user.display_name, content, False)
+                )
+                email_thread.daemon = True
+                email_thread.start()
+            except Exception as e:
+                print(f"Email notification failed: {e}")
         
         result = {
             'id': new_message.id,
@@ -85,8 +76,7 @@ class MessageService:
             'created_at': new_message.created_at,
             'updated_at': new_message.updated_at
         }
-        return self._serialize_datetime(result)  # ← AJOUTER CETTE LIGNE
-
+        return self._serialize_datetime(result)
     
     
     def edit_message(self, message_id: int, user_id: int, new_content: str) -> dict:
@@ -137,8 +127,7 @@ class MessageService:
             'updated_at': message.updated_at
         }
 
-        return self._serialize_datetime(result)  # ← AJOUTER CETTE LIGNE
-
+        return self._serialize_datetime(result)
     
     
     def delete_message(self, message_id: int, user_id: int) -> dict:
@@ -183,7 +172,7 @@ class MessageService:
     
     def create_comment(self, message_id: int, user_id: int, content: str) -> dict:
         """
-            un commentaire sur un message
+        Créer un commentaire sur un message
         
         Args:
             message_id: ID du message parent
@@ -223,17 +212,7 @@ class MessageService:
         self.db.commit()
         self.db.refresh(new_comment)
         
-        # Envoyer notification à l'auteur du message original
-        message_author = self.db.query(User).filter(User.id == message.author_id).first()
-        
-        if message_author and message_author.id != user_id:  # Pas notifier si on commente son propre message
-            self.email_service.send_message_notification(
-                to_emails=[message_author.email],
-                author_name=user.display_name,
-                message_content=content,
-                is_comment=True,
-                original_author=message_author.display_name
-            )
+        # Pas d'email pour les commentaires
         
         result = {
             'id': new_comment.id,
@@ -293,8 +272,7 @@ class MessageService:
             'created_at': comment.created_at,
             'updated_at': comment.updated_at
         }
-        return self._serialize_datetime(result)  # ← AJOUTER CETTE LIGNE
-
+        return self._serialize_datetime(result)
     
     
     def delete_comment(self, comment_id: int, user_id: int) -> dict:
@@ -370,7 +348,7 @@ class MessageService:
                 'author_name': comment_author.display_name if comment_author else 'Unknown',
                 'content': comment.content,
                 'created_at': comment.created_at.isoformat(),
-                'created_at_display': comment.created_at.strftime('%b %d, %I:%M %p'),  # ← AJOUTER
+                'created_at_display': comment.created_at.strftime('%b %d, %I:%M %p'),
                 'updated_at': comment.updated_at.isoformat()
                 })
             # Ajouter le message avec ses commentaires
@@ -380,7 +358,7 @@ class MessageService:
             'author_name': author.display_name if author else 'Unknown',
             'content': message.content,
             'created_at': message.created_at.isoformat(),
-            'created_at_display': message.created_at.strftime('%b %d, %Y at %I:%M %p'),  # ← AJOUTER
+            'created_at_display': message.created_at.strftime('%b %d, %Y at %I:%M %p'),
             'updated_at': message.updated_at.isoformat(),
             'comments': comments    
             })
