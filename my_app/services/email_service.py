@@ -19,25 +19,25 @@ class EmailService:
     
     def send_reset_email(self, to_email: str, reset_link: str) -> bool:
         """
-        Envoyer email de reset password via SMTP
+        Envoyer email de reset password
         
-        En mode développement: affiche juste le lien dans les logs
-        En mode production: envoie un vrai email SMTP
+        En mode production: juste logger (pas d'envoi)
+        En mode développement: envoie via Gmail SMTP
         
         Returns:
-            bool: True si email envoyé (ou logged en dev), False sinon
+            bool: True si email envoyé (ou logged), False sinon
         """
         
-        # MODE DÉVELOPPEMENT: juste logger le lien
-        if ENVIRONMENT == 'development':
+        # MODE PRODUCTION: juste logger le lien (pas d'envoi)
+        if ENVIRONMENT == 'production':
             logger.info("=" * 80)
-            logger.info("🔗 PASSWORD RESET LINK (DEV MODE)")
+            logger.info("🔗 PASSWORD RESET LINK (PRODUCTION - NOT SENT)")
             logger.info(f"📧 To: {to_email}")
             logger.info(f"🔗 Link: {reset_link}")
             logger.info("=" * 80)
             return True
         
-        # MODE PRODUCTION: envoyer vrai email
+        # MODE DÉVELOPPEMENT: envoyer vrai email via Gmail
         
         # Vérifier configuration
         if not all([self.email_from, self.email_password]):
@@ -91,6 +91,9 @@ See you on the court! 🏓
         """
         Envoyer notification quand un message ou commentaire est posté
         
+        En mode production: juste logger (pas d'envoi)
+        En mode développement: envoie via Gmail SMTP
+        
         Args:
             to_emails: Liste d'emails à notifier
             author_name: Nom de l'auteur du message/commentaire
@@ -99,26 +102,26 @@ See you on the court! 🏓
             original_author: Si commentaire, nom de l'auteur du message original
         
         Returns:
-            bool: True si emails envoyés (ou logged en dev), False sinon
+            bool: True si emails envoyés (ou logged), False sinon
         """
         
-        # MODE DÉVELOPPEMENT: juste logger
-        if ENVIRONMENT == 'development':
+        # MODE PRODUCTION: juste logger (pas d'envoi)
+        if ENVIRONMENT == 'production':
             logger.info("=" * 80)
             if is_comment:
-                logger.info(f"💬 NEW COMMENT NOTIFICATION (DEV MODE)")
+                logger.info(f"💬 NEW COMMENT NOTIFICATION (PRODUCTION - NOT SENT)")
                 logger.info(f"📧 To: {', '.join(to_emails)}")
                 logger.info(f"👤 Author: {author_name}")
                 logger.info(f"📝 Comment on {original_author}'s message: {message_content[:50]}...")
             else:
-                logger.info(f"📢 NEW MESSAGE NOTIFICATION (DEV MODE)")
+                logger.info(f"📢 NEW MESSAGE NOTIFICATION (PRODUCTION - NOT SENT)")
                 logger.info(f"📧 To: {', '.join(to_emails)}")
                 logger.info(f"👤 Author: {author_name}")
                 logger.info(f"📝 Message: {message_content[:50]}...")
             logger.info("=" * 80)
             return True
         
-        # MODE PRODUCTION: envoyer vrais emails
+        # MODE DÉVELOPPEMENT: envoyer vrais emails via Gmail
         
         # Vérifier configuration
         if not all([self.email_from, self.email_password]):
@@ -130,30 +133,30 @@ See you on the court! 🏓
             subject = f"Apollo - New comment from {author_name}"
             body = f"""Hello,
 
-    {author_name} commented on {original_author}'s message:
+{author_name} commented on {original_author}'s message:
 
-    "{message_content}"
+"{message_content}"
 
-    Visit Apollo to see the full conversation: https://apollo-uenp.onrender.com/messages
+Visit Apollo to see the full conversation: https://apollo-uenp.onrender.com/community
 
-    See you on the court! 🏓
+See you on the court! 🏓
 
-    — The Apollo Team
-    """
+— The Apollo Team
+"""
         else:
             subject = f"Apollo - New message from {author_name}"
             body = f"""Hello,
 
-    {author_name} posted a new message:
+{author_name} posted a new message:
 
-    "{message_content}"
+"{message_content}"
 
-    Visit Apollo to see the message and reply: https://apollo-uenp.onrender.com/messages
+Visit Apollo to see the message and reply: https://apollo-uenp.onrender.com/community
 
-    See you on the court! 🏓
+See you on the court! 🏓
 
-    — The Apollo Team
-    """
+— The Apollo Team
+"""
         
         # Envoyer à tous les destinataires
         success_count = 0
