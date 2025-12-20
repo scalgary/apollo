@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from db_models import Admin, User
+from db_models import Admin, User, EventType
 from utils import load_events, load_event_types, load_admins
 
 
@@ -195,3 +195,71 @@ class AdminService:
         admin.user_id = user_id
         self.db.commit()
         return True
+        
+    def create_event_type(
+        self,
+        event_type_name: str,
+        display_name: str,
+        default_location: str,
+        default_time_start: str,
+        default_time_end: str,
+        default_max_capacity: int,
+        color: str
+    ) -> EventType:
+        """
+        Create a new event type
+        
+        Raises:
+            ValueError: If validation fails or duplicate event_type_name
+        """
+        import re
+        from datetime import datetime
+        
+        # 1. Check duplicate
+        existing = self.db.query(EventType).filter(
+            EventType.event_type_name == event_type_name.strip().lower()
+        ).first()
+        
+        if existing:
+            raise ValueError(f"Event type '{event_type_name}' already exists")
+        
+        # 2. Validate time format (flexible: accept "9:00" or "09:00")
+        time_pattern = r'^([0-9]|[01][0-9]|2[0-3]):([0-5][0-9])$'
+        
+        if not re.match(time_pattern, default_time_start):
+            raise ValueError(f"Invalid start time format: {default_time_start}. Use HH:MM")
+        
+        if not re.match(time_pattern, default_time_end):
+            raise ValueError(f"Invalid end time format: {default_time_end}. Use HH:MM")
+        
+        # 3. Normalize times to HH:MM format (add leading zero if needed)
+        def normalize_time(time_str):
+            parts = time_str.split(':')
+            return f"{int(parts[0]):02d}:{int(parts[1]):02d}"
+        
+        start_normalized = normalize_time(default_time_start)
+        end_normalized = normalize_time(default_time_end)
+        
+        # 4. Validate start < end
+        start_dt = datetime.strptime(start_normalized, '%H:%M')
+        end_dt = datetime.strptime(end_normalized, '%H:%M')
+        
+        if start_dt >= end_dt:
+            raise ValueError("Start time must be before end time")
+        
+        # 5. Create EventType
+        new_event_type = EventType(
+            event_type_name=event_type_name.strip().lower(),
+            display_name=display_name.strip(),
+            default_location=default_location.strip(),
+            default_time_start=start_normalized,
+            default_time_end=end_normalized,
+            default_max_capacity=default_max_capacity,
+            color=color.strip()
+        )
+        
+        self.db.add(new_event_type)
+        self.db.commit()
+        self.db.refresh(new_event_type)
+        
+        return new_event_type

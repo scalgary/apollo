@@ -5,9 +5,12 @@ from sqlalchemy.orm import Session
 from database import Base, engine, SessionLocal, get_db
 from services.auth_service import AuthService
 from services.event_service import EventService
+from services.admin_service import AdminService
+
 from fastapi.responses import RedirectResponse
 from routes import registrations  # ← Import
 from routes import messages
+from routes import admin
 
 #from services.event_service import import_events_from_csv
 from routes import auth, events
@@ -57,6 +60,7 @@ app.include_router(auth.router)
 app.include_router(events.router)
 app.include_router(registrations.router)  # ← Enregistrer le router
 app.include_router(messages.router)
+app.include_router(admin.router)
 
 
 @app.get("/")
