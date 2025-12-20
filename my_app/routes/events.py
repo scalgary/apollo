@@ -43,15 +43,17 @@ def schedule_page(
         # Token invalide/expiré -> rediriger vers login
         return RedirectResponse(url="/login?error=Session expired", status_code=303)
     
+    # 1.5. VÉRIFIER SI USER EST ADMIN
+    from services.admin_service import AdminService
+    admin_service = AdminService(db)
+    is_admin = admin_service.is_user_admin(user.id)
     
     # 2. RÉCUPÉRER LES MEMBERSHIPS
     event_service = EventService(db)
     memberships = event_service.get_user_memberships_formatted(user.id)
     
-    
     # 3. RÉCUPÉRER LES ÉVÉNEMENTS
     events = event_service.get_events_for_schedule(user.id)
-    
     
     # 4. APPLIQUER LES RÈGLES D'AFFICHAGE
     today = date.today()
@@ -102,13 +104,13 @@ def schedule_page(
             else:
                 event['user_status'] = 'RSVP'
     
-    
     # 5. RENDER LE TEMPLATE
     return templates.TemplateResponse("schedule.html", {
         "request": request,
         "user": user,
         "memberships": memberships,
-        "events": events
+        "events": events,
+        "is_admin": is_admin
     })
 
 @router.get("/event/{event_id}")
