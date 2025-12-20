@@ -49,6 +49,9 @@
     <div class="navbar-tabs">
         <a href="/schedule" class="tab-link">Upcoming Events</a>
         <a href="/community" class="tab-link active">Community</a>
+        {% if user_is_admin  %}
+    <a href="/admin" class="tab-link">Admin</a>
+    {% endif %}
     </div>
 
     <!-- MESSAGES FEED -->

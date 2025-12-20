@@ -50,6 +50,9 @@
 <div class="navbar-tabs">
     <a href="/schedule" class="tab-link active">Upcoming Events</a>
     <a href="/community" class="tab-link">Community</a>
+        {% if is_admin %}
+    <a href="/admin" class="tab-link">Admin</a>
+    {% endif %}
 </div>
 
     <div class="schedule-container">
