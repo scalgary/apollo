@@ -17,13 +17,13 @@ class EventType(Base):
     __tablename__ = 'event_types'
     
     id = Column(Integer, primary_key=True, index=True)
-    event_type_name = Column(String, unique=True, nullable=False)  # 'open_play' ou 'competitive'
-    display_name = Column(String, nullable=False)  # 'Intérieur' ou 'Extérieur'
+    event_type_name = Column(String, unique=True, nullable=False)  # Auto-generated from display_name
+    display_name = Column(String, nullable=False)  # 'JCC Sunday' ou 'Indoor Play'
     default_location = Column(String, nullable=False)
     default_time_start = Column(String, nullable=False)  # '19:00'
     default_time_end = Column(String, nullable=False)  # '21:00'
     default_max_capacity = Column(Integer, nullable=False)
-    color = Column(String, nullable=False)  # '#4A90E2'
+    color = Column(String, unique=True, nullable=False)  # '#4A90E2' - UNIQUE IDENTIFIER
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class UserEventTypeMembership(Base):

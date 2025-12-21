@@ -195,10 +195,9 @@ class AdminService:
         admin.user_id = user_id
         self.db.commit()
         return True
-        
+            
     def create_event_type(
         self,
-        event_type_name: str,
         display_name: str,
         default_location: str,
         default_time_start: str,
@@ -209,21 +208,43 @@ class AdminService:
         """
         Create a new event type
         
+        Max 4 event types allowed
+        event_type_name is auto-generated from display_name
+        color must be unique
+        
         Raises:
-            ValueError: If validation fails or duplicate event_type_name
+            ValueError: If validation fails, duplicate, or max limit reached
         """
         import re
         from datetime import datetime
         
-        # 1. Check duplicate
+        # 0. CHECK MAX LIMIT
+        current_count = self.get_event_type_count()
+        if current_count >= 4:
+            raise ValueError("Maximum 4 event types allowed. Delete one to create a new one.")
+        
+        # 1. AUTO-GENERATE event_type_name from display_name
+        event_type_name = display_name.strip().lower()
+        event_type_name = re.sub(r'[^a-z0-9]+', '_', event_type_name)
+        event_type_name = event_type_name.strip('_')
+        
+        # 2. Check duplicate event_type_name
         existing = self.db.query(EventType).filter(
-            EventType.event_type_name == event_type_name.strip().lower()
+            EventType.event_type_name == event_type_name
         ).first()
         
         if existing:
-            raise ValueError(f"Event type '{event_type_name}' already exists")
+            raise ValueError(f"Event type '{display_name}' already exists")
         
-        # 2. Validate time format (flexible: accept "9:00" or "09:00")
+        # 3. CHECK DUPLICATE COLOR (NEW)
+        existing_color = self.db.query(EventType).filter(
+            EventType.color == color.strip()
+        ).first()
+        
+        if existing_color:
+            raise ValueError(f"Color {color} is already used by '{existing_color.display_name}'")
+        
+        # 4. Validate time format
         time_pattern = r'^([0-9]|[01][0-9]|2[0-3]):([0-5][0-9])$'
         
         if not re.match(time_pattern, default_time_start):
@@ -232,7 +253,7 @@ class AdminService:
         if not re.match(time_pattern, default_time_end):
             raise ValueError(f"Invalid end time format: {default_time_end}. Use HH:MM")
         
-        # 3. Normalize times to HH:MM format (add leading zero if needed)
+        # 5. Normalize times
         def normalize_time(time_str):
             parts = time_str.split(':')
             return f"{int(parts[0]):02d}:{int(parts[1]):02d}"
@@ -240,16 +261,16 @@ class AdminService:
         start_normalized = normalize_time(default_time_start)
         end_normalized = normalize_time(default_time_end)
         
-        # 4. Validate start < end
+        # 6. Validate start < end
         start_dt = datetime.strptime(start_normalized, '%H:%M')
         end_dt = datetime.strptime(end_normalized, '%H:%M')
         
         if start_dt >= end_dt:
             raise ValueError("Start time must be before end time")
         
-        # 5. Create EventType
+        # 7. Create EventType
         new_event_type = EventType(
-            event_type_name=event_type_name.strip().lower(),
+            event_type_name=event_type_name,
             display_name=display_name.strip(),
             default_location=default_location.strip(),
             default_time_start=start_normalized,
@@ -263,3 +284,93 @@ class AdminService:
         self.db.refresh(new_event_type)
         
         return new_event_type
+    def delete_event_type(self, event_type_id: int) -> dict:
+        """
+        Delete an event type
+        
+        Rules:
+        - Cannot delete if ANY future events exist (even one)
+        - Cascades to memberships
+        
+        Returns:
+            dict: Success message
+            
+        Raises:
+            ValueError: If has future events or not found
+        """
+        from datetime import date
+        from db_models import Event
+        
+        # 1. Check event type exists
+        event_type = self.db.query(EventType).filter(EventType.id == event_type_id).first()
+        if not event_type:
+            raise ValueError("Event type not found")
+        
+        # 2. Check for future events (INCLUDING TODAY)
+        today = date.today()
+        future_events_count = self.db.query(Event).filter(
+            Event.event_type_id == event_type_id,
+            Event.date >= today  # ← Includes today and future
+        ).count()
+        
+        if future_events_count > 0:
+            raise ValueError(
+                f"Cannot delete '{event_type.display_name}' - {future_events_count} upcoming event(s) scheduled. "
+                f"Delete all future events for this type first."
+            )
+        
+        # 3. Delete (memberships cascade automatically via FK constraint)
+        event_type_name = event_type.display_name
+        self.db.delete(event_type)
+        self.db.commit()
+        
+        return {
+            "success": True,
+            "message": f"Event type '{event_type_name}' deleted successfully"
+        }
+
+
+    def can_delete_event_type(self, event_type_id: int) -> dict:
+        """
+        Check if an event type can be deleted
+        
+        Returns:
+            dict: {
+                'can_delete': bool,
+                'reason': str or None,
+                'future_events_count': int
+            }
+        """
+        from datetime import date
+        from db_models import Event
+        
+        event_type = self.db.query(EventType).filter(EventType.id == event_type_id).first()
+        if not event_type:
+            return {
+                'can_delete': False,
+                'reason': 'Event type not found',
+                'future_events_count': 0
+            }
+        
+        today = date.today()
+        future_events_count = self.db.query(Event).filter(
+            Event.event_type_id == event_type_id,
+            Event.date >= today
+        ).count()
+        
+        if future_events_count > 0:
+            return {
+                'can_delete': False,
+                'reason': f'{future_events_count} upcoming event(s) scheduled',
+                'future_events_count': future_events_count
+            }
+        
+        return {
+            'can_delete': True,
+            'reason': None,
+            'future_events_count': 0
+        }
+
+    def get_event_type_count(self) -> int:
+        """Get current number of event types"""
+        return self.db.query(EventType).count()

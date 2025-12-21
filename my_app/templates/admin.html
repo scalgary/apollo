@@ -40,33 +40,55 @@
     <div class="admin-content" id="tab-event-types">
         
 <!-- Existing Event Types Table -->
+<!-- Existing Event Types Table -->
 <div class="admin-section">
-    <h2>Existing Event Types</h2>
-    {% if event_types|length == 0 %}
+    {% if event_types_with_info|length == 0 %}
         <p class="empty-state">No event types yet. Create one below.</p>
     {% else %}
         <table class="admin-table">
             <thead>
                 <tr>
+                    <th>Color</th>
                     <th>Display Name</th>
                     <th>Location</th>
+                    <th>Time</th>
                     <th>Capacity</th>
-                    <th>Time Start</th>
-                    <th>Time End</th>
-                    <th>Color</th>
+                    <th>Future Events</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for et in event_types %}
+                {% for item in event_types_with_info %}
+                {% set et = item.event_type %}
                 <tr>
-                    <td>{{ et.display_name }}</td>
-                    <td>{{ et.default_location }}</td>
-                    <td>{{ et.default_max_capacity }}</td>
-                    <td>{{ et.default_time_start }}</td>
-                    <td>{{ et.default_time_end }}</td>
                     <td>
-                        <span class="color-dot" style="background: {{ et.color }}"></span>
-               
+                        <span class="color-dot-large" style="background: {{ et.color }}"></span>
+                    </td>
+                    <td><strong>{{ et.display_name }}</strong></td>
+                    <td>{{ et.default_location }}</td>
+                    <td>{{ et.default_time_start }} - {{ et.default_time_end }}</td>
+                    <td>{{ et.default_max_capacity }}</td>
+                    <td>
+                        {% if item.future_events_count > 0 %}
+                            <span class="badge-events-count">{{ item.future_events_count }} scheduled</span>
+                        {% else %}
+                            <span class="badge-no-events">None</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.can_delete %}
+                            <form method="POST" action="/api/admin/event-types/{{ et.id }}/delete" 
+                                  onsubmit="return confirm('Delete {{ et.display_name }}?\n\nThis will:\n• Delete all user memberships for this event type\n• Remove it permanently\n\nContinue?');">
+                                <button type="submit" class="btn-delete-small">🗑️ Delete</button>
+                            </form>
+                        {% else %}
+                            <button class="btn-delete-disabled" 
+                                    title="{{ item.delete_reason }}" 
+                                    disabled>
+                                🗑️ Delete
+                            </button>
+                            <div class="delete-info">{{ item.delete_reason }}</div>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -80,12 +102,7 @@
             <h2>Create New Event Type</h2>
             <form method="POST" action="/api/admin/event-types" class="admin-form">
                 
-                <div class="form-group">
-                    <label>Event Type Name (technical)</label>
-                    <input type="text" name="event_type_name" 
-                           placeholder="e.g., open_play" required>
-                    <small>Lowercase, no spaces (use underscore)</small>
-                </div>
+
 
                 <div class="form-group">
                     <label>Display Name</label>
@@ -117,20 +134,28 @@
                            placeholder="20" min="1" required>
                 </div>
 
-                <div class="form-group">
-                    <label>Color</label>
-                    <select name="color" required>
-                        <option value="">Select a color</option>
-                        <option value="#3b82f6">🟦 Blue (#3b82f6)</option>
-                        <option value="#f97316">🟧 Orange (#f97316)</option>
-                        <option value="#10b981">🟩 Green (#10b981)</option>
-                        <option value="#8b5cf6">🟪 Purple (#8b5cf6)</option>
-                        <option value="#ef4444">🟥 Red (#ef4444)</option>
-                        <option value="#f59e0b">🟨 Yellow (#f59e0b)</option>
-                        <option value="#ec4899">🩷 Pink (#ec4899)</option>
-                        <option value="#14b8a6">🟦 Teal (#14b8a6)</option>
-                    </select>
-                </div>
+<div class="form-group">
+    <label>Color (Unique Identifier)</label>
+    
+    {% if available_colors|length == 0 %}
+        <div class="no-colors-warning">
+            ⚠️ No colors available - All 4 colors are in use
+        </div>
+        <select name="color" disabled required>
+            <option value="">No colors available</option>
+        </select>
+    {% else %}
+        <select name="color" 
+                {% if event_type_count >= 4 %}disabled{% endif %}
+                required>
+            <option value="">Select a color</option>
+            {% for color in available_colors %}
+                <option value="{{ color.value }}">{{ color.label }} ({{ color.value }})</option>
+            {% endfor %}
+        </select>
+        <small>{{ available_colors|length }} color(s) available out of 4</small>
+    {% endif %}
+</div>
 
                 <button type="submit" class="btn-submit">Create Event Type</button>
             </form>
