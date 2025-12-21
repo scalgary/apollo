@@ -84,7 +84,7 @@ def admin_page(request: Request, db: Session = Depends(get_db)):
             'future_events_count': deletion_info['future_events_count']
         })
     
-    # NOUVEAU: Calculer les couleurs disponibles
+    # Calculate available colors
     all_colors = [
         {'value': '#3b82f6', 'label': '🟦 Blue', 'name': 'blue'},
         {'value': '#f97316', 'label': '🟧 Orange', 'name': 'orange'},
@@ -92,11 +92,14 @@ def admin_page(request: Request, db: Session = Depends(get_db)):
         {'value': '#8b5cf6', 'label': '🟪 Purple', 'name': 'purple'},
     ]
     
-    # Couleurs déjà utilisées
+    # Used colors
     used_colors = [et.color for et in event_types]
     
-    # Couleurs disponibles = toutes - utilisées
+    # Available colors = all - used
     available_colors = [c for c in all_colors if c['value'] not in used_colors]
+    
+    # Get all users with memberships for Users tab
+    users_with_memberships = admin_service.get_all_users_with_memberships()
     
     return templates.TemplateResponse("admin.html", {
         "request": request,
@@ -104,7 +107,8 @@ def admin_page(request: Request, db: Session = Depends(get_db)):
         "memberships": memberships,
         "event_types_with_info": event_types_with_info,
         "event_type_count": event_type_count,
-        "available_colors": available_colors  # NOUVEAU
+        "available_colors": available_colors,
+        "users_with_memberships": users_with_memberships
     })
 
 # ============================================
@@ -114,7 +118,8 @@ def admin_page(request: Request, db: Session = Depends(get_db)):
 @router.post("/api/admin/event-types")
 def create_event_type(
     request: Request,
-    display_name: str = Form(...),  # ← Plus besoin de event_type_name
+    event_type_name: str = Form(...),
+    display_name: str = Form(...),
     default_location: str = Form(...),
     default_time_start: str = Form(...),
     default_time_end: str = Form(...),
@@ -141,7 +146,8 @@ def create_event_type(
     
     try:
         new_event_type = admin_service.create_event_type(
-            display_name=display_name,  # ← Plus besoin de event_type_name
+            event_type_name=event_type_name,
+            display_name=display_name,
             default_location=default_location,
             default_time_start=default_time_start,
             default_time_end=default_time_end,
@@ -161,6 +167,7 @@ def create_event_type(
             url=f"/admin?error={str(e)}#event-types",
             status_code=303
         )
+
 @router.post("/api/admin/event-types/{event_type_id}/delete")
 def delete_event_type(
     event_type_id: int,
@@ -195,5 +202,102 @@ def delete_event_type(
     except ValueError as e:
         return RedirectResponse(
             url=f"/admin?error={str(e)}#event-types",
+            status_code=303
+        )
+
+
+# ============================================
+# POST /api/admin/memberships/bulk-add - Bulk add memberships
+# ============================================
+
+@router.post("/api/admin/memberships/bulk-add")
+def bulk_add_memberships(
+    request: Request,
+    event_type_id: int = Form(...),
+    membership_type: str = Form(...),
+    emails: str = Form(...),
+    credits: int = Form(default=0),
+    db: Session = Depends(get_db)
+):
+    """
+    Add/update memberships for multiple users
+    
+    - Creates users if they don't exist
+    - Updates existing memberships or creates new ones
+    """
+    # 1. Check auth + admin
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    # 2. Bulk add memberships
+    admin_service = AdminService(db)
+    
+    try:
+        result = admin_service.bulk_add_memberships(
+            event_type_id=event_type_id,
+            membership_type=membership_type,
+            emails_text=emails,
+            credits=credits
+        )
+        
+        return RedirectResponse(
+            url=f"/admin?success={result['message']}#users",
+            status_code=303
+        )
+        
+    except ValueError as e:
+        return RedirectResponse(
+            url=f"/admin?error={str(e)}#users",
+            status_code=303
+        )
+
+
+# ============================================
+# POST /api/admin/memberships/add-credits - Add credits to user
+# ============================================
+
+@router.post("/api/admin/memberships/add-credits")
+def add_credits_to_user(
+    request: Request,
+    user_id: int = Form(...),
+    event_type_id: int = Form(...),
+    credits_to_add: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Add credits to specific user's punch card
+    """
+    # 1. Check auth + admin
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    # 2. Add credits
+    admin_service = AdminService(db)
+    
+    try:
+        result = admin_service.add_credits(
+            user_id=user_id,
+            event_type_id=event_type_id,
+            credits_to_add=credits_to_add
+        )
+        
+        return RedirectResponse(
+            url=f"/admin?success={result['message']}#users",
+            status_code=303
+        )
+        
+    except ValueError as e:
+        return RedirectResponse(
+            url=f"/admin?error={str(e)}#users",
             status_code=303
         )

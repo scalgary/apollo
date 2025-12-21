@@ -3,169 +3,334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule - Apollo</title>
+    <title>Admin - Apollo</title>
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <!-- HEADER -->
     <div class="header">
         <div class="header-content">
-            <!-- Ligne 1 : Titre + Logout -->
             <div class="header-top">
-<h1><span class="full-text">Apollo Pickleball</h1></span></h1>
+                <h1><span class="full-text">Apollo Pickleball</span></h1>
                 <a href="/logout" class="logout-btn">Logout</a>
             </div>
-            
-
         </div>
     </div>
 
-    <!-- SCHEDULE -->
-     <!-- NAVBAR TABS -->
-<div class="navbar-tabs">
-    <a href="/schedule" class="tab-link">Upcoming Events</a>
-    <a href="/community" class="tab-link">Community</a>
+    <!-- NAVBAR TABS -->
+    <div class="navbar-tabs">
+        <a href="/schedule" class="tab-link">Upcoming Events</a>
+        <a href="/community" class="tab-link">Community</a>
         <a href="/admin" class="tab-link active">Admin</a>
     </div>
 
-<div class="admin-container">
-
-  <!-- ADMIN SUB-TABS -->
-    <div class="admin-sub-tabs">
-        <button class="admin-tab active" data-tab="event-types">Event Types</button>
-        <button class="admin-tab" data-tab="users">Users & Memberships</button>
-        <button class="admin-tab" data-tab="dates">Event Dates</button>
-    </div>
-    <!-- TAB 1: EVENT TYPES -->
-    <div class="admin-content" id="tab-event-types">
+    <div class="admin-container">
         
-<!-- Existing Event Types Table -->
-<!-- Existing Event Types Table -->
-<div class="admin-section">
-    {% if event_types_with_info|length == 0 %}
-        <p class="empty-state">No event types yet. Create one below.</p>
-    {% else %}
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Color</th>
-                    <th>Display Name</th>
-                    <th>Location</th>
-                    <th>Time</th>
-                    <th>Capacity</th>
-                    <th>Future Events</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in event_types_with_info %}
-                {% set et = item.event_type %}
-                <tr>
-                    <td>
-                        <span class="color-dot-large" style="background: {{ et.color }}"></span>
-                    </td>
-                    <td><strong>{{ et.display_name }}</strong></td>
-                    <td>{{ et.default_location }}</td>
-                    <td>{{ et.default_time_start }} - {{ et.default_time_end }}</td>
-                    <td>{{ et.default_max_capacity }}</td>
-                    <td>
-                        {% if item.future_events_count > 0 %}
-                            <span class="badge-events-count">{{ item.future_events_count }} scheduled</span>
-                        {% else %}
-                            <span class="badge-no-events">None</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if item.can_delete %}
-                            <form method="POST" action="/api/admin/event-types/{{ et.id }}/delete" 
-                                  onsubmit="return confirm('Delete {{ et.display_name }}?\n\nThis will:\n• Delete all user memberships for this event type\n• Remove it permanently\n\nContinue?');">
-                                <button type="submit" class="btn-delete-small">🗑️ Delete</button>
-                            </form>
-                        {% else %}
-                            <button class="btn-delete-disabled" 
-                                    title="{{ item.delete_reason }}" 
-                                    disabled>
-                                🗑️ Delete
-                            </button>
-                            <div class="delete-info">{{ item.delete_reason }}</div>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-</div>
+        <!-- Success/Error Messages -->
+        {% if request.query_params.get('success') %}
+        <div class="alert alert-success">
+            {{ request.query_params.get('success') }}
+        </div>
+        {% endif %}
+        
+        {% if request.query_params.get('error') %}
+        <div class="alert alert-error">
+            {{ request.query_params.get('error') }}
+        </div>
+        {% endif %}
 
-        <!-- Create New Event Type Form -->
-        <div class="admin-section">
-            <h2>Create New Event Type</h2>
-            <form method="POST" action="/api/admin/event-types" class="admin-form">
+        <!-- ADMIN SUB-TABS -->
+        <div class="admin-sub-tabs">
+            <button class="admin-tab active" data-tab="event-types">Event Types</button>
+            <button class="admin-tab" data-tab="users">Users & Memberships</button>
+            <button class="admin-tab" data-tab="dates">Event Dates</button>
+        </div>
+        
+        <!-- TAB 1: EVENT TYPES -->
+        <div class="admin-content" id="tab-event-types">
+            
+            <!-- Existing Event Types Table -->
+            <div class="admin-section">
+                <h2>Event Types ({{ event_type_count }}/4)</h2>
                 
+                {% if event_types_with_info|length == 0 %}
+                    <p class="empty-state">No event types yet. Create one below.</p>
+                {% else %}
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Color</th>
+                                <th>Display Name</th>
+                                <th>Location</th>
+                                <th>Time</th>
+                                <th>Capacity</th>
+                                <th>Future Events</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in event_types_with_info %}
+                            {% set et = item.event_type %}
+                            <tr>
+                                <td>
+                                    <span class="color-dot-large" style="background: {{ et.color }}"></span>
+                                </td>
+                                <td><strong>{{ et.display_name }}</strong></td>
+                                <td>{{ et.default_location }}</td>
+                                <td>{{ et.default_time_start }} - {{ et.default_time_end }}</td>
+                                <td>{{ et.default_max_capacity }}</td>
+                                <td>
+                                    {% if item.future_events_count > 0 %}
+                                        <span class="badge-events-count">{{ item.future_events_count }} scheduled</span>
+                                    {% else %}
+                                        <span class="badge-no-events">None</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.can_delete %}
+                                        <form method="POST" action="/api/admin/event-types/{{ et.id }}/delete" 
+                                              onsubmit="return confirm('Delete {{ et.display_name }}?\n\nThis will:\n• Delete all user memberships for this event type\n• Remove it permanently\n\nContinue?');">
+                                            <button type="submit" class="btn-delete-small">🗑️ Delete</button>
+                                        </form>
+                                    {% else %}
+                                        <button class="btn-delete-disabled" 
+                                                title="{{ item.delete_reason }}" 
+                                                disabled>
+                                            🗑️ Delete
+                                        </button>
+                                        <div class="delete-info">{{ item.delete_reason }}</div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
 
-
-                <div class="form-group">
-                    <label>Display Name</label>
-                    <input type="text" name="display_name" 
-                           placeholder="e.g., JCC Sunday" required>
+            <!-- Create New Event Type Form -->
+            <div class="admin-section">
+                <h2>Create New Event Type</h2>
+                
+                {% if event_type_count >= 4 %}
+                <div class="form-disabled-overlay">
+                    <p>⚠️ Maximum limit reached (4/4 event types)</p>
+                    <p>Delete an existing event type to create a new one</p>
                 </div>
+                {% endif %}
+                
+                <form method="POST" action="/api/admin/event-types" class="admin-form" {% if event_type_count >= 4 %}disabled{% endif %}>
+                    
+                    <div class="form-group">
+                        <label>Event Type Name (technical)</label>
+                        <input type="text" name="event_type_name" 
+                               placeholder="e.g., open_play" required>
+                        <small>Lowercase, no spaces (use underscore)</small>
+                    </div>
 
-                <div class="form-group">
-                    <label>Location</label>
-                    <input type="text" name="default_location" 
-                           placeholder="e.g., Calgary Indoor Sports Arena" required>
-                </div>
+                    <div class="form-group">
+                        <label>Display Name</label>
+                        <input type="text" name="display_name" 
+                               placeholder="e.g., JCC Sunday" required>
+                    </div>
 
-                <div class="form-group">
-                    <label>Start Time</label>
-                    <input type="text" name="default_time_start" 
-                           placeholder="19:00" pattern="[0-9]{2}:[0-9]{2}" required>
-                </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" name="default_location" 
+                               placeholder="e.g., Calgary Indoor Sports Arena" required>
+                    </div>
 
-                <div class="form-group">
-                    <label>End Time</label>
-                    <input type="text" name="default_time_end" 
-                           placeholder="21:00" pattern="[0-9]{2}:[0-9]{2}" required>
-                </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Start Time</label>
+                            <input type="text" name="default_time_start" 
+                                   placeholder="19:00" pattern="[0-9]{2}:[0-9]{2}" required>
+                        </div>
 
-                <div class="form-group">
-                    <label>Max Capacity</label>
-                    <input type="number" name="default_max_capacity" 
-                           placeholder="20" min="1" required>
-                </div>
+                        <div class="form-group">
+                            <label>End Time</label>
+                            <input type="text" name="default_time_end" 
+                                   placeholder="21:00" pattern="[0-9]{2}:[0-9]{2}" required>
+                        </div>
+                    </div>
 
-<div class="form-group">
-    <label>Color (Unique Identifier)</label>
-    
-    {% if available_colors|length == 0 %}
-        <div class="no-colors-warning">
-            ⚠️ No colors available - All 4 colors are in use
+                    <div class="form-group">
+                        <label>Max Capacity</label>
+                        <input type="number" name="default_max_capacity" 
+                               placeholder="20" min="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Color (Unique Identifier)</label>
+                        
+                        {% if available_colors|length == 0 %}
+                            <div class="no-colors-warning">
+                                ⚠️ No colors available - All 4 colors are in use
+                            </div>
+                            <select name="color" disabled required>
+                                <option value="">No colors available</option>
+                            </select>
+                        {% else %}
+                            <select name="color" 
+                                    {% if event_type_count >= 4 %}disabled{% endif %}
+                                    required>
+                                <option value="">Select a color</option>
+                                {% for color in available_colors %}
+                                    <option value="{{ color.value }}">{{ color.label }} ({{ color.value }})</option>
+                                {% endfor %}
+                            </select>
+                            <small>{{ available_colors|length }} color(s) available out of 4</small>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn-submit" {% if event_type_count >= 4 %}disabled{% endif %}>
+                        Create Event Type
+                    </button>
+                </form>
+            </div>
         </div>
-        <select name="color" disabled required>
-            <option value="">No colors available</option>
-        </select>
-    {% else %}
-        <select name="color" 
-                {% if event_type_count >= 4 %}disabled{% endif %}
-                required>
-            <option value="">Select a color</option>
-            {% for color in available_colors %}
-                <option value="{{ color.value }}">{{ color.label }} ({{ color.value }})</option>
-            {% endfor %}
-        </select>
-        <small>{{ available_colors|length }} color(s) available out of 4</small>
-    {% endif %}
-</div>
 
-                <button type="submit" class="btn-submit">Create Event Type</button>
-            </form>
+        <!-- TAB 2: USERS & MEMBERSHIPS -->
+        <div class="admin-content" id="tab-users" style="display: none;">
+            
+            <!-- Bulk Add Form -->
+            <div class="admin-section">
+                <h2>Add/Update Memberships (Bulk)</h2>
+                <p style="color: #666; margin-bottom: 20px;">
+                    📝 This creates/updates the whitelist. Users can signup after being added here.
+                </p>
+                
+                <form method="POST" action="/api/admin/memberships/bulk-add" class="admin-form">
+                    
+                    <div class="form-group">
+                        <label>Event Type</label>
+                        <select name="event_type_id" id="eventTypeSelect" required>
+                            {% for item in event_types_with_info %}
+                            <option value="{{ item.event_type.id }}" data-color="{{ item.event_type.color }}">
+                                {{ item.event_type.display_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Membership Type</label>
+                        <select name="membership_type" id="membershipType" required>
+                            <option value="full_member">Full Member</option>
+                            <option value="punch_card">Punch Card</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="creditsGroup">
+                        <label>Credits (for punch cards)</label>
+                        <input type="number" name="credits" id="creditsInput" value="10" min="0">
+                        <small>Credits to ADD to existing total (not replace)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Emails (one per line or comma-separated)</label>
+                        <textarea name="emails" rows="8" 
+                                  placeholder="user1@example.com&#10;user2@example.com&#10;user3@example.com" 
+                                  required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">Add/Update Memberships</button>
+                </form>
+            </div>
+            
+            <!-- All Users Table - Filtered by Event Type -->
+            <div class="admin-section">
+                <h2>All Memberships & Signups</h2>
+                
+                <!-- Event Type Filter -->
+                <div class="form-group" style="max-width: 300px; margin-bottom: 20px;">
+                    <label>Filter by Event Type</label>
+                    <select id="filterEventType">
+                        {% for item in event_types_with_info %}
+                        <option value="{{ loop.index0 }}" data-color="{{ item.event_type.color }}">
+                            {{ item.event_type.display_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <p style="color: #666; margin-bottom: 15px;">
+                    ⚠️ Users in <span style="color: #dc3545; font-weight: bold;">(Not signed up)</span> have memberships but haven't created their account yet.
+                </p>
+                
+                {% if users_with_memberships|length == 0 %}
+                    <p class="empty-state">No memberships created yet.</p>
+                {% else %}
+                    <!-- Table for each event type -->
+                    {% for idx in range(event_types_with_info|length) %}
+                    {% set event_item = event_types_with_info[idx] %}
+                    
+                    <table class="admin-table membership-table" id="membershipTable{{ idx }}" 
+                           style="{% if idx > 0 %}display: none;{% endif %}">
+                        <thead style="background-color: {{ event_item.event_type.color }}; color: white;">
+                            <tr>
+                                <th>Status</th>
+                                <th>Email</th>
+                                <th>Display Name</th>
+                                <th>Membership</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users_with_memberships %}
+                            {% set membership = user.memberships[idx] %}
+                            
+                            {% if membership.membership_type %}
+                            <tr {% if not user.signed_up %}style="background-color: #fff3cd;"{% endif %}>
+                                <td>
+                                    {% if user.signed_up %}
+                                        <span class="badge-signed-up">✓ Signed up</span>
+                                    {% else %}
+                                        <span class="badge-not-signed-up">✗ Not signed up</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.display_name }}</td>
+                                <td>
+                                    {% if membership.membership_type == 'full_member' %}
+                                        <span class="badge-full-member">Full Member</span>
+                                    {% elif membership.membership_type == 'punch_card' %}
+                                        <span class="badge-punch-card">
+                                            Punch Card: {{ membership.remaining_credits }}/{{ membership.total_credits }}
+                                        </span>
+                                        {% if user.signed_up %}
+                                        <form method="POST" action="/api/admin/memberships/add-credits" 
+                                              style="display: inline-block; margin-top: 5px;">
+                                            <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                                            <input type="hidden" name="event_type_id" value="{{ membership.event_type_id }}">
+                                            <input type="number" name="credits_to_add" 
+                                                   min="1" value="5" 
+                                                   style="width: 50px; padding: 2px;">
+                                            <button type="submit" class="btn-add-credits-small">+ Add</button>
+                                        </form>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endfor %}
+                {% endif %}
+            </div>
         </div>
+
+        <!-- TAB 3: EVENT DATES (TODO) -->
+        <div class="admin-content" id="tab-dates" style="display: none;">
+            <div class="admin-section">
+                <h2>Event Dates Management</h2>
+                <p>Coming soon...</p>
+            </div>
+        </div>
+
     </div>
 
-    </div>
-
-
-        <!-- JavaScript for tab switching -->
+    <!-- JavaScript for tab switching -->
     <script>
         // Tab switching logic
         document.querySelectorAll('.admin-tab').forEach(btn => {
@@ -179,6 +344,56 @@
                 const tabName = btn.dataset.tab;
                 document.getElementById('tab-' + tabName).style.display = 'block';
             });
+        });
+        
+        // Hide/disable credits field for full members
+        const membershipTypeSelect = document.getElementById('membershipType');
+        const creditsGroup = document.getElementById('creditsGroup');
+        const creditsInput = document.getElementById('creditsInput');
+        
+        if (membershipTypeSelect && creditsGroup && creditsInput) {
+            membershipTypeSelect.addEventListener('change', function() {
+                if (this.value === 'full_member') {
+                    creditsInput.disabled = true;
+                    creditsInput.value = 0;
+                    creditsGroup.style.opacity = '0.5';
+                } else {
+                    creditsInput.disabled = false;
+                    creditsInput.value = 10;
+                    creditsGroup.style.opacity = '1';
+                }
+            });
+        }
+        
+        // Filter membership tables by event type
+        const filterEventType = document.getElementById('filterEventType');
+        
+        if (filterEventType) {
+            filterEventType.addEventListener('change', function() {
+                const selectedIdx = this.value;
+                
+                // Hide all tables
+                document.querySelectorAll('.membership-table').forEach(table => {
+                    table.style.display = 'none';
+                });
+                
+                // Show selected table
+                const selectedTable = document.getElementById('membershipTable' + selectedIdx);
+                if (selectedTable) {
+                    selectedTable.style.display = 'table';
+                }
+            });
+        }
+        
+        // Auto-open tab based on hash
+        window.addEventListener('load', function() {
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                const tabBtn = document.querySelector(`[data-tab="${hash}"]`);
+                if (tabBtn) {
+                    tabBtn.click();
+                }
+            }
         });
     </script>
 </body>
