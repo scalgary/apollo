@@ -1,6 +1,4 @@
-# docker-compose.override.yml - Développement uniquement
 services:
-
   jupyter:
     container_name: apollo-jupyter
     build: ./my_app
@@ -8,14 +6,15 @@ services:
       - "8888:8888"
     volumes:
       - ./my_app:/app
-    environment:
-      DATABASE_URL: postgresql://apollo:apollo123@db:5432/apollo
-      SECRET_KEY: your-secret-key-change-in-production
+      - ./notebooks:/notebooks
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
     command: >
-      sh -c "pip install jupyter jupyterlab ipykernel &&
-             jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root"
+      sh -c "pip install jupyter jupyterlab ipykernel psycopg2-binary sqlalchemy --break-system-packages &&
+             python -m ipykernel install --user --name=apollo --display-name='Apollo Python' &&
+             jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''"
     #http://localhost:8888
     #token in logs
