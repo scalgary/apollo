@@ -121,12 +121,7 @@
                 
                 <form method="POST" action="/api/admin/event-types" class="admin-form" {% if event_type_count >= 4 %}disabled{% endif %}>
                     
-                    <div class="form-group">
-                        <label>Event Type Name (technical)</label>
-                        <input type="text" name="event_type_name" 
-                               placeholder="e.g., open_play" required>
-                        <small>Lowercase, no spaces (use underscore)</small>
-                    </div>
+
 
                     <div class="form-group">
                         <label>Display Name</label>
