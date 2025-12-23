@@ -24,147 +24,192 @@
                 {% endif %}
             </div>
 
-            <!-- Actions / Messages -->
-            {% if message %}
-                <div class="error-message">{{ message }}</div>
-
-            {% elif user_status == 'going' %}
-                <!-- User est GOING -->
-                <div class="status-message going">✓ You're going!</div>
-                
-                <div class="action-buttons-row">
-                    <form method="POST" action="/event/{{ event.id }}/register">
-                        <button type="submit" class="status-btn btn-going active" disabled>
-                            GOING
-                        </button>
-                    </form>
-                    <form method="POST" action="/event/{{ event.id }}/not-going">
-                        <button type="submit" class="status-btn btn-not-going">
-                            NOT GOING
-                        </button>
-                    </form>
+            <!-- ADMIN VIEW - Cannot register -->
+            {% if user_is_admin %}
+                <div class="info-message" style="background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b;">
+                    ⚠️ Admins can view but cannot register for events
                 </div>
                 
-                <form method="POST" action="/event/{{ event.id }}/cancel" style="margin-top: 15px;">
-                    <button type="submit" class="login-signup-btn btn-cancel">Cancel Registration</button>
-                </form>
-
-            {% elif user_status == 'waitlist' %}
-                <!-- User est en WAITLIST -->
-            <div class="status-message waitlist">
-                ⏳ You're on the waitlist
-                {% if user_waitlist_position %}
-                    <br><strong>Position: #{{ user_waitlist_position }}</strong>
-                {% endif %}
-            </div>
-                
-                <div class="action-buttons-row">
-                    <form method="POST" action="/event/{{ event.id }}/register">
-                        <button type="submit" class="status-btn btn-going active" disabled>
-                            WAITLIST
-                        </button>
-                    </form>
-                    <form method="POST" action="/event/{{ event.id }}/not-going">
-                        <button type="submit" class="status-btn btn-not-going">
-                            NOT GOING
-                        </button>
-                    </form>
-                </div>
-                
-                <form method="POST" action="/event/{{ event.id }}/cancel" style="margin-top: 15px;">
-                    <button type="submit" class="login-signup-btn btn-cancel">Leave Waitlist</button>
-                </form>
-
-            {% elif user_status == 'not_going' %}
-                <!-- User est NOT GOING -->
-                <div class="status-message not-going">✗ You're not going</div>
-                
-                <div class="action-buttons-row">
-                    {% if can_register %}
-                    <form method="POST" action="/event/{{ event.id }}/register">
-                        <button type="submit" class="status-btn btn-going">
-                            {% if event.available_spots > 0 %}
-                                GOING
-                            {% else %}
-                                JOIN WAITLIST
-                            {% endif %}
-                        </button>
-                    </form>
-                    {% else %}
-                    <button class="status-btn btn-going" disabled>
-                        GOING (No credits)
+                <!-- Bouton toggle participants -->
+                {% if confirmed_participants|length > 0 or waitlist|length > 0 %}
+                    <button class="login-signup-btn btn-toggle" onclick="toggleParticipants()" style="margin-top: 20px;">
+                        View Participants ({{ confirmed_participants|length + waitlist|length }})
                     </button>
-                    {% endif %}
-                    
-                    <form method="POST" action="/event/{{ event.id }}/not-going">
-                        <button type="submit" class="status-btn btn-not-going active" disabled>
-                            NOT GOING
-                        </button>
-                    </form>
-                </div>
+                {% endif %}
 
+                <!-- Liste des participants (cachée par défaut) -->
+                <div id="participants-container" style="display: none; margin-top: 20px;">
+                    {% if confirmed_participants|length > 0 %}
+                    <div class="participants-section">
+                        <h3>Participants ({{ confirmed_participants|length }})</h3>
+                        <ul class="participants-list">
+                            {% for participant in confirmed_participants %}
+                                <li>{{ participant.display_name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if waitlist|length > 0 %}
+                    <div class="waitlist-section">
+                        <h3>Waitlist ({{ waitlist|length }})</h3>
+                        <ol class="waitlist-list">
+                            {% for person in waitlist %}
+                                <li>{{ person.display_name }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <p class="signup-already_login-prompt" style="margin-top: 30px;">
+                    <a href="/schedule">← Back to Schedule</a>
+                </p>
+
+            <!-- REGULAR USER - Can register -->
             {% else %}
-                <!-- Aucun statut - choix initial -->
-                {% if can_register %}
+                <!-- Actions / Messages -->
+                {% if message %}
+                    <div class="error-message">{{ message }}</div>
+
+                {% elif user_status == 'going' %}
+                    <!-- User est GOING -->
+                    <div class="status-message going">✓ You're going!</div>
+                    
                     <div class="action-buttons-row">
                         <form method="POST" action="/event/{{ event.id }}/register">
-                            {% if event.available_spots > 0 %}
-                                <button type="submit" class="status-btn btn-going">
-                                    GOING
-                                </button>
-                            {% else %}
-                                <button type="submit" class="status-btn btn-going">
-                                    JOIN WAITLIST
-                                </button>
-                            {% endif %}
+                            <button type="submit" class="status-btn btn-going active" disabled>
+                                GOING
+                            </button>
                         </form>
-                        
                         <form method="POST" action="/event/{{ event.id }}/not-going">
                             <button type="submit" class="status-btn btn-not-going">
                                 NOT GOING
                             </button>
                         </form>
                     </div>
+                    
+                    <form method="POST" action="/event/{{ event.id }}/cancel" style="margin-top: 15px;">
+                        <button type="submit" class="login-signup-btn btn-cancel">Cancel Registration</button>
+                    </form>
+
+                {% elif user_status == 'waitlist' %}
+                    <!-- User est en WAITLIST -->
+                    <div class="status-message waitlist">
+                        ⏳ You're on the waitlist
+                        {% if user_waitlist_position %}
+                            <br><strong>Position: #{{ user_waitlist_position }}</strong>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="action-buttons-row">
+                        <form method="POST" action="/event/{{ event.id }}/register">
+                            <button type="submit" class="status-btn btn-going active" disabled>
+                                WAITLIST
+                            </button>
+                        </form>
+                        <form method="POST" action="/event/{{ event.id }}/not-going">
+                            <button type="submit" class="status-btn btn-not-going">
+                                NOT GOING
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <form method="POST" action="/event/{{ event.id }}/cancel" style="margin-top: 15px;">
+                        <button type="submit" class="login-signup-btn btn-cancel">Leave Waitlist</button>
+                    </form>
+
+                {% elif user_status == 'not_going' %}
+                    <!-- User est NOT GOING -->
+                    <div class="status-message not-going">✗ You're not going</div>
+                    
+                    <div class="action-buttons-row">
+                        {% if can_register %}
+                        <form method="POST" action="/event/{{ event.id }}/register">
+                            <button type="submit" class="status-btn btn-going">
+                                {% if event.available_spots > 0 %}
+                                    GOING
+                                {% else %}
+                                    JOIN WAITLIST
+                                {% endif %}
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="status-btn btn-going" disabled>
+                            GOING (No credits)
+                        </button>
+                        {% endif %}
+                        
+                        <form method="POST" action="/event/{{ event.id }}/not-going">
+                            <button type="submit" class="status-btn btn-not-going active" disabled>
+                                NOT GOING
+                            </button>
+                        </form>
+                    </div>
+
                 {% else %}
-                    <div class="error-message">Out of credits - Purchase more to register</div>
+                    <!-- Aucun statut - choix initial -->
+                    {% if can_register %}
+                        <div class="action-buttons-row">
+                            <form method="POST" action="/event/{{ event.id }}/register">
+                                {% if event.available_spots > 0 %}
+                                    <button type="submit" class="status-btn btn-going">
+                                        GOING
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="status-btn btn-going">
+                                        JOIN WAITLIST
+                                    </button>
+                                {% endif %}
+                            </form>
+                            
+                            <form method="POST" action="/event/{{ event.id }}/not-going">
+                                <button type="submit" class="status-btn btn-not-going">
+                                    NOT GOING
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="error-message">Out of credits - Purchase more to register</div>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
 
-            <!-- Bouton toggle participants -->
-            {% if confirmed_participants|length > 0 or waitlist|length > 0 %}
-                <button class="login-signup-btn btn-toggle" onclick="toggleParticipants()" style="margin-top: 20px;">
-                    View Participants ({{ confirmed_participants|length + waitlist|length }})
-                </button>
-            {% endif %}
+                <!-- Bouton toggle participants -->
+                {% if confirmed_participants|length > 0 or waitlist|length > 0 %}
+                    <button class="login-signup-btn btn-toggle" onclick="toggleParticipants()" style="margin-top: 20px;">
+                        View Participants ({{ confirmed_participants|length + waitlist|length }})
+                    </button>
+                {% endif %}
 
-            <!-- Liste des participants (cachée par défaut) -->
-            <div id="participants-container" style="display: none; margin-top: 20px;">
-                {% if confirmed_participants|length > 0 %}
-                <div class="participants-section">
-                    <h3>Participants ({{ confirmed_participants|length }})</h3>
-                    <ul class="participants-list">
-                        {% for participant in confirmed_participants %}
-                            <li>{{ participant.display_name }}</li>
-                        {% endfor %}
-                    </ul>
+                <!-- Liste des participants (cachée par défaut) -->
+                <div id="participants-container" style="display: none; margin-top: 20px;">
+                    {% if confirmed_participants|length > 0 %}
+                    <div class="participants-section">
+                        <h3>Participants ({{ confirmed_participants|length }})</h3>
+                        <ul class="participants-list">
+                            {% for participant in confirmed_participants %}
+                                <li>{{ participant.display_name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    {% if waitlist|length > 0 %}
+                    <div class="waitlist-section">
+                        <h3>Waitlist ({{ waitlist|length }})</h3>
+                        <ol class="waitlist-list">
+                            {% for person in waitlist %}
+                                <li>{{ person.display_name }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
 
-                {% if waitlist|length > 0 %}
-                <div class="waitlist-section">
-                    <h3>Waitlist ({{ waitlist|length }})</h3>
-                    <ol class="waitlist-list">
-                        {% for person in waitlist %}
-                            <li>{{ person.display_name }}</li>
-                        {% endfor %}
-                    </ol>
-                </div>
-                {% endif %}
-            </div>
-
-            <p class="signup-already_login-prompt" style="margin-top: 30px;">
-                <a href="/schedule">← Back to Schedule</a>
-            </p>
+                <p class="signup-already_login-prompt" style="margin-top: 30px;">
+                    <a href="/schedule">← Back to Schedule</a>
+                </p>
+            {% endif %}
         </div>
     </div>
 

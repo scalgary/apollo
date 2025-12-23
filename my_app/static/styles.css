@@ -2479,3 +2479,105 @@ body {
     border: 1px solid #fbbf24;
     margin-bottom: 10px;
 }
+
+.btn-add-date {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+    transition: all 0.2s;
+}
+
+.btn-add-date:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.btn-clear-dates {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-clear-dates:hover {
+    background: #dc2626;
+}
+
+#datePicker {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+
+.date-picker-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.btn-add-date {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn-add-date:hover {
+    background: #059669;
+}
+
+.date-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.date-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.date-item.date-new {
+    background: #d1fae5;
+    border-color: #10b981;
+}
+
+.date-item.date-deleted {
+    background: #fee2e2;
+    border-color: #ef4444;
+    opacity: 0.7;
+    text-decoration: line-through;
+}
+
+.btn-delete-date {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-delete-date:hover {
+    background: #dc2626;
+}

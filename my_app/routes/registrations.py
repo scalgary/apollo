@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from services.auth_service import AuthService
 from services.registration_service import RegistrationService
+from services.admin_service import AdminService
 
 router = APIRouter()
 
@@ -14,8 +15,7 @@ def register_for_event(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    # TON CODE ICI
-     # 1. VÉRIFIER L'AUTHENTIFICATION
+    # 1. VÉRIFIER L'AUTHENTIFICATION
     token = request.cookies.get("access_token")
     
     if not token:
@@ -23,7 +23,6 @@ def register_for_event(
         return RedirectResponse(url="/login?error=Please login first", status_code=303)
     
     auth_service = AuthService(db)
-
     
     try:
         # Récupérer le user depuis le token
@@ -32,10 +31,19 @@ def register_for_event(
         # Token invalide/expiré -> rediriger vers login
         return RedirectResponse(url="/login?error=Session expired", status_code=303)
     
+    # 2. BLOQUER LES ADMINS
+    admin_service = AdminService(db)
+    if admin_service.is_user_admin(user.id):
+        return RedirectResponse(
+            url=f"/event/{event_id}?error=Admins cannot register for events", 
+            status_code=303
+        )
+    
+    # 3. REGISTER USER
     registration_service = RegistrationService(db)
 
     try:
-        result = registration_service.register_user(user.id, event_id)  # ← user.id
+        result = registration_service.register_user(user.id, event_id)
         # Succès → rediriger vers la page event
         return RedirectResponse(url=f"/event/{event_id}", status_code=303)
     except ValueError as e:
@@ -45,7 +53,6 @@ def register_for_event(
             url=f"/event/{event_id}?error={error_message}", 
             status_code=303
         )
-
 
 
 @router.post("/event/{event_id}/cancel")
@@ -54,7 +61,7 @@ def cancel_registration(
     request: Request,
     db: Session = Depends(get_db)
 ):
-         # 1. VÉRIFIER L'AUTHENTIFICATION
+    # 1. VÉRIFIER L'AUTHENTIFICATION
     token = request.cookies.get("access_token")
     
     if not token:
@@ -62,7 +69,6 @@ def cancel_registration(
         return RedirectResponse(url="/login?error=Please login first", status_code=303)
     
     auth_service = AuthService(db)
-
     
     try:
         # Récupérer le user depuis le token
@@ -71,10 +77,19 @@ def cancel_registration(
         # Token invalide/expiré -> rediriger vers login
         return RedirectResponse(url="/login?error=Session expired", status_code=303)
     
+    # 2. BLOQUER LES ADMINS
+    admin_service = AdminService(db)
+    if admin_service.is_user_admin(user.id):
+        return RedirectResponse(
+            url=f"/event/{event_id}?error=Admins cannot cancel registrations", 
+            status_code=303
+        )
+    
+    # 3. CANCEL REGISTRATION
     registration_service = RegistrationService(db)
 
     try:
-        result = registration_service.unregister_user(user.id, event_id)  # ← user.id
+        result = registration_service.unregister_user(user.id, event_id)
         # Succès → rediriger vers la page event
         return RedirectResponse(url=f"/event/{event_id}", status_code=303)
     except ValueError as e:
@@ -84,6 +99,7 @@ def cancel_registration(
             url=f"/event/{event_id}?error={error_message}", 
             status_code=303
         )
+
 
 @router.post("/event/{event_id}/not-going")
 def mark_not_going(
@@ -104,7 +120,15 @@ def mark_not_going(
     except ValueError:
         return RedirectResponse(url="/login?error=Session expired", status_code=303)
     
-    # 2. Appeler le service
+    # 2. BLOQUER LES ADMINS
+    admin_service = AdminService(db)
+    if admin_service.is_user_admin(user.id):
+        return RedirectResponse(
+            url=f"/event/{event_id}?error=Admins cannot change event status", 
+            status_code=303
+        )
+    
+    # 3. Appeler le service
     registration_service = RegistrationService(db)
     
     try:

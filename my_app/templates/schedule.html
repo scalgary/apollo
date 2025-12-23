@@ -54,32 +54,47 @@
             <div class="events-table">
                 {% for event in events %}
                 <!-- Find matching membership for this event -->
-                {% set event_membership = None %}
-                {% set event_color = '#6b7280' %}
+                {% set ns = namespace(membership=None) %}
                 
                 {% for key, membership in memberships.items() %}
                     {% if membership.id == event.event_type_id %}
-                        {% set event_membership = membership %}
-                        {% set event_color = membership.color %}
+                        {% set ns.membership = membership %}
                     {% endif %}
                 {% endfor %}
                 
-                {% if event_membership %}
+                {% if ns.membership or is_admin %}
                 <div class="event-row" 
                      onclick="window.location.href='/event/{{ event.id }}'"
-                     style="border-left: 4px solid {{ event_color }};">
-                    
+                     style="border-left: 4px solid {{ event.color }}; background-color: {{ event.color }}15;">                    
                     <!-- Date card -->
-                    <div class="date-card" style="background: linear-gradient(135deg, {{ event_color }} 0%, {{ event_color }}dd 100%); color: white;">
+                    <div class="date-card" style="background: linear-gradient(135deg, {{ event.color }} 0%, {{ event.color }}dd 100%); color: white;">
                         <div class="month">{{ event['month'] }}</div>
                         <div class="day">{{ event['day'] }}</div>
                         <div class="weekday">{{ event['weekday'] }}</div>
                     </div>
                     
                     <div class="event-info">
-                        <h3 class="event-title" style="color: {{ event_color }};">{{ event_membership.display_name }}</h3>
-                        <p class="event-location">📍 {{ event_membership.location }}</p>
-                        <p class="event-time">🕒 {{ event_membership.time_start }} - {{ event_membership.time_end }}</p>
+                        <h3 class="event-title" style="color: {{ event.color }};">
+                            {% if ns.membership %}
+                                {{ ns.membership.display_name }}
+                            {% else %}
+                                {{ event.event_type_display }}
+                            {% endif %}
+                        </h3>
+                        <p class="event-location">📍 
+                            {% if ns.membership %}
+                                {{ ns.membership.location }}
+                            {% else %}
+                                Location TBD
+                            {% endif %}
+                        </p>
+                        <p class="event-time">🕐 
+                            {% if ns.membership %}
+                                {{ ns.membership.time_start }} - {{ ns.membership.time_end }}
+                            {% else %}
+                                Time TBD
+                            {% endif %}
+                        </p>
                         <p class="event-capacity">
                             {% if event.confirmed_count >= event.max_spots %}
                                 👥 <span style="color: #dc2626; font-weight: bold;">FULL</span>
@@ -96,11 +111,15 @@
                             <span class="user-status-text user-status-waitlist">⏰ WAITLIST</span>
                         {% elif event.user_status == 'not_going' %}
                             <span class="user-status-text user-status-not-going">❌ NOT GOING</span>
+                        {% elif event.user_status == 'admin_view' %}
+                            <span class="user-status-text user-status-unknown">👁️ VIEW</span>
                         {% endif %}
                     </div>
                     
                     <div class="status-section">
-                        {% if event.user_status == 'going' %}
+                        {% if is_admin %}
+                            <button class="status-badge" style="background: #6b7280; cursor: pointer;">ADMIN VIEW</button>
+                        {% elif event.user_status == 'going' %}
                             <button class="status-badge status-rsvp">RSVP</button>
                         {% elif event.user_status == 'waitlist' %}
                             <button class="status-badge status-rsvp">RSVP</button>

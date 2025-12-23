@@ -53,56 +53,61 @@ def schedule_page(
     memberships = event_service.get_user_memberships_formatted(user.id)
     
     # 3. RÉCUPÉRER LES ÉVÉNEMENTS
-    events = event_service.get_events_for_schedule(user.id)
-    
-    # 4. APPLIQUER LES RÈGLES D'AFFICHAGE
-    today = date.today()
-    
-    for event in events:
-        # Trouver le membership correspondant à cet événement
-        event_type_id = event['event_type_id']
+    if is_admin:
+        # Admin voit TOUS les events
+        events = event_service.get_all_events_for_admin()
+    else:
+        # User normal voit seulement ses memberships
+        events = event_service.get_events_for_schedule(user.id)
         
-        # Chercher dans memberships quel event_X correspond
-        user_membership = None
-        for key, membership in memberships.items():
-            if membership['id'] == event_type_id:
-                user_membership = membership
-                break
+        # 4. APPLIQUER LES RÈGLES D'AFFICHAGE (seulement pour non-admins)
+        today = date.today()
         
-        # Si pas de membership (ne devrait pas arriver), skip
-        if not user_membership:
-            continue
-        
-        # Calculer le nombre de jours avant l'événement
-        event_date = event['date']
-        if isinstance(event_date, str):
-            event_date = date.fromisoformat(event_date)
-        elif hasattr(event_date, 'date'):
-            event_date = event_date.date()
-        
-        days_until_event = (event_date - today).days
-        
-        # RÈGLES D'AFFICHAGE DU STATUT
-        # Si déjà inscrit, on garde son statut actuel
-        if event['user_status'] in ['going', 'waitlist','not going']:
-            # Pas besoin de changer quoi que ce soit
-            pass
-        
-        # Si full_member, toujours RSVP disponible
-        elif user_membership['type'] == 'full_member':
-            event['user_status'] = 'RSVP'  # Nouveau statut pour template
-        
-        # Si punch_card
-        elif user_membership['type'] == 'punch_card':
-            # Vérifier les crédits
-            remaining = user_membership['remaining_credits']
+        for event in events:
+            # Trouver le membership correspondant à cet événement
+            event_type_id = event['event_type_id']
             
-            if remaining == 0:
-                event['user_status'] = 'no_credits'
-            elif days_until_event > 7:
-                event['user_status'] = 'full_member_priority'
-            else:
-                event['user_status'] = 'RSVP'
+            # Chercher dans memberships quel event_X correspond
+            user_membership = None
+            for key, membership in memberships.items():
+                if membership['id'] == event_type_id:
+                    user_membership = membership
+                    break
+            
+            # Si pas de membership (ne devrait pas arriver), skip
+            if not user_membership:
+                continue
+            
+            # Calculer le nombre de jours avant l'événement
+            event_date = event['date']
+            if isinstance(event_date, str):
+                event_date = date.fromisoformat(event_date)
+            elif hasattr(event_date, 'date'):
+                event_date = event_date.date()
+            
+            days_until_event = (event_date - today).days
+            
+            # RÈGLES D'AFFICHAGE DU STATUT
+            # Si déjà inscrit, on garde son statut actuel
+            if event['user_status'] in ['going', 'waitlist','not going']:
+                # Pas besoin de changer quoi que ce soit
+                pass
+            
+            # Si full_member, toujours RSVP disponible
+            elif user_membership['type'] == 'full_member':
+                event['user_status'] = 'RSVP'  # Nouveau statut pour template
+            
+            # Si punch_card
+            elif user_membership['type'] == 'punch_card':
+                # Vérifier les crédits
+                remaining = user_membership['remaining_credits']
+                
+                if remaining == 0:
+                    event['user_status'] = 'no_credits'
+                elif days_until_event > 7:
+                    event['user_status'] = 'full_member_priority'
+                else:
+                    event['user_status'] = 'RSVP'
     
     # 5. RENDER LE TEMPLATE
     return templates.TemplateResponse("schedule.html", {
@@ -139,6 +144,10 @@ def event_page(
     except ValueError:
         return RedirectResponse(url="/auth/login?error=Session expired", status_code=303)
     
+    # 1.5. VÉRIFIER SI USER EST ADMIN
+    from services.admin_service import AdminService
+    admin_service = AdminService(db)
+    user_is_admin = admin_service.is_user_admin(user.id)
     
     # 2. RÉCUPÉRER LES DÉTAILS DE L'ÉVÉNEMENT
     event_service = EventService(db)
@@ -152,7 +161,7 @@ def event_page(
     is_punch_card = event_data['user_membership']['type'] == 'punch_card'
     days_until = event_data['event']['days_until']
     
-    if is_punch_card and days_until > 7:
+    if is_punch_card and days_until > 7 and not user_is_admin:
         # Punch card ne peut pas accéder à cette page
         return RedirectResponse(
             url="/schedule?error=This event is not yet available for punch card users",
@@ -182,6 +191,7 @@ def event_page(
     return templates.TemplateResponse("event_detail.html", {
         "request": request,
         "user": user,
+        "user_is_admin": user_is_admin,
         "event": event_data['event'],
         "event_type": event_data['event_type'],
         "user_membership": event_data['user_membership'],

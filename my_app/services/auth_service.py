@@ -159,13 +159,15 @@ class AuthService:
         self.db.add(new_user)
         self.db.flush()  # Pour obtenir l'ID sans commit complet
 
-        # 4. Créer les memberships depuis la whitelist
-        event_types = {et.event_type_name: et.id for et in self.db.query(EventType).all()}
+        # 4. Récupérer TOUS les event types
+        all_event_types = self.db.query(EventType).all()
+        event_types_dict = {et.event_type_name: et.id for et in all_event_types}
 
+        # 5. Créer memberships depuis whitelist
         for membership_data in whitelist_data['memberships']:
             event_type_name = membership_data['event_type_name']
             
-            if event_type_name not in event_types:
+            if event_type_name not in event_types_dict:
                 print(f"Warning: Event type '{event_type_name}' not found, skipping")
                 continue
             
@@ -180,21 +182,35 @@ class AuthService:
             
             membership = UserEventTypeMembership(
                 user_id=new_user.id,
-                event_type_id=event_types[event_type_name],
+                event_type_id=event_types_dict[event_type_name],
                 membership_type=membership_type,
                 total_credits_purchased=total_credits,
                 remaining_credits=remaining_credits
             )
             self.db.add(membership)
 
-        # 5. Commit tout
+        # 6. AUTO-CRÉER punch_card 0 pour event types manquants
+        whitelist_event_types = {m['event_type_name'] for m in whitelist_data['memberships']}
+        missing_event_types = set(event_types_dict.keys()) - whitelist_event_types
+        
+        for event_type_name in missing_event_types:
+            membership = UserEventTypeMembership(
+                user_id=new_user.id,
+                event_type_id=event_types_dict[event_type_name],
+                membership_type='punch_card',
+                total_credits_purchased=0,
+                remaining_credits=0
+            )
+            self.db.add(membership)
+            print(f"✓ Auto-created punch_card 0 credits for {event_type_name}")
+
+        # 7. Commit tout
         self.db.commit()
 
         return {
             "user_id": new_user.id,
             "message": "Account created successfully"
-        }
-        
+        }     
 
     # === Password Reset ===
 

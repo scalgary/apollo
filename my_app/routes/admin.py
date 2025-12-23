@@ -1,13 +1,20 @@
 from fastapi import APIRouter, Depends, Request, Form, HTTPException
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from database import get_db
 from services.auth_service import AuthService
 from services.admin_service import AdminService
 from services.event_service import EventService
-from db_models import EventType
+from db_models import EventType, Event
+from pydantic import BaseModel
 
+# Add after imports, before router
+class ManageDatesRequest(BaseModel):
+    event_type_id: int
+    dates_to_add: list[str]
+    dates_to_delete: list[str]
+    
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
@@ -118,7 +125,6 @@ def admin_page(request: Request, db: Session = Depends(get_db)):
 @router.post("/api/admin/event-types")
 def create_event_type(
     request: Request,
-    event_type_name: str = Form(...),
     display_name: str = Form(...),
     default_location: str = Form(...),
     default_time_start: str = Form(...),
@@ -146,7 +152,6 @@ def create_event_type(
     
     try:
         new_event_type = admin_service.create_event_type(
-            event_type_name=event_type_name,
             display_name=display_name,
             default_location=default_location,
             default_time_start=default_time_start,
@@ -301,3 +306,97 @@ def add_credits_to_user(
             url=f"/admin?error={str(e)}#users",
             status_code=303
         )
+    
+@router.post("/api/admin/events/bulk-create")
+def bulk_create_events(
+    request: Request,
+    event_type_id: int = Form(...),
+    dates: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Create multiple events for an event type"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    admin_service = AdminService(db)
+    
+    try:
+        result = admin_service.bulk_create_events(event_type_id, dates)
+        
+        return RedirectResponse(
+            url=f"/admin?success={result['message']}#dates",
+            status_code=303
+        )
+        
+    except ValueError as e:
+        return RedirectResponse(
+            url=f"/admin?error={str(e)}#dates",
+            status_code=303
+        )
+    
+
+from fastapi import APIRouter, Depends, Request, Form, HTTPException
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
+# Add after imports
+class ManageDatesRequest(BaseModel):
+    event_type_id: int
+    dates_to_add: list[str]
+    dates_to_delete: list[str]
+
+# Add these routes after bulk_create_events
+@router.get("/api/admin/events/{event_type_id}/dates")
+def get_event_dates(
+    event_type_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Get all future dates for an event type"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    from datetime import date
+    
+    events = db.query(Event).filter(
+        Event.event_type_id == event_type_id,
+        Event.date >= date.today()
+    ).order_by(Event.date).all()
+    
+    dates = [str(e.date) for e in events]
+    
+    return JSONResponse(content={"dates": dates})
+
+
+@router.post("/api/admin/events/manage-dates")
+def manage_event_dates(
+    request: Request,
+    body: ManageDatesRequest,
+    db: Session = Depends(get_db)
+):
+    """Add and delete event dates"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    admin_service = AdminService(db)
+    
+    try:
+        result = admin_service.manage_event_dates(
+            event_type_id=body.event_type_id,
+            dates_to_add=body.dates_to_add,
+            dates_to_delete=body.dates_to_delete
+        )
+        
+        return JSONResponse(content=result)
+        
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from db_models import Admin, User, EventType, UserEventTypeMembership
+from db_models import Admin, User, EventType, UserEventTypeMembership, Event
 from utils import load_events, load_event_types, load_admins
 
 
@@ -195,7 +195,6 @@ class AdminService:
         
     def create_event_type(
         self,
-        event_type_name: str,
         display_name: str,
         default_location: str,
         default_time_start: str,
@@ -206,10 +205,11 @@ class AdminService:
         """
         Create a new event type
         
+        Auto-generates event_type_name based on color (event_1, event_2, etc.)
         Max 4 event types allowed
         
         Raises:
-            ValueError: If validation fails, duplicate, or max limit reached
+            ValueError: If validation fails or max limit reached
         """
         import re
         from datetime import datetime
@@ -219,15 +219,25 @@ class AdminService:
         if current_count >= 4:
             raise ValueError("Maximum 4 event types allowed. Delete one to create a new one.")
         
-        # 1. Check duplicate
-        existing = self.db.query(EventType).filter(
-            EventType.event_type_name == event_type_name.strip().lower()
-        ).first()
+        # 1. Map color to event_type_name
+        color_to_name = {
+            '#3b82f6': 'event_1',  # Blue
+            '#f97316': 'event_2',  # Orange
+            '#10b981': 'event_3',  # Green
+            '#8b5cf6': 'event_4',  # Purple
+        }
         
+        event_type_name = color_to_name.get(color.strip())
+        
+        if not event_type_name:
+            raise ValueError(f"Invalid color: {color}. Must be one of the 4 allowed colors.")
+        
+        # 2. Check if this color already used
+        existing = self.db.query(EventType).filter(EventType.color == color.strip()).first()
         if existing:
-            raise ValueError(f"Event type '{event_type_name}' already exists")
+            raise ValueError(f"Color already in use by '{existing.display_name}'")
         
-        # 2. Validate time format
+        # 3. Validate time format
         time_pattern = r'^([0-9]|[01][0-9]|2[0-3]):([0-5][0-9])$'
         
         if not re.match(time_pattern, default_time_start):
@@ -236,7 +246,7 @@ class AdminService:
         if not re.match(time_pattern, default_time_end):
             raise ValueError(f"Invalid end time format: {default_time_end}. Use HH:MM")
         
-        # 3. Normalize times
+        # 4. Normalize times
         def normalize_time(time_str):
             parts = time_str.split(':')
             return f"{int(parts[0]):02d}:{int(parts[1]):02d}"
@@ -244,16 +254,16 @@ class AdminService:
         start_normalized = normalize_time(default_time_start)
         end_normalized = normalize_time(default_time_end)
         
-        # 4. Validate start < end
+        # 5. Validate start < end
         start_dt = datetime.strptime(start_normalized, '%H:%M')
         end_dt = datetime.strptime(end_normalized, '%H:%M')
         
         if start_dt >= end_dt:
             raise ValueError("Start time must be before end time")
         
-        # 5. Create EventType
+        # 6. Create EventType
         new_event_type = EventType(
-            event_type_name=event_type_name.strip().lower(),
+            event_type_name=event_type_name,
             display_name=display_name.strip(),
             default_location=default_location.strip(),
             default_time_start=start_normalized,
@@ -284,7 +294,6 @@ class AdminService:
             ValueError: If has future events or not found
         """
         from datetime import date
-        from db_models import Event
         import csv
         import os
         
@@ -361,7 +370,6 @@ class AdminService:
             }
         """
         from datetime import date
-        from db_models import Event
         
         event_type = self.db.query(EventType).filter(EventType.id == event_type_id).first()
         if not event_type:
@@ -479,16 +487,20 @@ class AdminService:
             
             # Check if membership already exists for this event type
             membership_exists = False
-            for membership in existing_whitelist[email]['memberships']:
+            for i, membership in enumerate(existing_whitelist[email]['memberships']):
                 if membership['event_type_name'] == event_type.event_type_name:
-                    # Update existing membership
-                    membership['membership_type'] = membership_type
+                    # Update existing membership - REPLACE entire dict
                     if membership_type == 'punch_card':
-                        # Add credits to existing
-                        current_credits = membership['total_credits_purchased'] or 0
-                        membership['total_credits_purchased'] = current_credits + credits
+                        current_credits = membership.get('total_credits_purchased', 0) or 0
+                        new_credits = current_credits + credits
                     else:
-                        membership['total_credits_purchased'] = None
+                        new_credits = None
+                    
+                    existing_whitelist[email]['memberships'][i] = {
+                        'event_type_name': event_type.event_type_name,
+                        'membership_type': membership_type,
+                        'total_credits_purchased': new_credits
+                    }
                     membership_exists = True
                     updated_count += 1
                     break
@@ -662,3 +674,138 @@ class AdminService:
             })
         
         return result
+    
+    # ============================================
+    # EVENT DATES MANAGEMENT
+    # ============================================
+    
+    def bulk_create_events(self, event_type_id: int, dates_text: str) -> dict:
+        """
+        Create multiple events for an event type
+        
+        Args:
+            event_type_id: ID of event type
+            dates_text: Text with dates (newline separated, format YYYY-MM-DD)
+        
+        Returns:
+            dict: Success message with count
+        """
+        from datetime import datetime
+        
+        # Validate event type exists
+        event_type = self.db.query(EventType).filter(EventType.id == event_type_id).first()
+        if not event_type:
+            raise ValueError("Event type not found")
+        
+        # Parse dates
+        lines = [line.strip() for line in dates_text.strip().split('\n') if line.strip()]
+        
+        created_count = 0
+        skipped_count = 0
+        errors = []
+        
+        for line in lines:
+            try:
+                # Parse date
+                event_date = datetime.strptime(line, '%Y-%m-%d').date()
+                
+                # Check if already exists
+                existing = self.db.query(Event).filter(Event.date == event_date).first()
+                
+                if existing:
+                    skipped_count += 1
+                    continue
+                
+                # Create event
+                new_event = Event(
+                    event_type_id=event_type_id,
+                    date=event_date,
+                    confirmed_count=0
+                )
+                self.db.add(new_event)
+                created_count += 1
+                
+            except ValueError as e:
+                errors.append(f"Invalid date '{line}': {str(e)}")
+        
+        self.db.commit()
+        
+        message = f"Created {created_count} events for {event_type.display_name}"
+        if skipped_count > 0:
+            message += f" (skipped {skipped_count} duplicates)"
+        if errors:
+            message += f" - Errors: {'; '.join(errors[:3])}"
+        
+        return {'message': message, 'created': created_count}
+    
+    def manage_event_dates(self, event_type_id: int, dates_to_add: list[str], dates_to_delete: list[str]) -> dict:
+        """
+        Add and delete event dates
+        
+        Args:
+            event_type_id: ID of event type
+            dates_to_add: List of dates to add (YYYY-MM-DD)
+            dates_to_delete: List of dates to delete (YYYY-MM-DD)
+        
+        Returns:
+            dict: Success message with counts
+        """
+        from datetime import datetime
+        
+        # Validate event type
+        event_type = self.db.query(EventType).filter(EventType.id == event_type_id).first()
+        if not event_type:
+            raise ValueError("Event type not found")
+        
+        added_count = 0
+        deleted_count = 0
+        errors = []
+        
+        # Delete dates
+        for date_str in dates_to_delete:
+            try:
+                event_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                
+                event = self.db.query(Event).filter(
+                    Event.event_type_id == event_type_id,
+                    Event.date == event_date
+                ).first()
+                
+                if event:
+                    self.db.delete(event)
+                    deleted_count += 1
+                
+            except ValueError as e:
+                errors.append(f"Invalid date '{date_str}': {str(e)}")
+        
+        # Add dates
+        for date_str in dates_to_add:
+            try:
+                event_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                
+                # Check if already exists
+                existing = self.db.query(Event).filter(Event.date == event_date).first()
+                
+                if existing:
+                    errors.append(f"Date {date_str} already exists")
+                    continue
+                
+                # Create event
+                new_event = Event(
+                    event_type_id=event_type_id,
+                    date=event_date,
+                    confirmed_count=0
+                )
+                self.db.add(new_event)
+                added_count += 1
+                
+            except ValueError as e:
+                errors.append(f"Invalid date '{date_str}': {str(e)}")
+        
+        self.db.commit()
+        
+        message = f"Added {added_count}, deleted {deleted_count} dates"
+        if errors:
+            message += f" - Errors: {'; '.join(errors[:3])}"
+        
+        return {'success': True, 'message': message}

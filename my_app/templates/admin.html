@@ -121,8 +121,6 @@
                 
                 <form method="POST" action="/api/admin/event-types" class="admin-form" {% if event_type_count >= 4 %}disabled{% endif %}>
                     
-
-
                     <div class="form-group">
                         <label>Display Name</label>
                         <input type="text" name="display_name" 
@@ -275,7 +273,7 @@
                             {% set membership = user.memberships[idx] %}
                             
                             {% if membership.membership_type %}
-                            <tr {% if not user.signed_up %}style="background-color: #fff3cd;"{% endif %}>
+                            <tr style="background-color: {{ event_item.event_type.color }}15; {% if not user.signed_up %}opacity: 0.7;{% endif %}">
                                 <td>
                                     {% if user.signed_up %}
                                         <span class="badge-signed-up">✓ Signed up</span>
@@ -315,18 +313,83 @@
             </div>
         </div>
 
-        <!-- TAB 3: EVENT DATES (TODO) -->
-        <div class="admin-content" id="tab-dates" style="display: none;">
-            <div class="admin-section">
-                <h2>Event Dates Management</h2>
-                <p>Coming soon...</p>
+<!-- TAB 3: EVENT DATES (TODO) -->
+<!-- TAB 3: EVENT DATES -->
+<div class="admin-content" id="tab-dates" style="display: none;">
+    <div class="admin-section">
+        <h2>Manage Event Dates</h2>
+        
+        {% if event_types_with_info|length == 0 %}
+            <p class="empty-state">No event types created yet. Create event types first.</p>
+        {% else %}
+            <!-- Event Type Selector -->
+            <div class="form-group" style="max-width: 400px;">
+                <label>Select Event Type</label>
+                <select id="eventTypeSelector" onchange="loadEventDates()">
+                    <option value="">-- Select Event Type --</option>
+                    {% for item in event_types_with_info %}
+                    <option value="{{ item.event_type.id }}" data-color="{{ item.event_type.color }}">
+                        {{ item.event_type.display_name }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
-        </div>
-
+            
+            <!-- Date Management Interface -->
+            <div id="dateManagementSection" style="display: none;">
+                <h3>Add New Dates</h3>
+                <div class="date-picker-section">
+                    <input type="date" id="datePicker" />
+                    <button type="button" class="btn-add-date" onclick="addDateToList()">+ Add Date</button>
+                </div>
+                
+                <h3 style="margin-top: 30px;">Scheduled Dates</h3>
+                <div id="existingDates" style="margin-bottom: 20px;">
+                    <p class="empty-state">Loading...</p>
+                </div>
+                
+                <h3>New Dates to Add</h3>
+                <div id="newDatesList" style="margin-bottom: 20px;">
+                    <p class="empty-state">No new dates selected</p>
+                </div>
+                
+                <button type="button" class="btn-submit" onclick="submitDateChanges()">Save Changes</button>
+            </div>
+        {% endif %}
+    </div>
+</div>
     </div>
 
     <!-- JavaScript for tab switching -->
+     
     <script>
+        // Date picker functionality
+let selectedDates = new Set();
+
+function addDate() {
+    const datePicker = document.getElementById('datePicker');
+    const date = datePicker.value;
+    
+    if (!date) {
+        alert('Please select a date first');
+        return;
+    }
+    
+    selectedDates.add(date);
+    updateDatesTextarea();
+    datePicker.value = '';  // Clear picker
+}
+
+function updateDatesTextarea() {
+    const textarea = document.getElementById('datesTextarea');
+    const sortedDates = Array.from(selectedDates).sort();
+    textarea.value = sortedDates.join('\n');
+}
+
+function clearDates() {
+    selectedDates.clear();
+    updateDatesTextarea();
+}
         // Tab switching logic
         document.querySelectorAll('.admin-tab').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -341,23 +404,32 @@
             });
         });
         
-        // Hide/disable credits field for full members
+        // Hide/disable credits field for full members - FIXED
         const membershipTypeSelect = document.getElementById('membershipType');
         const creditsGroup = document.getElementById('creditsGroup');
         const creditsInput = document.getElementById('creditsInput');
         
         if (membershipTypeSelect && creditsGroup && creditsInput) {
-            membershipTypeSelect.addEventListener('change', function() {
-                if (this.value === 'full_member') {
+            // Set initial state
+            function updateCreditsField() {
+                if (membershipTypeSelect.value === 'full_member') {
                     creditsInput.disabled = true;
-                    creditsInput.value = 0;
+                    creditsInput.value = '0';
                     creditsGroup.style.opacity = '0.5';
+                    creditsGroup.style.pointerEvents = 'none';
                 } else {
                     creditsInput.disabled = false;
-                    creditsInput.value = 10;
+                    creditsInput.value = '10';
                     creditsGroup.style.opacity = '1';
+                    creditsGroup.style.pointerEvents = 'auto';
                 }
-            });
+            }
+            
+            // Run on load
+            updateCreditsField();
+            
+            // Run on change
+            membershipTypeSelect.addEventListener('change', updateCreditsField);
         }
         
         // Filter membership tables by event type
@@ -390,6 +462,170 @@
                 }
             }
         });
+
+// Date management state
+let currentEventTypeId = null;
+let existingDates = new Set();
+let newDates = new Set();
+let datesToDelete = new Set();
+
+async function loadEventDates() {
+    const selector = document.getElementById('eventTypeSelector');
+    const eventTypeId = selector.value;
+    
+    if (!eventTypeId) {
+        document.getElementById('dateManagementSection').style.display = 'none';
+        return;
+    }
+    
+    currentEventTypeId = eventTypeId;
+    document.getElementById('dateManagementSection').style.display = 'block';
+    
+    // Fetch existing dates
+    try {
+        const response = await fetch(`/api/admin/events/${eventTypeId}/dates`);
+        const data = await response.json();
+        
+        existingDates = new Set(data.dates);
+        newDates.clear();
+        datesToDelete.clear();
+        
+        renderExistingDates();
+        renderNewDates();
+    } catch (error) {
+        alert('Error loading dates: ' + error);
+    }
+}
+
+function addDateToList() {
+    const datePicker = document.getElementById('datePicker');
+    const date = datePicker.value;
+    
+    if (!date) {
+        alert('Please select a date first');
+        return;
+    }
+    
+    if (existingDates.has(date)) {
+        alert('This date already exists');
+        return;
+    }
+    
+    if (newDates.has(date)) {
+        alert('This date already in new dates list');
+        return;
+    }
+    
+    newDates.add(date);
+    renderNewDates();
+    datePicker.value = '';
+}
+
+function renderExistingDates() {
+    const container = document.getElementById('existingDates');
+    
+    if (existingDates.size === 0) {
+        container.innerHTML = '<p class="empty-state">No dates scheduled yet</p>';
+        return;
+    }
+    
+    const sortedDates = Array.from(existingDates).sort();
+    let html = '<div class="date-list">';
+    
+    for (const date of sortedDates) {
+        const isDeleted = datesToDelete.has(date);
+        html += `
+            <div class="date-item ${isDeleted ? 'date-deleted' : ''}">
+                <span>${date}</span>
+                <button type="button" 
+                        class="btn-delete-date" 
+                        onclick="${isDeleted ? 'undoDelete' : 'markForDeletion'}('${date}')"
+                        ${isDeleted ? 'style="background: #10b981;"' : ''}>
+                    ${isDeleted ? '↶ Undo' : '🗑️ Delete'}
+                </button>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function renderNewDates() {
+    const container = document.getElementById('newDatesList');
+    
+    if (newDates.size === 0) {
+        container.innerHTML = '<p class="empty-state">No new dates selected</p>';
+        return;
+    }
+    
+    const sortedDates = Array.from(newDates).sort();
+    let html = '<div class="date-list">';
+    
+    for (const date of sortedDates) {
+        html += `
+            <div class="date-item date-new">
+                <span>${date}</span>
+                <button type="button" class="btn-delete-date" onclick="removeNewDate('${date}')">
+                    ✕ Remove
+                </button>
+            </div>
+        `;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function markForDeletion(date) {
+    datesToDelete.add(date);
+    renderExistingDates();
+}
+
+function undoDelete(date) {
+    datesToDelete.delete(date);
+    renderExistingDates();
+}
+
+function removeNewDate(date) {
+    newDates.delete(date);
+    renderNewDates();
+}
+
+async function submitDateChanges() {
+    if (!currentEventTypeId) {
+        alert('Please select an event type');
+        return;
+    }
+    
+    const changes = {
+        event_type_id: currentEventTypeId,
+        dates_to_add: Array.from(newDates),
+        dates_to_delete: Array.from(datesToDelete)
+    };
+    
+    if (changes.dates_to_add.length === 0 && changes.dates_to_delete.length === 0) {
+        alert('No changes to save');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/admin/events/manage-dates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(changes)
+        });
+        
+        if (response.ok) {
+            window.location.href = '/admin?success=Date changes saved successfully#dates';
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to save changes'));
+        }
+    } catch (error) {
+        alert('Network error: ' + error);
+    }
+}
     </script>
 </body>
 </html>

@@ -5,19 +5,19 @@ from utils import load_events, load_event_types
 
 
 class EventService:
-    """Service pour gérer les événements"""
+    """Service pour gÃ©rer les Ã©vÃ©nements"""
     
     def __init__(self, db: Session):
         self.db = db
     
     def import_event_types_from_csv(self):
-        """Import event types from CSV (doit être appelé AVANT import_events)"""
+        """Import event types from CSV (doit Ãªtre appelÃ© AVANT import_events)"""
         event_types_data = load_event_types()
         imported_count = 0
         
         for et_data in event_types_data:
             try:
-                # Vérifier si existe déjà
+                # VÃ©rifier si existe dÃ©jÃ 
                 existing = self.db.query(EventType).filter(
                     EventType.event_type_name == et_data['event_type_name']
                 ).first()
@@ -88,7 +88,7 @@ class EventService:
         return imported_count
 
     def get_all_events_with_user_status(self, user_id: int):
-        """Récupère tous les événements avec le statut de l'utilisateur"""
+        """RÃ©cupÃ¨re tous les Ã©vÃ©nements avec le statut de l'utilisateur"""
         today = date.today()
         
         # Joindre Event avec EventType pour avoir default_max_capacity
@@ -113,11 +113,11 @@ class EventService:
             
             max_capacity = event_type.default_max_capacity
         
-            # Construire le résultat
+            # Construire le rÃ©sultat
             result.append({
             'id': event.id,
             'date': event.date,
-            'event_type_id': event_type.id,  # ← AJOUTER CETTE LIGNE
+            'event_type_id': event_type.id,  # â† AJOUTER CETTE LIGNE
             'event_type_name': event_type.event_type_name,
             'event_type_display': event_type.display_name,
             'max_spots': max_capacity,
@@ -130,16 +130,16 @@ class EventService:
         return result
     
     def get_events_for_schedule(self, user_id: int):
-        """Récupère les événements formatés pour la page schedule"""
+        """RÃ©cupÃ¨re les Ã©vÃ©nements formatÃ©s pour la page schedule"""
         
-        # Récupère les événements
+        # RÃ©cupÃ¨re les Ã©vÃ©nements
         events = self.get_all_events_with_user_status(user_id)
         
-        # Pour chaque événement, ajoute le formatage
+        # Pour chaque Ã©vÃ©nement, ajoute le formatage
         for event in events:
             date_obj = event['date']
             
-            # Gérer différents types de date
+            # GÃ©rer diffÃ©rents types de date
             if isinstance(date_obj, str):
                 try:
                     date_obj = datetime.fromisoformat(date_obj)
@@ -150,15 +150,25 @@ class EventService:
             elif hasattr(date_obj, 'date'):
                 date_obj = date_obj.date()
             
-            # Ajoute les versions formatées
+            # Ajoute les versions formatÃ©es
             event['month'] = date_obj.strftime('%b')
             event['day'] = date_obj.strftime('%d')
             event['weekday'] = date_obj.strftime('%a')
+            
+            # Ajoute la couleur depuis EventType
+            event_type = self.db.query(EventType).filter(
+                EventType.id == event['event_type_id']
+            ).first()
+            
+            if event_type:
+                event['color'] = event_type.color
+            else:
+                event['color'] = '#6b7280'  # Fallback gris
         
         return events
 
     def get_waitlist_users(self, event_id: int):
-        """Récupère la liste des utilisateurs en waitlist avec leur position"""
+        """RÃ©cupÃ¨re la liste des utilisateurs en waitlist avec leur position"""
         
         waitlist = self.db.query(Attendee, User).join(
             User, Attendee.user_id == User.id
@@ -180,10 +190,10 @@ class EventService:
 
     def get_user_memberships_formatted(self, user_id: int):
         """
-        Récupère les memberships de l'utilisateur formatés pour le template.
+        RÃ©cupÃ¨re les memberships de l'utilisateur formatÃ©s pour le template.
         
         Retourne un dict avec event_1, event_2, etc. contenant toutes les infos
-        nécessaires pour afficher les badges et filtrer les événements.
+        nÃ©cessaires pour afficher les badges et filtrer les Ã©vÃ©nements.
         
         Args:
             db: Session SQLAlchemy
@@ -204,26 +214,26 @@ class EventService:
                 'event_2': {...}
             }
         """
-        # 1. Récupérer tous les EventTypes par ordre d'ID
+        # 1. RÃ©cupÃ©rer tous les EventTypes par ordre d'ID
         event_types = self.db.query(EventType).order_by(EventType.id).all()
         
         result = {}
         
-        # 2. Pour chaque EventType, créer une entrée event_1, event_2, etc.
+        # 2. Pour chaque EventType, crÃ©er une entrÃ©e event_1, event_2, etc.
         for index, event_type in enumerate(event_types, start=1):
             
-            # 3. Récupérer le membership de l'utilisateur pour ce type
+            # 3. RÃ©cupÃ©rer le membership de l'utilisateur pour ce type
             membership = self.db.query(UserEventTypeMembership).filter(
                 UserEventTypeMembership.user_id == user_id,
                 UserEventTypeMembership.event_type_id == event_type.id
             ).first()
             
-            # 4. Déterminer type et crédits
+            # 4. DÃ©terminer type et crÃ©dits
             if membership:
                 membership_type = membership.membership_type
                 remaining_credits = membership.remaining_credits
             else:
-                # DÉFAUT: punch_card avec 0 crédits (pas d'accès)
+                # DÃ‰FAUT: punch_card avec 0 crÃ©dits (pas d'accÃ¨s)
                 membership_type = 'punch_card'
                 remaining_credits = 0
             
@@ -243,7 +253,7 @@ class EventService:
     
     def get_event_details(self, event_id: int, user_id: int):
         """
-        Récupère les détails complets d'un événement pour la page /event/{id}
+        RÃ©cupÃ¨re les dÃ©tails complets d'un Ã©vÃ©nement pour la page /event/{id}
         
         Returns:
             dict: {
@@ -257,7 +267,7 @@ class EventService:
         """
         from datetime import date
         
-        # 1. Récupérer l'événement avec son type
+        # 1. RÃ©cupÃ©rer l'Ã©vÃ©nement avec son type
         event_query = self.db.query(Event, EventType).join(
             EventType, Event.event_type_id == EventType.id
         ).filter(Event.id == event_id).first()
@@ -267,13 +277,13 @@ class EventService:
         
         event, event_type = event_query
         
-        # 2. Récupérer le membership du user pour ce type d'événement
+        # 2. RÃ©cupÃ©rer le membership du user pour ce type d'Ã©vÃ©nement
         membership = self.db.query(UserEventTypeMembership).filter(
             UserEventTypeMembership.user_id == user_id,
             UserEventTypeMembership.event_type_id == event_type.id
         ).first()
         
-        # 3. Récupérer le statut du user pour cet événement
+        # 3. RÃ©cupÃ©rer le statut du user pour cet Ã©vÃ©nement
         attendee = self.db.query(Attendee).filter(
             Attendee.event_id == event_id,
             Attendee.user_id == user_id
@@ -281,7 +291,7 @@ class EventService:
         
         user_status = attendee.status if attendee else None
         
-        # 4. Récupérer la liste des participants confirmés (ordre d'inscription)
+        # 4. RÃ©cupÃ©rer la liste des participants confirmÃ©s (ordre d'inscription)
         confirmed = self.db.query(Attendee, User).join(
             User, Attendee.user_id == User.id
         ).filter(
@@ -294,12 +304,12 @@ class EventService:
             for attendee, user in confirmed
         ]
         
-        # 5. Récupérer la waitlist (ordre d'inscription)
+        # 5. RÃ©cupÃ©rer la waitlist (ordre d'inscription)
         waitlist_query = self.db.query(Attendee, User).join(
             User, Attendee.user_id == User.id
         ).filter(
             Attendee.event_id == event_id,
-            Attendee.status == 'waitlist'  # ← Corrigé de 'waiting' à 'waitlist'
+            Attendee.status == 'waitlist'  # â† CorrigÃ© de 'waiting' Ã  'waitlist'
         ).order_by(Attendee.registered_at).all()
 
         waitlist = []
@@ -315,7 +325,7 @@ class EventService:
                 user_waitlist_position = idx
 
         
-        # 6. Calculer les jours avant l'événement
+        # 6. Calculer les jours avant l'Ã©vÃ©nement
         today = date.today()
         event_date = event.date
         if hasattr(event_date, 'date'):
@@ -353,7 +363,7 @@ class EventService:
                 'remaining_credits': membership.remaining_credits if membership else 0
             },
             'user_status': user_status,
-            'user_waitlist_position': user_waitlist_position,  # ← AJOUTER
+            'user_waitlist_position': user_waitlist_position,  # â† AJOUTER
 
             'confirmed_participants': confirmed_participants,
             'waitlist': waitlist
