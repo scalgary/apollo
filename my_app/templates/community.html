@@ -263,15 +263,32 @@
             });
         });
 
-        // ============================================
-        // EMOJI PICKER
-        // ============================================
-        function toggleEmojiPicker(id) {
-            const picker = document.getElementById('emojiPicker' + id);
-            if (picker) {
-                picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+// ============================================
+// EMOJI PICKER
+// ============================================
+function toggleEmojiPicker(id) {
+    // Pour le message principal, l'ID est 'emojiPickerMessage' pas 'emojiPickermessage'
+    let pickerId = 'emojiPicker';
+    
+    if (id === 'message') {
+        pickerId = 'emojiPickerMessage';
+    } else {
+        pickerId = 'emojiPicker' + id;
+    }
+    
+    const picker = document.getElementById(pickerId);
+    if (picker) {
+        // Fermer tous les autres pickers
+        document.querySelectorAll('.emoji-picker').forEach(p => {
+            if (p.id !== pickerId) {
+                p.style.display = 'none';
             }
-        }
+        });
+        
+        // Toggle le picker actuel
+        picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+    }
+}
 
         function insertEmoji(textareaId, emoji) {
             const textarea = document.getElementById(textareaId);

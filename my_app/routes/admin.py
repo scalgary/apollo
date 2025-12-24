@@ -8,13 +8,13 @@ from services.admin_service import AdminService
 from services.event_service import EventService
 from db_models import EventType, Event
 from pydantic import BaseModel
-
+from utils import export_whitelist_to_csv, export_event_types_to_csv, export_events_to_csv
 # Add after imports, before router
 class ManageDatesRequest(BaseModel):
     event_type_id: int
     dates_to_add: list[str]
     dates_to_delete: list[str]
-    
+
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
@@ -400,3 +400,99 @@ def manage_event_dates(
         
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+from fastapi.responses import FileResponse
+from utils import export_whitelist_to_csv, export_event_types_to_csv, export_events_to_csv
+
+# Ajouter ces endpoints dans admin.py
+# Dans admin.py
+@router.get("/export/whitelist")
+async def download_whitelist(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Export whitelist as CSV"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    filepath = export_whitelist_to_csv(db)
+    return FileResponse(filepath, filename="whitelist.csv", media_type="text/csv")
+
+
+@router.get("/export/event-types")
+async def download_event_types(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Export event types as CSV"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    filepath = export_event_types_to_csv(db)
+    return FileResponse(filepath, filename="event_types.csv", media_type="text/csv")
+
+
+@router.get("/export/events")
+async def download_events(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Export events as CSV"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    filepath = export_events_to_csv(db)
+    return FileResponse(filepath, filename="events.csv", media_type="text/csv")
+from fastapi.responses import StreamingResponse
+import zipfile
+from io import BytesIO
+
+@router.get("/export/all")
+async def download_all_data(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Export all data as ZIP file"""
+    # Vérifier auth admin
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    # Generate all CSV files
+    whitelist_path = export_whitelist_to_csv(db)
+    event_types_path = export_event_types_to_csv(db)
+    events_path = export_events_to_csv(db)
+    
+    # Create ZIP in memory
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        zip_file.write(whitelist_path, 'whitelist.csv')
+        zip_file.write(event_types_path, 'event_types.csv')
+        zip_file.write(events_path, 'events.csv')
+    
+    zip_buffer.seek(0)
+    
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=apollo_data_export.zip"}
+    )

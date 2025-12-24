@@ -44,6 +44,7 @@
             <button class="admin-tab active" data-tab="event-types">Event Types</button>
             <button class="admin-tab" data-tab="users">Users & Memberships</button>
             <button class="admin-tab" data-tab="dates">Event Dates</button>
+            <button class="admin-tab" data-tab="download">Download data</button>
         </div>
         
         <!-- TAB 1: EVENT TYPES -->
@@ -176,7 +177,7 @@
                         {% endif %}
                     </div>
 
-                    <button type="submit" class="btn-submit" {% if event_type_count >= 4 %}disabled{% endif %}>
+                    <button type="submit" class="btn-submit btn-create-event-type" {% if event_type_count >= 4 %}disabled{% endif %}>
                         Create Event Type
                     </button>
                 </form>
@@ -197,13 +198,15 @@
                     
                     <div class="form-group">
                         <label>Event Type</label>
-                        <select name="event_type_id" id="eventTypeSelect" required>
+                        <select name="event_type_id" id="eventTypeSelect" required onchange="showEventTypeColor(this)">
+                            <option value="">Select event type</option>
                             {% for item in event_types_with_info %}
                             <option value="{{ item.event_type.id }}" data-color="{{ item.event_type.color }}">
                                 {{ item.event_type.display_name }}
                             </option>
                             {% endfor %}
                         </select>
+                        <span id="event_type_color_indicator" class="event-type-indicator" style="display:none;"></span>
                     </div>
                     
                     <div class="form-group">
@@ -227,7 +230,7 @@
                                   required></textarea>
                     </div>
                     
-                    <button type="submit" class="btn-submit">Add/Update Memberships</button>
+                    <button type="submit" class="btn-submit btn-add-memberships">Add/Update Memberships</button>
                 </form>
             </div>
             
@@ -238,13 +241,14 @@
                 <!-- Event Type Filter -->
                 <div class="form-group" style="max-width: 300px; margin-bottom: 20px;">
                     <label>Filter by Event Type</label>
-                    <select id="filterEventType">
+                    <select id="filterEventType" onchange="showFilterColor(this)">
                         {% for item in event_types_with_info %}
                         <option value="{{ loop.index0 }}" data-color="{{ item.event_type.color }}">
                             {{ item.event_type.display_name }}
                         </option>
                         {% endfor %}
                     </select>
+                    <span id="filter_color_indicator" class="event-type-indicator" style="display:none;"></span>
                 </div>
                 
                 <p style="color: #666; margin-bottom: 15px;">
@@ -313,7 +317,6 @@
             </div>
         </div>
 
-<!-- TAB 3: EVENT DATES (TODO) -->
 <!-- TAB 3: EVENT DATES -->
 <div class="admin-content" id="tab-dates" style="display: none;">
     <div class="admin-section">
@@ -333,37 +336,43 @@
                     </option>
                     {% endfor %}
                 </select>
+                <span id="event_type_dates_indicator" class="event-type-indicator" style="display:none;"></span>
             </div>
             
             <!-- Date Management Interface -->
             <div id="dateManagementSection" style="display: none;">
-                <h3>Add New Dates</h3>
+                <h3>Add New Date</h3>
                 <div class="date-picker-section">
                     <input type="date" id="datePicker" />
-                    <button type="button" class="btn-add-date" onclick="addDateToList()">+ Add Date</button>
+                    <button type="button" class="btn-add-date-large" onclick="addDateDirectly()">+ Add Date</button>
                 </div>
                 
                 <h3 style="margin-top: 30px;">Scheduled Dates</h3>
                 <div id="existingDates" style="margin-bottom: 20px;">
                     <p class="empty-state">Loading...</p>
                 </div>
-                
-                <h3>New Dates to Add</h3>
-                <div id="newDatesList" style="margin-bottom: 20px;">
-                    <p class="empty-state">No new dates selected</p>
-                </div>
-                
-                <button type="button" class="btn-submit" onclick="submitDateChanges()">Save Changes</button>
             </div>
         {% endif %}
     </div>
 </div>
+
+        <!-- TAB 4: DOWNLOAD DATA -->
+        <div class="admin-content" id="tab-download" style="display: none;">
+            <div class="admin-section">
+                <h2>Export Data</h2>
+                <a href="/admin/export/all" class="btn btn-primary" download>
+                    📦 Export All Data (ZIP)
+                </a>
+            </div>
+        </div>
+
     </div>
 
     <!-- JavaScript for tab switching -->
-     
-    <script>
-        // Date picker functionality
+<script>
+// ============================================
+// DATE PICKER FUNCTIONALITY (Legacy - peut être supprimé)
+// ============================================
 let selectedDates = new Set();
 
 function addDate() {
@@ -377,7 +386,7 @@ function addDate() {
     
     selectedDates.add(date);
     updateDatesTextarea();
-    datePicker.value = '';  // Clear picker
+    datePicker.value = '';
 }
 
 function updateDatesTextarea() {
@@ -390,114 +399,181 @@ function clearDates() {
     selectedDates.clear();
     updateDatesTextarea();
 }
-        // Tab switching logic
-        document.querySelectorAll('.admin-tab').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Remove active from all
-                document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.admin-content').forEach(c => c.style.display = 'none');
-                
-                // Add active to clicked
-                btn.classList.add('active');
-                const tabName = btn.dataset.tab;
-                document.getElementById('tab-' + tabName).style.display = 'block';
-            });
-        });
-        
-        // Hide/disable credits field for full members - FIXED
-        const membershipTypeSelect = document.getElementById('membershipType');
-        const creditsGroup = document.getElementById('creditsGroup');
-        const creditsInput = document.getElementById('creditsInput');
-        
-        if (membershipTypeSelect && creditsGroup && creditsInput) {
-            // Set initial state
-            function updateCreditsField() {
-                if (membershipTypeSelect.value === 'full_member') {
-                    creditsInput.disabled = true;
-                    creditsInput.value = '0';
-                    creditsGroup.style.opacity = '0.5';
-                    creditsGroup.style.pointerEvents = 'none';
-                } else {
-                    creditsInput.disabled = false;
-                    creditsInput.value = '10';
-                    creditsGroup.style.opacity = '1';
-                    creditsGroup.style.pointerEvents = 'auto';
-                }
-            }
-            
-            // Run on load
-            updateCreditsField();
-            
-            // Run on change
-            membershipTypeSelect.addEventListener('change', updateCreditsField);
-        }
-        
-        // Filter membership tables by event type
-        const filterEventType = document.getElementById('filterEventType');
-        
-        if (filterEventType) {
-            filterEventType.addEventListener('change', function() {
-                const selectedIdx = this.value;
-                
-                // Hide all tables
-                document.querySelectorAll('.membership-table').forEach(table => {
-                    table.style.display = 'none';
-                });
-                
-                // Show selected table
-                const selectedTable = document.getElementById('membershipTable' + selectedIdx);
-                if (selectedTable) {
-                    selectedTable.style.display = 'table';
-                }
-            });
-        }
-        
-        // Auto-open tab based on hash
-        window.addEventListener('load', function() {
-            const hash = window.location.hash.replace('#', '');
-            if (hash) {
-                const tabBtn = document.querySelector(`[data-tab="${hash}"]`);
-                if (tabBtn) {
-                    tabBtn.click();
-                }
-            }
-        });
 
-// Date management state
+// ============================================
+// EVENT TYPE COLOR INDICATOR - Users & Memberships Tab
+// Affiche la couleur de l'event type sélectionné
+// ============================================
+function showEventTypeColor(select) {
+    const indicator = document.getElementById('event_type_color_indicator');
+    const selectedOption = select.options[select.selectedIndex];
+    const color = selectedOption.dataset.color;
+    
+    if (color) {
+        indicator.style.backgroundColor = color;
+        indicator.style.display = 'inline-block';
+    } else {
+        indicator.style.display = 'none';
+    }
+}
+
+// ============================================
+// FILTER COLOR INDICATOR - Membership Tables
+// Affiche la couleur + filtre la table des memberships
+// ============================================
+function showFilterColor(select) {
+    const indicator = document.getElementById('filter_color_indicator');
+    const selectedOption = select.options[select.selectedIndex];
+    const color = selectedOption.dataset.color;
+    
+    // Afficher la couleur
+    if (color) {
+        indicator.style.backgroundColor = color;
+        indicator.style.display = 'inline-block';
+    } else {
+        indicator.style.display = 'none';
+    }
+    
+    // Filtrer les tables - montrer seulement la table sélectionnée
+    const selectedIdx = select.value;
+    document.querySelectorAll('.membership-table').forEach(table => {
+        table.style.display = 'none';
+    });
+    
+    const selectedTable = document.getElementById('membershipTable' + selectedIdx);
+    if (selectedTable) {
+        selectedTable.style.display = 'table';
+    }
+}
+
+// ============================================
+// TAB SWITCHING LOGIC
+// Gère les clics sur les onglets admin (Event Types, Users, Dates, Download)
+// ============================================
+document.querySelectorAll('.admin-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Retirer active de tous les onglets
+        document.querySelectorAll('.admin-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.admin-content').forEach(c => c.style.display = 'none');
+        
+        // Ajouter active à l'onglet cliqué
+        btn.classList.add('active');
+        const tabName = btn.dataset.tab;
+        document.getElementById('tab-' + tabName).style.display = 'block';
+    });
+});
+
+// ============================================
+// CREDITS FIELD MANAGEMENT
+// Désactive le champ credits si membership type = full_member
+// ============================================
+const membershipTypeSelect = document.getElementById('membershipType');
+const creditsGroup = document.getElementById('creditsGroup');
+const creditsInput = document.getElementById('creditsInput');
+
+if (membershipTypeSelect && creditsGroup && creditsInput) {
+    function updateCreditsField() {
+        if (membershipTypeSelect.value === 'full_member') {
+            creditsInput.disabled = true;
+            creditsInput.value = '0';
+            creditsGroup.style.opacity = '0.5';
+            creditsGroup.style.pointerEvents = 'none';
+        } else {
+            creditsInput.disabled = false;
+            creditsInput.value = '10';
+            creditsGroup.style.opacity = '1';
+            creditsGroup.style.pointerEvents = 'auto';
+        }
+    }
+    
+    // Exécuter au chargement
+    updateCreditsField();
+    
+    // Exécuter au changement
+    membershipTypeSelect.addEventListener('change', updateCreditsField);
+}
+
+// ============================================
+// FILTER MEMBERSHIP TABLES BY EVENT TYPE
+// Au chargement, affiche la première table et sa couleur
+// ============================================
+const filterEventType = document.getElementById('filterEventType');
+
+if (filterEventType) {
+    // Afficher la couleur du premier event type au chargement
+    showFilterColor(filterEventType);
+    
+    filterEventType.addEventListener('change', function() {
+        showFilterColor(this);
+    });
+}
+
+// ============================================
+// AUTO-OPEN TAB BASED ON HASH
+// Si URL contient #dates, ouvre automatiquement cet onglet
+// ============================================
+window.addEventListener('load', function() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+        const tabBtn = document.querySelector(`[data-tab="${hash}"]`);
+        if (tabBtn) {
+            tabBtn.click();
+        }
+    }
+});
+
+// ============================================
+// DATE MANAGEMENT STATE
+// Variables globales pour gérer les dates des événements
+// ============================================
 let currentEventTypeId = null;
 let existingDates = new Set();
-let newDates = new Set();
-let datesToDelete = new Set();
 
+// ============================================
+// LOAD EVENT DATES
+// Charge les dates existantes pour un event type sélectionné
+// Affiche aussi la couleur de l'event type
+// ============================================
 async function loadEventDates() {
     const selector = document.getElementById('eventTypeSelector');
     const eventTypeId = selector.value;
+    const indicator = document.getElementById('event_type_dates_indicator');
+    const selectedOption = selector.options[selector.selectedIndex];
+    const color = selectedOption.dataset.color;
     
     if (!eventTypeId) {
         document.getElementById('dateManagementSection').style.display = 'none';
+        indicator.style.display = 'none';
         return;
+    }
+    
+    // Afficher l'indicateur de couleur
+    if (color) {
+        indicator.style.backgroundColor = color;
+        indicator.style.display = 'inline-block';
     }
     
     currentEventTypeId = eventTypeId;
     document.getElementById('dateManagementSection').style.display = 'block';
     
-    // Fetch existing dates
+    // Récupérer les dates existantes depuis l'API
     try {
         const response = await fetch(`/api/admin/events/${eventTypeId}/dates`);
         const data = await response.json();
         
         existingDates = new Set(data.dates);
-        newDates.clear();
-        datesToDelete.clear();
-        
         renderExistingDates();
-        renderNewDates();
     } catch (error) {
         alert('Error loading dates: ' + error);
     }
 }
 
-function addDateToList() {
+// ============================================
+// ADD DATE DIRECTLY
+// Ajoute une date immédiatement sans passer par "Save Changes"
+// Sauvegarde directement dans la DB via API
+// ============================================
+async function addDateDirectly() {
     const datePicker = document.getElementById('datePicker');
     const date = datePicker.value;
     
@@ -506,21 +582,88 @@ function addDateToList() {
         return;
     }
     
+    if (!currentEventTypeId) {
+        alert('Please select an event type first');
+        return;
+    }
+    
     if (existingDates.has(date)) {
         alert('This date already exists');
         return;
     }
     
-    if (newDates.has(date)) {
-        alert('This date already in new dates list');
+    try {
+        // Appel API pour ajouter la date
+        const response = await fetch('/api/admin/events/manage-dates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event_type_id: currentEventTypeId,
+                dates_to_add: [date],
+                dates_to_delete: []
+            })
+        });
+        
+        if (response.ok) {
+            // Ajouter aux dates existantes et re-render
+            existingDates.add(date);
+            renderExistingDates();
+            datePicker.value = '';
+            
+            // Afficher un feedback visuel "Added!"
+            const btn = document.querySelector('.btn-add-date-large');
+            const originalText = btn.textContent;
+            btn.textContent = '✓ Added!';
+            btn.style.backgroundColor = '#059669';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.backgroundColor = '';
+            }, 1500);
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to add date'));
+        }
+    } catch (error) {
+        alert('Network error: ' + error);
+    }
+}
+
+// ============================================
+// DELETE DATE
+// Supprime une date immédiatement avec confirmation
+// ============================================
+async function deleteDate(date) {
+    if (!confirm(`Delete event on ${date}?`)) {
         return;
     }
     
-    newDates.add(date);
-    renderNewDates();
-    datePicker.value = '';
+    try {
+        const response = await fetch('/api/admin/events/manage-dates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                event_type_id: currentEventTypeId,
+                dates_to_add: [],
+                dates_to_delete: [date]
+            })
+        });
+        
+        if (response.ok) {
+            existingDates.delete(date);
+            renderExistingDates();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.detail || 'Failed to delete date'));
+        }
+    } catch (error) {
+        alert('Network error: ' + error);
+    }
 }
 
+// ============================================
+// RENDER EXISTING DATES
+// Affiche la liste des dates existantes avec bouton delete
+// ============================================
 function renderExistingDates() {
     const container = document.getElementById('existingDates');
     
@@ -533,15 +676,11 @@ function renderExistingDates() {
     let html = '<div class="date-list">';
     
     for (const date of sortedDates) {
-        const isDeleted = datesToDelete.has(date);
         html += `
-            <div class="date-item ${isDeleted ? 'date-deleted' : ''}">
+            <div class="date-item">
                 <span>${date}</span>
-                <button type="button" 
-                        class="btn-delete-date" 
-                        onclick="${isDeleted ? 'undoDelete' : 'markForDeletion'}('${date}')"
-                        ${isDeleted ? 'style="background: #10b981;"' : ''}>
-                    ${isDeleted ? '↶ Undo' : '🗑️ Delete'}
+                <button type="button" class="btn-delete-date" onclick="deleteDate('${date}')">
+                    🗑️ Delete
                 </button>
             </div>
         `;
@@ -550,82 +689,6 @@ function renderExistingDates() {
     html += '</div>';
     container.innerHTML = html;
 }
-
-function renderNewDates() {
-    const container = document.getElementById('newDatesList');
-    
-    if (newDates.size === 0) {
-        container.innerHTML = '<p class="empty-state">No new dates selected</p>';
-        return;
-    }
-    
-    const sortedDates = Array.from(newDates).sort();
-    let html = '<div class="date-list">';
-    
-    for (const date of sortedDates) {
-        html += `
-            <div class="date-item date-new">
-                <span>${date}</span>
-                <button type="button" class="btn-delete-date" onclick="removeNewDate('${date}')">
-                    ✕ Remove
-                </button>
-            </div>
-        `;
-    }
-    
-    html += '</div>';
-    container.innerHTML = html;
-}
-
-function markForDeletion(date) {
-    datesToDelete.add(date);
-    renderExistingDates();
-}
-
-function undoDelete(date) {
-    datesToDelete.delete(date);
-    renderExistingDates();
-}
-
-function removeNewDate(date) {
-    newDates.delete(date);
-    renderNewDates();
-}
-
-async function submitDateChanges() {
-    if (!currentEventTypeId) {
-        alert('Please select an event type');
-        return;
-    }
-    
-    const changes = {
-        event_type_id: currentEventTypeId,
-        dates_to_add: Array.from(newDates),
-        dates_to_delete: Array.from(datesToDelete)
-    };
-    
-    if (changes.dates_to_add.length === 0 && changes.dates_to_delete.length === 0) {
-        alert('No changes to save');
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/admin/events/manage-dates', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(changes)
-        });
-        
-        if (response.ok) {
-            window.location.href = '/admin?success=Date changes saved successfully#dates';
-        } else {
-            const error = await response.json();
-            alert('Error: ' + (error.detail || 'Failed to save changes'));
-        }
-    } catch (error) {
-        alert('Network error: ' + error);
-    }
-}
-    </script>
+</script>
 </body>
 </html>

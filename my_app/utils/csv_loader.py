@@ -1,6 +1,10 @@
-import csv
-import os
 
+import os
+import csv
+from typing import List, Dict
+from config import CSV_DIR
+from db_models import Event, User, EventType
+from sqlalchemy.orm import Session
 # Permet override pour les tests
 WHITELIST_PATH = os.getenv("WHITELIST_PATH", "/app/data/whitelist.csv")
 EVENTS_PATH = os.getenv("EVENTS_PATH", "/app/data/events.csv")
@@ -155,3 +159,48 @@ def load_admins():
     
     return admins
 
+
+
+# === EXISTING READ FUNCTIONS (keep as is) ===
+# ... (ton code actuel)
+
+# === NEW EXPORT FUNCTIONS ===
+
+def export_whitelist_to_csv(db: Session) -> str:
+    """Export whitelist (user emails) to CSV"""
+    users = db.query(User).all()
+    
+    filepath = CSV_DIR / "whitelist.csv"
+    with open(filepath, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['email'])
+        for user in users:
+            writer.writerow([user.email])
+    
+    return str(filepath)
+
+def export_event_types_to_csv(db: Session) -> str:
+    """Export event types to CSV"""
+    event_types = db.query(EventType).all()
+    
+    filepath = CSV_DIR / "event_types.csv"
+    with open(filepath, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['name', 'emoji', 'color', 'max_participants'])
+        for et in event_types:
+            writer.writerow([et.name, et.emoji, et.color, et.max_participants])
+    
+    return str(filepath)
+
+def export_events_to_csv(db: Session) -> str:
+    """Export events with dates to CSV"""
+    events = db.query(Event).all()
+    
+    filepath = CSV_DIR / "events.csv"
+    with open(filepath, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['date', 'time', 'event_type_id', 'max_participants'])
+        for event in events:
+            writer.writerow([event.date, event.time, event.event_type_id, event.max_participants])
+    
+    return str(filepath)
