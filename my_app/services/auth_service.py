@@ -106,7 +106,6 @@ class AuthService:
         
         return user
     
-        
     def signup(self, email: str, password: str, display_name: str) -> dict:
         """
         Crée un nouveau compte utilisateur
@@ -120,99 +119,135 @@ class AuthService:
             dict avec user_id et message de succès
 
         Raises:
-            ValueError: Si email pas dans whitelist, déjà utilisé, ou autre erreur
+            ValueError: Si email pas autorisé, déjà utilisé, ou autre erreur
         """
-        # 1. Vérifier que l'email n'est pas un admin
-        from utils import load_admins, load_whitelist
-        from db_models import UserEventTypeMembership, EventType
-
-        admins_list = load_admins()
-        admin_emails = [admin['admin_email'] for admin in admins_list]
+        from db_models import UserEventTypeMembership, EventType, Friend
+        import os
 
         email_lower = email.lower().strip()
 
-        if email_lower in admin_emails:
+        # 1. Vérifier que l'email n'est pas un admin
+        # Option 1: ENV vars
+        admin_emails_env = []
+        for i in range(1, 3):
+            admin_email = os.getenv(f'ADMIN_EMAIL_{i}')
+            if admin_email:
+                admin_emails_env.append(admin_email.strip().lower())
+        
+        # Option 2: CSV
+        from utils import load_admins
+        admins_list = load_admins()
+        admin_emails_csv = [admin['admin_email'] for admin in admins_list]
+        
+        # Combiner les deux sources
+        all_admin_emails = set(admin_emails_env + admin_emails_csv)
+
+        if email_lower in all_admin_emails:
             raise ValueError("Admin accounts cannot signup manually. Contact administrator.")
 
-        # 2. Vérifier que l'email est dans la whitelist
-        whitelist = load_whitelist()
+        # 2. Vérifier que l'email est autorisé
+        # Option 1: Friends table (priorité)
+        friends = self.db.query(Friend).filter(Friend.email == email_lower).all()
+        
+ 
+        real_name = friends[0].real_name
+        memberships_source = 'db'
 
-        if email_lower not in whitelist:
-            raise ValueError("Email not authorized. Please contact the administrator.")
-            
-
-        # 2. Vérifier que l'email n'existe pas déjà
+        # 3. Vérifier que l'email n'existe pas déjà
         existing_user = self.get_user_by_email(email_lower)
         if existing_user:
             raise ValueError("An account with this email already exists. Please login instead.")
 
-        # 3. Créer le user
-        whitelist_data = whitelist[email_lower]
+        # 4. Créer le user
         hashed_password = self.hash_password(password)
 
         new_user = User(
             email=email_lower,
             hashed_password=hashed_password,
-            real_name=whitelist_data['real_name'],
+            real_name=real_name,
             display_name=display_name.strip()
         )
         self.db.add(new_user)
-        self.db.flush()  # Pour obtenir l'ID sans commit complet
+        self.db.flush()
 
-        # 4. Récupérer TOUS les event types
+        # 5. Récupérer TOUS les event types
         all_event_types = self.db.query(EventType).all()
-        event_types_dict = {et.event_type_name: et.id for et in all_event_types}
+        event_types_dict_by_id = {et.id: et for et in all_event_types}
+        event_types_dict_by_name = {et.event_type_name: et.id for et in all_event_types}
 
-        # 5. Créer memberships depuis whitelist
-        for membership_data in whitelist_data['memberships']:
-            event_type_name = membership_data['event_type_name']
-            
-            if event_type_name not in event_types_dict:
-                print(f"Warning: Event type '{event_type_name}' not found, skipping")
-                continue
-            
-            membership_type = membership_data['membership_type']
-            total_credits = membership_data['total_credits_purchased']
-            
-            # Calculer remaining_credits
-            if membership_type == 'full_member':
-                remaining_credits = None  # Illimité
-            else:
-                remaining_credits = total_credits if total_credits else 0
-            
-            membership = UserEventTypeMembership(
-                user_id=new_user.id,
-                event_type_id=event_types_dict[event_type_name],
-                membership_type=membership_type,
-                total_credits_purchased=total_credits,
-                remaining_credits=remaining_credits
-            )
-            self.db.add(membership)
-
-        # 6. AUTO-CRÉER punch_card 0 pour event types manquants
-        whitelist_event_types = {m['event_type_name'] for m in whitelist_data['memberships']}
-        missing_event_types = set(event_types_dict.keys()) - whitelist_event_types
+        # 6. Créer memberships selon la source
+        created_event_type_ids = set()
         
-        for event_type_name in missing_event_types:
+        if memberships_source == 'db':
+            # Source: Friends table
+            for friend in friends:
+                created_event_type_ids.add(friend.event_type_id)
+                
+                if friend.membership_type == 'full_member':
+                    remaining_credits = None
+                else:
+                    # IMPORTANT: Copier les crédits de Friends
+                    remaining_credits = friend.total_credits_purchased if friend.total_credits_purchased else 0
+                
+                membership = UserEventTypeMembership(
+                    user_id=new_user.id,
+                    event_type_id=friend.event_type_id,
+                    membership_type=friend.membership_type,
+                    total_credits_purchased=friend.total_credits_purchased,  # Copier aussi total
+                    remaining_credits=remaining_credits
+                )
+                self.db.add(membership)
+        else:
+            # Source: CSV
+            for membership_data in csv_memberships:
+                event_type_name = membership_data['event_type_name']
+                
+                if event_type_name not in event_types_dict_by_name:
+                    print(f"Warning: Event type '{event_type_name}' not found, skipping")
+                    continue
+                
+                event_type_id = event_types_dict_by_name[event_type_name]
+                created_event_type_ids.add(event_type_id)
+                
+                membership_type = membership_data['membership_type']
+                total_credits = membership_data['total_credits_purchased']
+                
+                if membership_type == 'full_member':
+                    remaining_credits = None
+                else:
+                    remaining_credits = total_credits if total_credits else 0
+                
+                membership = UserEventTypeMembership(
+                    user_id=new_user.id,
+                    event_type_id=event_type_id,
+                    membership_type=membership_type,
+                    total_credits_purchased=total_credits,
+                    remaining_credits=remaining_credits
+                )
+                self.db.add(membership)
+
+        # 7. AUTO-CRÉER punch_card 0 pour event types manquants
+        all_event_type_ids = set(event_types_dict_by_id.keys())
+        missing_event_type_ids = all_event_type_ids - created_event_type_ids
+        
+        for event_type_id in missing_event_type_ids:
             membership = UserEventTypeMembership(
                 user_id=new_user.id,
-                event_type_id=event_types_dict[event_type_name],
+                event_type_id=event_type_id,
                 membership_type='punch_card',
                 total_credits_purchased=0,
                 remaining_credits=0
             )
             self.db.add(membership)
-            print(f"✓ Auto-created punch_card 0 credits for {event_type_name}")
 
-        # 7. Commit tout
+        # 8. Commit tout
         self.db.commit()
 
         return {
             "user_id": new_user.id,
             "message": "Account created successfully"
         }     
-
-    # === Password Reset ===
+  # === Password Reset ===
 
     def create_reset_token(self, email: str) -> str:
         """

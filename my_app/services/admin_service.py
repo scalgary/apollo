@@ -328,29 +328,29 @@ class AdminService:
         self.db.commit()
         
         # 5. Update whitelist.csv to remove this event type's memberships
-        whitelist_path = 'data/whitelist.csv'
+        #mwhitelist_path = 'data/whitelist.csv'
         
-        if os.path.exists(whitelist_path):
-            # Read existing whitelist
-            whitelist_data = []
+        # if os.path.exists(whitelist_path):
+        #     # Read existing whitelist
+        #     whitelist_data = []
             
-            with open(whitelist_path, 'r', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    # Keep only rows NOT for this event type
-                    if row['event_type_name'] != event_type_name:
-                        whitelist_data.append(row)
+        #     with open(whitelist_path, 'r', encoding='utf-8') as f:
+        #         reader = csv.DictReader(f)
+        #         for row in reader:
+        #             # Keep only rows NOT for this event type
+        #             if row['event_type_name'] != event_type_name:
+        #                 whitelist_data.append(row)
             
-            # Write back filtered data
-            with open(whitelist_path, 'w', newline='', encoding='utf-8') as f:
-                if whitelist_data:
-                    fieldnames = ['email', 'real_name', 'event_type_name', 'membership_type', 'total_credits_purchased']
-                    writer = csv.DictWriter(f, fieldnames=fieldnames)
-                    writer.writeheader()
-                    writer.writerows(whitelist_data)
-                else:
-                    # Empty file if no data left
-                    f.write('')
+        #     # Write back filtered data
+        #     with open(whitelist_path, 'w', newline='', encoding='utf-8') as f:
+                # if whitelist_data:
+                #     fieldnames = ['email', 'real_name', 'event_type_name', 'membership_type', 'total_credits_purchased']
+                #     writer = csv.DictWriter(f, fieldnames=fieldnames)
+                #     writer.writeheader()
+                #     writer.writerows(whitelist_data)
+                # else:
+                #     # Empty file if no data left
+                #     f.write('')
         
         return {
             "success": True,
@@ -409,9 +409,7 @@ class AdminService:
     
     def bulk_add_memberships(self, event_type_id: int, membership_type: str, emails_text: str, credits: int) -> dict:
         """
-        Add memberships by updating whitelist.csv
-        
-        This creates/updates the whitelist that controls who can signup
+        Add memberships by adding/updating Friends table
         
         Args:
             event_type_id: ID of event type
@@ -423,8 +421,7 @@ class AdminService:
             dict: Summary of added emails
         """
         import re
-        import csv
-        import os
+        from db_models import Friend, EventType
         
         # Parse emails
         emails = re.split(r'[,\s\n]+', emails_text.strip())
@@ -442,95 +439,45 @@ class AdminService:
         if membership_type not in ['full_member', 'punch_card']:
             raise ValueError("Invalid membership type")
         
-        # Load existing whitelist
-        whitelist_path = 'data/whitelist.csv'
+        # Validate credits for punch_card
+        if membership_type == 'punch_card' and credits <= 0:
+            raise ValueError("Punch card requires credits > 0")
         
-        # Create data directory if doesn't exist
-        os.makedirs('data', exist_ok=True)
-        
-        # Load existing whitelist data
-        existing_whitelist = {}
-        
-        if os.path.exists(whitelist_path):
-            with open(whitelist_path, 'r', encoding='utf-8') as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    email = row['email'].lower().strip()
-                    
-                    if email not in existing_whitelist:
-                        existing_whitelist[email] = {
-                            'email': email,
-                            'real_name': row['real_name'],
-                            'memberships': []
-                        }
-                    
-                    # Add membership
-                    existing_whitelist[email]['memberships'].append({
-                        'event_type_name': row['event_type_name'],
-                        'membership_type': row['membership_type'],
-                        'total_credits_purchased': int(row['total_credits_purchased']) if row['total_credits_purchased'] else None
-                    })
-        
-        # Add/update new emails
         added_count = 0
         updated_count = 0
         
         for email in emails:
-            if email not in existing_whitelist:
-                # New email
-                existing_whitelist[email] = {
-                    'email': email,
-                    'real_name': 'Unknown',  # Can be updated later
-                    'memberships': []
-                }
+            # Check if Friend already exists for this email + event_type
+            existing_friend = self.db.query(Friend).filter(
+                Friend.email == email,
+                Friend.event_type_id == event_type_id
+            ).first()
+            
+            if existing_friend:
+                # Update existing Friend
+                existing_friend.membership_type = membership_type
+                if membership_type == 'punch_card':
+                    current_credits = existing_friend.total_credits_purchased or 0
+                    existing_friend.total_credits_purchased = current_credits + credits
+                else:
+                    existing_friend.total_credits_purchased = None
+                updated_count += 1
+            else:
+                # Create new Friend
+                new_friend = Friend(
+                    email=email,
+                    real_name='Unknown',
+                    event_type_id=event_type_id,
+                    membership_type=membership_type,
+                    total_credits_purchased=credits if membership_type == 'punch_card' else None
+                )
+                self.db.add(new_friend)
                 added_count += 1
-            
-            # Check if membership already exists for this event type
-            membership_exists = False
-            for i, membership in enumerate(existing_whitelist[email]['memberships']):
-                if membership['event_type_name'] == event_type.event_type_name:
-                    # Update existing membership - REPLACE entire dict
-                    if membership_type == 'punch_card':
-                        current_credits = membership.get('total_credits_purchased', 0) or 0
-                        new_credits = current_credits + credits
-                    else:
-                        new_credits = None
-                    
-                    existing_whitelist[email]['memberships'][i] = {
-                        'event_type_name': event_type.event_type_name,
-                        'membership_type': membership_type,
-                        'total_credits_purchased': new_credits
-                    }
-                    membership_exists = True
-                    updated_count += 1
-                    break
-            
-            if not membership_exists:
-                # Add new membership for this event type
-                existing_whitelist[email]['memberships'].append({
-                    'event_type_name': event_type.event_type_name,
-                    'membership_type': membership_type,
-                    'total_credits_purchased': credits if membership_type == 'punch_card' else None
-                })
         
-        # Write back to CSV
-        with open(whitelist_path, 'w', newline='', encoding='utf-8') as f:
-            fieldnames = ['email', 'real_name', 'event_type_name', 'membership_type', 'total_credits_purchased']
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            
-            for email, data in sorted(existing_whitelist.items()):
-                for membership in data['memberships']:
-                    writer.writerow({
-                        'email': data['email'],
-                        'real_name': data['real_name'],
-                        'event_type_name': membership['event_type_name'],
-                        'membership_type': membership['membership_type'],
-                        'total_credits_purchased': membership['total_credits_purchased'] or ''
-                    })
+        self.db.commit()
         
         return {
-            'message': f'Added {len(emails)} emails to whitelist for {event_type.display_name}',
+            'message': f'Added {added_count} new, updated {updated_count} existing memberships for {event_type.display_name}',
             'added': added_count,
             'updated': updated_count
         }
@@ -582,63 +529,42 @@ class AdminService:
     
     def get_all_users_with_memberships(self) -> list[dict]:
         """
-        Get all memberships from whitelist.csv with signup status
+        Get all memberships from Friends table with signup status
         
         Shows:
-        - All emails in whitelist (signed up or not)
-        - Their memberships from whitelist
+        - All emails in Friends table (signed up or not)
+        - Their memberships from Friends table
         - Actual remaining credits from DB if signed up
         
         Returns:
             list[dict]: Memberships with user info if signed up
         """
-        import csv
-        import os
+        from db_models import Friend, User, UserEventTypeMembership
         
-        whitelist_path = 'data/whitelist.csv'
         event_types = self.db.query(EventType).order_by(EventType.id).all()
         
-        # If whitelist doesn't exist, return empty
-        if not os.path.exists(whitelist_path):
-            return []
+        # Get all unique emails from Friends table
+        all_friends = self.db.query(Friend).all()
+        unique_emails = list(set(f.email for f in all_friends))
         
-        # Load whitelist
-        whitelist_data = {}
-        
-        with open(whitelist_path, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                email = row['email'].lower().strip()
-                
-                if email not in whitelist_data:
-                    whitelist_data[email] = {
-                        'email': email,
-                        'real_name': row['real_name'],
-                        'memberships': {}
-                    }
-                
-                # Add membership
-                event_type_name = row['event_type_name']
-                whitelist_data[email]['memberships'][event_type_name] = {
-                    'membership_type': row['membership_type'],
-                    'total_credits': int(row['total_credits_purchased']) if row['total_credits_purchased'] else None
-                }
-        
-        # Build result
         result = []
         
-        for email, data in sorted(whitelist_data.items()):
+        for email in sorted(unique_emails):
             # Check if user signed up
             user = self.db.query(User).filter(User.email == email).first()
             
             memberships_list = []
             
             for event_type in event_types:
-                whitelist_membership = data['memberships'].get(event_type.event_type_name)
+                # Get Friend entry for this email + event_type
+                friend = self.db.query(Friend).filter(
+                    Friend.email == email,
+                    Friend.event_type_id == event_type.id
+                ).first()
                 
-                if whitelist_membership:
+                if friend:
                     # Get actual remaining credits from DB if user signed up
-                    remaining_credits = whitelist_membership['total_credits']
+                    remaining_credits = friend.total_credits_purchased
                     
                     if user:
                         db_membership = self.db.query(UserEventTypeMembership).filter(
@@ -652,8 +578,8 @@ class AdminService:
                     memberships_list.append({
                         'event_type_id': event_type.id,
                         'event_type_name': event_type.display_name,
-                        'membership_type': whitelist_membership['membership_type'],
-                        'total_credits': whitelist_membership['total_credits'],
+                        'membership_type': friend.membership_type,
+                        'total_credits': friend.total_credits_purchased,
                         'remaining_credits': remaining_credits
                     })
                 else:
@@ -673,11 +599,10 @@ class AdminService:
                 'memberships': memberships_list
             })
         
-        return result
-    
-    # ============================================
-    # EVENT DATES MANAGEMENT
-    # ============================================
+        return result  
+        # ============================================
+        # EVENT DATES MANAGEMENT
+        # ============================================
     
     def bulk_create_events(self, event_type_id: int, dates_text: str) -> dict:
         """

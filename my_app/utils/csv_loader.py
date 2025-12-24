@@ -17,13 +17,13 @@ def load_whitelist():
         'user1@example.com': {
             'real_name': 'Alice',
             'memberships': [
-                {'event_type_name': 'open_play', 'membership_type': 'full_member', 'total_credits_purchased': None},
-                {'event_type_name': 'competitive', 'membership_type': 'punch_card', 'total_credits_purchased': 10}
+                {'event_type_name': 'event_1', 'membership_type': 'full_member', 'total_credits_purchased': None},
+                {'event_type_name': 'event_3', 'membership_type': 'punch_card', 'total_credits_purchased': 10}
             ]
         }
     }
     """
-    EVENT_TYPES = ['open_play', 'competitive']
+    EVENT_TYPES = ['event_1', 'event_3']
     
     whitelist = {}
     try:

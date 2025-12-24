@@ -95,3 +95,16 @@ class Comment(Base):
     content = Column(String(500), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class Friend(Base):
+    __tablename__ = 'friends'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, nullable=False, index=True)
+    real_name = Column(String, nullable=False)
+    event_type_id = Column(Integer, ForeignKey('event_types.id'), nullable=False)
+    membership_type = Column(String, nullable=False)  # 'full_member' or 'punch_card'
+    total_credits_purchased = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    __table_args__ = (UniqueConstraint('email', 'event_type_id', name='unique_friend_event_type'),)

@@ -16,37 +16,42 @@ from routes import admin
 from routes import auth, events
 #, events, pages
 
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    import os
+    USE_CSV = os.getenv('USE_CSV_LOADER', 'false').lower() == 'true'
+    
     Base.metadata.create_all(bind=engine)
     print("✓ Database tables created")
     db = SessionLocal()
     try:
         event_service = EventService(db)
+        admin_service = AdminService(db)
 
-        # 1. Types d'abord
+        # 1. Event types
         types_count = event_service.import_event_types_from_csv()
         print(f"✓ {types_count} Event types loaded")
 
-        # 2. Events ensuite
+        # 2. Events
         events_count = event_service.import_events_from_csv()
         print(f"✓ {events_count} Events loaded")
         
-        # 3. Admins (doit être après event types pour les memberships)
-        from services.admin_service import AdminService
-        admin_service = AdminService(db)
+        # 3. Admins
         admins_count = admin_service.import_admins_from_csv()
         print(f"✓ {admins_count} Admins loaded")
+        
+        # 4. Friends (CSV loader if flag enabled)
+        if USE_CSV:
+            friends_count = admin_service.import_friends_from_csv()
+            print(f"✓ {friends_count} Friends loaded from CSV")
+        else:
+            print("✓ Friends management via database only")
 
     finally:
         db.close()
 
-
     yield
     print("✓ App shutting down")
-
 # Créer l'app
 app = FastAPI(lifespan=lifespan)
 

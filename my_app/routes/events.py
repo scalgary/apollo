@@ -55,7 +55,7 @@ def schedule_page(
     # 3. RÉCUPÉRER LES ÉVÉNEMENTS
     if is_admin:
         # Admin voit TOUS les events
-        events = event_service.get_all_events_for_admin()
+        events = event_service.get_events_for_schedule(user.id)
     else:
         # User normal voit seulement ses memberships
         events = event_service.get_events_for_schedule(user.id)
