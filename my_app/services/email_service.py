@@ -16,77 +16,54 @@ class EmailService:
         self.email_password = os.environ.get('EMAIL_PASSWORD')
         self.smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
         self.smtp_port = int(os.environ.get('SMTP_PORT', '587'))
-    
-    def send_reset_email(self, to_email: str, reset_link: str) -> bool:
-        """
-        Envoyer email de reset password
-        
-        En mode production: juste logger (pas d'envoi)
-        En mode développement: envoie via Gmail SMTP
-        
-        Returns:
-            bool: True si email envoyé (ou logged), False sinon
-        """
-        
-        # MODE PRODUCTION: juste logger le lien (pas d'envoi)
-        if ENVIRONMENT == 'production':
-            logger.info("=" * 80)
-            logger.info("🔗 PASSWORD RESET LINK (PRODUCTION - NOT SENT)")
-            logger.info(f"📧 To: {to_email}")
-            logger.info(f"🔗 Link: {reset_link}")
-            logger.info("=" * 80)
-            return True
-        
-        # MODE DÉVELOPPEMENT: envoyer vrai email via Gmail
-        
-        # Vérifier configuration
+
+    def send_reset_email(self, to_email: str, reset_link: str):
+        # MODE DEV - pas de config email
         if not all([self.email_from, self.email_password]):
-            logger.error("❌ Email configuration missing (EMAIL_FROM or EMAIL_PASSWORD)")
-            return False
+            print("\n" + "="*80)
+            print(f"📧 PASSWORD RESET EMAIL")
+            print(f"To: {to_email}")
+            print(f"🔗 Link: {reset_link}")
+            print("="*80 + "\n")
+            return
         
-        # Email subject
-        subject = "Apollo - Reset Your Password"
+        # MODE PROD - envoi Gmail avec HTML
+        subject = "Reset your Apollo password"
+        html_body = f"""
+        <html>
+            <body>
+                <p>Hello,</p>
+                <p>You requested to reset your password for Apollo.</p>
+                <p><a href="{reset_link}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
+                <p>Or copy this link: <a href="{reset_link}">{reset_link}</a></p>
+                <p>This link will expire in 1 hour.</p>
+                <p>See you on the court! 🏓</p>
+                <p>— The Apollo Team</p>
+            </body>
+        </html>
+        """
         
-        # Email body
-        body = f"""Hello,
-
-You requested to reset your password for Apollo.
-
-Click the link below to reset your password:
-{reset_link}
-
-This link will expire in 1 hour.
-
-If you didn't request this, please ignore this email.
-
-See you on the court! 🏓
-
-— The Apollo Team
-"""
-        
-        # Create message
-        msg = MIMEMultipart()
-        msg['From'] = self.email_from
-        msg['To'] = to_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body, 'plain'))
-        
-        # Send email
         try:
-            logger.info(f"📧 Connecting to {self.smtp_server}:{self.smtp_port}...")
+            msg = MIMEMultipart('alternative')
+            msg['From'] = self.email_from
+            msg['To'] = to_email
+            msg['Subject'] = subject
+            msg.attach(MIMEText(html_body, 'html'))  # ← HTML au lieu de 'plain'
+            
             server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=10)
             server.starttls()
-            logger.info(f"🔐 Logging in as {self.email_from}...")
             server.login(self.email_from, self.email_password)
-            logger.info(f"📤 Sending reset email to {to_email}...")
             server.send_message(msg)
             server.quit()
+            
             logger.info(f"✅ Reset email sent to {to_email}")
-            return True
+            
         except Exception as e:
-            logger.error(f"❌ Failed to send reset email to {to_email}: {e}")
-            return False
+            logger.error(f"❌ Failed to send reset email: {e}")
+            raise
         
+
+
     def send_message_notification(self, to_emails: list[str], author_name: str, message_content: str, is_comment: bool = False, original_author: str = None) -> bool:
         """
         Envoyer notification quand un message ou commentaire est posté

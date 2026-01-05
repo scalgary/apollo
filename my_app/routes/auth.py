@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from services.auth_service import AuthService
 from database import get_db
 import os
+from services.email_service import EmailService  # ← AJOUTE CETTE LIGNE
+
 #router = APIRouter(prefix="/auth", tags=["auth"])
 router = APIRouter()
 
@@ -174,46 +176,32 @@ def forgot_password_page(request: Request):  # ← Enlever le "user = Depends(..
 # ============================================
 
 @router.post("/forgot-password")
+@router.post("/forgot-password")
 def forgot_password(
     email: str = Form(...),
     request: Request = None,
     db: Session = Depends(get_db)
 ):
-    """
-    Génère un token de reset et envoie l'email (ou log en dev)
-    """
-    from services.email_service import EmailService
-    
     auth_service = AuthService(db)
     email_service = EmailService()
     
     try:
-        # Générer le token
         reset_token = auth_service.create_reset_token(email)
         
-        # Construire le lien de reset
-        # En prod, utiliser le vrai domaine
+        # Utilise BASE_URL de l'environnement
         base_url = os.getenv('BASE_URL', 'http://localhost:8000')
         reset_link = f"{base_url}/reset-password?token={reset_token}"
-        # AJOUTE CE PRINT ICI ⬇️
-        print("=" * 80)
-        print(f"🔗 RESET LINK: {reset_link}")
-        print("=" * 80)
-
-        # Envoyer l'email (ou logger en dev)
+        
         email_service.send_reset_email(email, reset_link)
         
-        # Rediriger avec message de succès
         return RedirectResponse(
-            url="/forgot-password?success=Reset link sent! Check your email (or console in dev mode).",
+            url="/forgot-password?success=Check your email!",
             status_code=303
         )
         
-    except ValueError as e:
-        # User n'existe pas - mais on ne révèle pas cette info pour la sécurité
-        # On affiche le même message de succès
+    except ValueError:
         return RedirectResponse(
-            url="/forgot-password?success=If an account exists with this email, you will receive a reset link.",
+            url="/forgot-password?success=Check your email!",
             status_code=303
         )
 
