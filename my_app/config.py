@@ -32,6 +32,9 @@ EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 ADMIN_EMAIL_1 = os.getenv("ADMIN_EMAIL_1", "")
+ADMIN_EMAIL_2 = os.getenv("ADMIN_EMAIL_2", "")
+
 
 # Admin credentials
 ADMIN_PASSWORD_1 = os.getenv("ADMIN_PASSWORD_1", "")
+ADMIN_PASSWORD_2 = os.getenv("ADMIN_PASSWORD_2", "")
