@@ -11,3 +11,4 @@ pytest==7.4.3
 pytest-cov==4.1.0
 httpx>0.26
 supabase==2.24.0
+resend==2.19.0

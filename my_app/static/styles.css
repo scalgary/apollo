@@ -530,6 +530,10 @@ th, td {
     font-size: 13px;
 }
 
+.textarea {
+border-bottom: #007bff;;
+
+}
 .membership-badge.type-2 {
     background: var(--type2-light);
     color: var(--type2-text);
