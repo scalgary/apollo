@@ -526,7 +526,7 @@ class AdminService:
         return {
             'message': f'Added {credits_to_add} credits to {user.email} for {event_type.display_name}'
         }
-    
+        
     def get_all_users_with_memberships(self) -> list[dict]:
         """
         Get all memberships from Friends table with signup status
@@ -534,7 +534,7 @@ class AdminService:
         Shows:
         - All emails in Friends table (signed up or not)
         - Their memberships from Friends table
-        - Actual remaining credits from DB if signed up
+        - Actual remaining credits AND total credits from DB if signed up
         
         Returns:
             list[dict]: Memberships with user info if signed up
@@ -563,23 +563,29 @@ class AdminService:
                 ).first()
                 
                 if friend:
-                    # Get actual remaining credits from DB if user signed up
+                    # Default values from Friends table
                     remaining_credits = friend.total_credits_purchased
+                    total_credits = friend.total_credits_purchased
                     
+                    # If user signed up, get ACTUAL values from UserEventTypeMembership
                     if user:
                         db_membership = self.db.query(UserEventTypeMembership).filter(
                             UserEventTypeMembership.user_id == user.id,
                             UserEventTypeMembership.event_type_id == event_type.id
                         ).first()
                         
-                        if db_membership and db_membership.remaining_credits is not None:
-                            remaining_credits = db_membership.remaining_credits
+                        if db_membership:
+                            # Use DB values (these are updated when admin adds credits)
+                            if db_membership.remaining_credits is not None:
+                                remaining_credits = db_membership.remaining_credits
+                            if db_membership.total_credits_purchased is not None:
+                                total_credits = db_membership.total_credits_purchased
                     
                     memberships_list.append({
                         'event_type_id': event_type.id,
                         'event_type_name': event_type.display_name,
                         'membership_type': friend.membership_type,
-                        'total_credits': friend.total_credits_purchased,
+                        'total_credits': total_credits,  # ← Changed: use actual total from DB
                         'remaining_credits': remaining_credits
                     })
                 else:
@@ -599,11 +605,7 @@ class AdminService:
                 'memberships': memberships_list
             })
         
-        return result  
-        # ============================================
-        # EVENT DATES MANAGEMENT
-        # ============================================
-    
+        return result
     def bulk_create_events(self, event_type_id: int, dates_text: str) -> dict:
         """
         Create multiple events for an event type
@@ -734,3 +736,180 @@ class AdminService:
             message += f" - Errors: {'; '.join(errors[:3])}"
         
         return {'success': True, 'message': message}
+    def delete_user_membership(self, user_id: int, event_type_id: int) -> dict:
+        """
+        Delete a user's membership for a specific event type
+        
+        Also removes from Friends table and cancels future registrations
+        
+        Args:
+            user_id: ID of user
+            event_type_id: ID of event type
+        
+        Returns:
+            dict: Success message
+            
+        Raises:
+            ValueError: If user is admin or membership not found
+        """
+        from db_models import User, UserEventTypeMembership, Attendee, Friend, Event
+        from datetime import date
+        
+        print(f"🔍 DEBUG delete_user_membership: user_id={user_id}, event_type_id={event_type_id}")
+        
+        # 1. Check user exists
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            print(f"❌ User not found: {user_id}")
+            raise ValueError("User not found")
+        
+        print(f"✅ User found: {user.email}")
+        
+        # 2. Check user is not admin
+        if self.is_user_admin(user_id):
+            raise ValueError("Cannot delete admin memberships")
+        
+        # 3. Get event type for display name
+        event_type = self.db.query(EventType).filter(EventType.id == event_type_id).first()
+        if not event_type:
+            raise ValueError("Event type not found")
+        
+        print(f"✅ Event type found: {event_type.display_name}")
+        
+        # 4. Cancel all FUTURE registrations for this event type
+        today = date.today()
+        
+        # Get all future event IDs for this event type
+        future_events = self.db.query(Event).filter(
+            Event.event_type_id == event_type_id,
+            Event.date >= today
+        ).all()
+        
+        future_event_ids = [e.id for e in future_events]
+        print(f"📅 Found {len(future_event_ids)} future events for this type")
+        
+        # Delete attendee records
+        cancelled_count = 0
+        if future_event_ids:
+            # Get attendees before deleting to update event confirmed_count
+            attendees_to_cancel = self.db.query(Attendee).filter(
+                Attendee.user_id == user_id,
+                Attendee.event_id.in_(future_event_ids)
+            ).all()
+            
+            for attendee in attendees_to_cancel:
+                # If user was 'going', decrement the event's confirmed_count
+                if attendee.status == 'going':
+                    event = self.db.query(Event).filter(Event.id == attendee.event_id).first()
+                    if event and event.confirmed_count > 0:
+                        event.confirmed_count -= 1
+                
+                self.db.delete(attendee)
+                cancelled_count += 1
+            
+            print(f"❌ Cancelled {cancelled_count} future registration(s)")
+        
+        # 5. Delete membership (if exists)
+        membership = self.db.query(UserEventTypeMembership).filter(
+            UserEventTypeMembership.user_id == user_id,
+            UserEventTypeMembership.event_type_id == event_type_id
+        ).first()
+        
+        if membership:
+            print(f"🗑️  Deleting membership: {membership.membership_type}")
+            self.db.delete(membership)
+        else:
+            print(f"⚠️  No membership found in user_event_type_memberships (might be OK)")
+        
+        # 6. Delete from Friends table
+        deleted_friends = self.db.query(Friend).filter(
+            Friend.email == user.email,
+            Friend.event_type_id == event_type_id
+        ).delete()
+        
+        print(f"🗑️  Deleted {deleted_friends} entry/entries from Friends table")
+        
+        self.db.commit()
+        
+        message = f"Removed {user.email} from {event_type.display_name}"
+        if cancelled_count > 0:
+            message += f" (cancelled {cancelled_count} future registration"
+            """
+            Delete a user's membership for a specific event type
+            
+            Also removes from Friends table and cancels future registrations
+            
+            Args:
+                user_id: ID of user
+                event_type_id: ID of event type
+            
+            Returns:
+                dict: Success message
+                
+            Raises:
+                ValueError: If user is admin or membership not found
+            """
+            from db_models import User, UserEventTypeMembership, Attendee, Friend, Event
+            from datetime import date
+            
+            # 1. Check user exists
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise ValueError("User not found")
+            
+            # 2. Check user is not admin
+            if self.is_user_admin(user_id):
+                raise ValueError("Cannot delete admin memberships")
+            
+            # 3. Get event type for display name
+            event_type = self.db.query(EventType).filter(EventType.id == event_type_id).first()
+            if not event_type:
+                raise ValueError("Event type not found")
+            
+            # 4. Get membership
+            membership = self.db.query(UserEventTypeMembership).filter(
+                UserEventTypeMembership.user_id == user_id,
+                UserEventTypeMembership.event_type_id == event_type_id
+            ).first()
+            
+            if not membership:
+                raise ValueError(f"User has no membership for {event_type.display_name}")
+            
+            # 5. Cancel all FUTURE registrations for this event type
+            today = date.today()
+            
+            # Get all future event IDs for this event type
+            future_events = self.db.query(Event.id).filter(
+                Event.event_type_id == event_type_id,
+                Event.date >= today
+            ).all()
+            
+            future_event_ids = [e.id for e in future_events]
+            
+            # Delete attendee records
+            cancelled_count = 0
+            if future_event_ids:
+                cancelled_count = self.db.query(Attendee).filter(
+                    Attendee.user_id == user_id,
+                    Attendee.event_id.in_(future_event_ids)
+                ).delete(synchronize_session=False)
+            
+            # 6. Delete membership
+            self.db.delete(membership)
+            
+            # 7. Delete from Friends table
+            self.db.query(Friend).filter(
+                Friend.email == user.email,
+                Friend.event_type_id == event_type_id
+            ).delete()
+            
+            self.db.commit()
+            
+            message = f"Removed {user.email} from {event_type.display_name}"
+            if cancelled_count > 0:
+                message += f" (cancelled {cancelled_count} future registration(s))"
+            
+            return {
+                'success': True,
+                'message': message
+            }

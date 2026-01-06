@@ -496,3 +496,130 @@ async def download_all_data(
         media_type="application/zip",
         headers={"Content-Disposition": "attachment; filename=apollo_data_export.zip"}
     )
+
+@router.post("/api/admin/users/{user_id}/event-type/{event_type_id}/delete")
+def delete_user_membership(
+    user_id: int,
+    event_type_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Delete a user's membership for specific event type"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    admin_service = AdminService(db)
+    
+    try:
+        result = admin_service.delete_user_membership(user_id, event_type_id)
+        
+        return RedirectResponse(
+            url=f"/admin?success={result['message']}#users",
+            status_code=303
+        )
+        
+    except ValueError as e:
+        return RedirectResponse(
+            url=f"/admin?error={str(e)}#users",
+            status_code=303
+        )
+    
+
+@router.get("/api/admin/debug/user/{user_id}/memberships")
+def debug_user_memberships(
+    user_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Debug - voir les memberships d'un user"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    from db_models import UserEventTypeMembership, Friend
+    
+    # Check User
+    user_obj = db.query(User).filter(User.id == user_id).first()
+    if not user_obj:
+        return {"error": "User not found"}
+    
+    # Check UserEventTypeMembership
+    memberships = db.query(UserEventTypeMembership).filter(
+        UserEventTypeMembership.user_id == user_id
+    ).all()
+    
+    # Check Friends
+    friends = db.query(Friend).filter(
+        Friend.email == user_obj.email
+    ).all()
+    
+    return {
+        "user": {
+            "id": user_obj.id,
+            "email": user_obj.email,
+            "display_name": user_obj.display_name
+        },
+        "memberships": [
+            {
+                "event_type_id": m.event_type_id,
+                "membership_type": m.membership_type,
+                "total_credits": m.total_credits_purchased,
+                "remaining_credits": m.remaining_credits
+            }
+            for m in memberships
+        ],
+        "friends": [
+            {
+                "event_type_id": f.event_type_id,
+                "membership_type": f.membership_type,
+                "total_credits": f.total_credits_purchased
+            }
+            for f in friends
+        ]
+    }
+
+@router.post("/api/admin/friends/delete")
+def delete_friend_membership(
+    request: Request,
+    email: str = Form(...),
+    event_type_id: int = Form(...),
+    db: Session = Depends(get_db)
+):
+    """Delete friend (not signed up) from whitelist"""
+    try:
+        user = get_authenticated_admin_user(request, db)
+    except HTTPException as e:
+        if e.status_code == 401:
+            return RedirectResponse(url="/login?error=Please login first", status_code=303)
+        else:
+            return RedirectResponse(url="/schedule?error=Admin access required", status_code=303)
+    
+    from db_models import Friend, EventType
+    
+    event_type = db.query(EventType).filter(EventType.id == event_type_id).first()
+    if not event_type:
+        return RedirectResponse(url="/admin?error=Event type not found#users", status_code=303)
+    
+    deleted = db.query(Friend).filter(
+        Friend.email == email.lower(),
+        Friend.event_type_id == event_type_id
+    ).delete()
+    
+    db.commit()
+    
+    if deleted > 0:
+        return RedirectResponse(
+            url=f"/admin?success=Removed {email} from {event_type.display_name} whitelist#users",
+            status_code=303
+        )
+    else:
+        return RedirectResponse(
+            url="/admin?error=Friend entry not found#users",
+            status_code=303
+        )
