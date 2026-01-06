@@ -3,7 +3,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import logging
-
+import resend
 logger = logging.getLogger(__name__)
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
@@ -12,13 +12,40 @@ class EmailService:
     """Service pour gérer l'envoi d'emails"""
     
     def __init__(self):
-        self.email_from = os.environ.get('EMAIL_FROM')
-        self.email_password = os.environ.get('EMAIL_PASSWORD')
-        self.smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
-        self.smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+        self.resend_key = os.environ.get('RESEND_API_KEY')
+        self.email_from = os.environ.get('EMAIL_FROM', 'onboarding@resend.dev')
+        
+
 
     def send_reset_email(self, to_email: str, reset_link: str):
-        # MODE DEV - pas de config email
+        # Si Resend configuré (production)
+        if self.resend_key:
+            resend.api_key = self.resend_key
+            
+            params = {
+                "from": self.email_from,
+                "to": [to_email],
+                "subject": "Reset your Apollo password",
+                "html": f"""
+                <html><body>
+                    <p>You requested to reset your password for Apollo.</p>
+                    <p><a href="{reset_link}">Reset Password</a></p>
+                    <p>Or copy: {reset_link}</p>
+                    <p>Expires in 1 hour. 🏓</p>
+                </body></html>
+                """
+            }
+            
+            resend.Emails.send(params)
+            logger.info(f"✅ Reset email sent via Resend to {to_email}")
+            return
+        
+        # Sinon juste log (dev local)
+        print("\n" + "="*80)
+        print(f"📧 PASSWORD RESET EMAIL")
+        print(f"To: {to_email}")
+        print(f"🔗 Link: {reset_link}")
+        print("="*80 + "\n")        # MODE DEV - pas de config email
         if not all([self.email_from, self.email_password]):
             print("\n" + "="*80)
             print(f"📧 PASSWORD RESET EMAIL")
@@ -62,7 +89,36 @@ class EmailService:
             logger.error(f"❌ Failed to send reset email: {e}")
             raise
         
-
+    def send_reset_email(self, to_email: str, reset_link: str):
+        # Debug: affiche toujours dans console
+        print("\n" + "="*80)
+        print(f"📧 PASSWORD RESET EMAIL")
+        print(f"To: {to_email}")
+        print(f"🔗 Link: {reset_link}")
+        print(f"Resend key present: {bool(self.resend_key)}")
+        print("="*80 + "\n")
+        
+        # Si Resend configuré
+        if self.resend_key:
+            resend.api_key = self.resend_key
+            
+            params = {
+                "from": self.email_from,
+                "to": [to_email],
+                "subject": "Reset your Apollo password",
+                "html": f"""
+                <html><body>
+                    <p><a href="{reset_link}">Reset Password</a></p>
+                    <p>Link: {reset_link}</p>
+                </body></html>
+                """
+            }
+            
+            try:
+                resend.Emails.send(params)
+                logger.info(f"✅ Reset email sent to {to_email}")
+            except Exception as e:
+                logger.error(f"❌ Resend error: {e}")
 
     def send_message_notification(self, to_emails: list[str], author_name: str, message_content: str, is_comment: bool = False, original_author: str = None) -> bool:
         """

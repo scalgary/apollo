@@ -175,37 +175,42 @@ def forgot_password_page(request: Request):  # ← Enlever le "user = Depends(..
 # POST /forgot-password - Envoyer reset link
 # ============================================
 
-@router.post("/forgot-password")
+
 @router.post("/forgot-password")
 def forgot_password(
     email: str = Form(...),
     request: Request = None,
     db: Session = Depends(get_db)
 ):
+    print(f"🔍 forgot_password called with email: {email}")
+    
     auth_service = AuthService(db)
     email_service = EmailService()
     
     try:
+        print(f"🔍 Creating reset token...")
         reset_token = auth_service.create_reset_token(email)
+        print(f"🔍 Token created: {reset_token[:20]}...")
         
-        # Utilise BASE_URL de l'environnement
         base_url = os.getenv('BASE_URL', 'http://localhost:8000')
         reset_link = f"{base_url}/reset-password?token={reset_token}"
+        print(f"🔍 Reset link: {reset_link}")
+        print(f"🔍 About to call send_reset_email...")
         
         email_service.send_reset_email(email, reset_link)
+        print(f"🔍 send_reset_email returned")
         
         return RedirectResponse(
             url="/forgot-password?success=Check your email!",
             status_code=303
         )
         
-    except ValueError:
+    except ValueError as e:
+        print(f"🔍 ValueError caught: {e}")
         return RedirectResponse(
             url="/forgot-password?success=Check your email!",
             status_code=303
         )
-
-
 # ============================================
 # GET /reset-password - Afficher formulaire
 # ============================================
