@@ -201,9 +201,9 @@ def forgot_password(
         print(f"🔍 send_reset_email returned")
         
         return RedirectResponse(
-            url="/forgot-password?success=Check your email!",
-            status_code=303
-        )
+        url="/forgot-password?success=Check your email inbox and spam",
+        status_code=303
+)
         
     except ValueError as e:
         print(f"🔍 ValueError caught: {e}")
