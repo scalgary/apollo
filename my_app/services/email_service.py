@@ -10,72 +10,35 @@ ENVIRONMENT = os.getenv('ENVIRONMENT', 'production')
 
 class EmailService:
     """Service pour gérer l'envoi d'emails"""
-    
-    def __init__(self):
-        self.resend_key = os.environ.get('RESEND_API_KEY')
-        self.email_from = os.environ.get('EMAIL_FROM', 'onboarding@resend.dev')
         
-
+    def __init__(self):
+        self.email_from = os.environ.get('EMAIL_FROM')
+        self.email_password = os.environ.get('EMAIL_PASSWORD')
+        self.smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+        self.smtp_port = int(os.environ.get('SMTP_PORT', '587'))  
 
     def send_reset_email(self, to_email: str, reset_link: str):
-        # Si Resend configuré (production)
-        if self.resend_key:
-            resend.api_key = self.resend_key
-            
-            params = {
-                "from": self.email_from,
-                "to": [to_email],
-                "subject": "Reset your Apollo password",
-                "html": f"""
-                <html><body>
-                    <p>You requested to reset your password for Apollo.</p>
-                    <p><a href="{reset_link}">Reset Password</a></p>
-                    <p>Or copy: {reset_link}</p>
-                    <p>Expires in 1 hour. 🏓</p>
-                </body></html>
-                """
-            }
-            
-            resend.Emails.send(params)
-            logger.info(f"✅ Reset email sent via Resend to {to_email}")
+        if not self.email_from or not self.email_password:
+            print(f"📧 Reset link: {reset_link}")
             return
-        
-        # Sinon juste log (dev local)
-        print("\n" + "="*80)
-        print(f"📧 PASSWORD RESET EMAIL")
-        print(f"To: {to_email}")
-        print(f"🔗 Link: {reset_link}")
-        print("="*80 + "\n")        # MODE DEV - pas de config email
-        if not all([self.email_from, self.email_password]):
-            print("\n" + "="*80)
-            print(f"📧 PASSWORD RESET EMAIL")
-            print(f"To: {to_email}")
-            print(f"🔗 Link: {reset_link}")
-            print("="*80 + "\n")
-            return
-        
-        # MODE PROD - envoi Gmail avec HTML
-        subject = "Reset your Apollo password"
-        html_body = f"""
-        <html>
-            <body>
-                <p>Hello,</p>
-                <p>You requested to reset your password for Apollo.</p>
-                <p><a href="{reset_link}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
-                <p>Or copy this link: <a href="{reset_link}">{reset_link}</a></p>
-                <p>This link will expire in 1 hour.</p>
-                <p>See you on the court! 🏓</p>
-                <p>— The Apollo Team</p>
-            </body>
-        </html>
-        """
         
         try:
-            msg = MIMEMultipart('alternative')
+            msg = MIMEMultipart()
             msg['From'] = self.email_from
             msg['To'] = to_email
-            msg['Subject'] = subject
-            msg.attach(MIMEText(html_body, 'html'))  # ← HTML au lieu de 'plain'
+            msg['Subject'] = "Reset your Apollo password"
+            
+            body = f"""
+    Hello,
+
+    Click to reset your password:
+    {reset_link}
+
+    Expires in 1 hour.
+
+    🏓 The Apollo Team
+    """
+            msg.attach(MIMEText(body, 'plain'))
             
             server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=10)
             server.starttls()
@@ -83,12 +46,11 @@ class EmailService:
             server.send_message(msg)
             server.quit()
             
-            logger.info(f"✅ Reset email sent to {to_email}")
-            
+            logger.info(f"✅ Email sent to {to_email}")
         except Exception as e:
-            logger.error(f"❌ Failed to send reset email: {e}")
-            raise
-        
+            logger.error(f"❌ Email failed: {e}")
+
+
 
     def send_message_notification(self, to_emails: list[str], author_name: str, message_content: str, is_comment: bool = False, original_author: str = None) -> bool:
         """
