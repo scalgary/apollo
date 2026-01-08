@@ -54,7 +54,14 @@ class MessageService:
         self.db.refresh(new_message)
         
         # Envoyer notifications email aux admins (async)
-        to_emails = self.admin_service.get_admin_emails()
+        # Envoyer notifications email
+        if self.admin_service.is_user_admin(user_id):
+            # Admin poste → notifier tous les users signés
+            all_users = self.db.query(User).all()
+            to_emails = list(set(u.email for u in all_users if u.id != user_id))
+        else:
+            # User normal poste → notifier admins seulement
+            to_emails = self.admin_service.get_admin_emails()
         
         if to_emails:
             try:
