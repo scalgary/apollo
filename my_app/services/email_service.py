@@ -51,46 +51,30 @@ class EmailService:
             logger.error(f"❌ Email failed: {e}")
 
 
-
     def send_message_notification(self, to_emails: list[str], author_name: str, message_content: str, is_comment: bool = False, original_author: str = None) -> bool:
         """
-        Envoyer notification quand un message ou commentaire est posté
-        
-        En mode production: juste logger (pas d'envoi)
-        En mode développement: envoie via Gmail SMTP
+        Envoyer notification à tous les users signés
         
         Args:
             to_emails: Liste d'emails à notifier
-            author_name: Nom de l'auteur du message/commentaire
-            message_content: Contenu du message/commentaire
-            is_comment: True si c'est un commentaire, False si message
-            original_author: Si commentaire, nom de l'auteur du message original
+            author_name: Nom de l'auteur
+            message_content: Contenu
+            is_comment: True si commentaire, False si message
+            original_author: Si commentaire, nom de l'auteur original
         
         Returns:
-            bool: True si emails envoyés (ou logged), False sinon
+            bool: True si au moins 1 email envoyé
         """
         
-        # MODE PRODUCTION: juste logger (pas d'envoi)
-        if ENVIRONMENT == 'production':
-            logger.info("=" * 80)
-            if is_comment:
-                logger.info(f"💬 NEW COMMENT NOTIFICATION (PRODUCTION - NOT SENT)")
-                logger.info(f"📧 To: {', '.join(to_emails)}")
-                logger.info(f"👤 Author: {author_name}")
-                logger.info(f"📝 Comment on {original_author}'s message: {message_content[:50]}...")
-            else:
-                logger.info(f"📢 NEW MESSAGE NOTIFICATION (PRODUCTION - NOT SENT)")
-                logger.info(f"📧 To: {', '.join(to_emails)}")
-                logger.info(f"👤 Author: {author_name}")
-                logger.info(f"📝 Message: {message_content[:50]}...")
-            logger.info("=" * 80)
-            return True
-        
-        # MODE DÉVELOPPEMENT: envoyer vrais emails via Gmail
+        print(f"📧 send_message_notification called")
+        print(f"📧 to_emails: {to_emails}")
+        print(f"📧 EMAIL_FROM: {self.email_from}")
+        print(f"📧 EMAIL_PASSWORD exists: {bool(self.email_password)}")
         
         # Vérifier configuration
-        if not all([self.email_from, self.email_password]):
+        if not self.email_from or not self.email_password:
             logger.error("❌ Email configuration missing")
+            print("❌ Missing EMAIL config - NOT SENDING")
             return False
         
         # Préparer sujet et body
@@ -98,32 +82,28 @@ class EmailService:
             subject = f"Apollo - New comment from {author_name}"
             body = f"""Hello,
 
-{author_name} commented on {original_author}'s message:
+    {author_name} commented on {original_author}'s message:
 
-"{message_content}"
+    "{message_content}"
 
-Visit Apollo to see the full conversation: https://apollo-uenp.onrender.com/community
+    Visit Apollo: http://132.226.96.197:8000/community
 
-See you on the court! 🏓
-
-— The Apollo Team
-"""
+    🏓 The Apollo Team
+    """
         else:
             subject = f"Apollo - New message from {author_name}"
             body = f"""Hello,
 
-{author_name} posted a new message:
+    {author_name} posted a new message:
 
-"{message_content}"
+    "{message_content}"
 
-Visit Apollo to see the message and reply: https://apollo-uenp.onrender.com/community
+    Visit Apollo: http://132.226.96.197:8000/community
 
-See you on the court! 🏓
-
-— The Apollo Team
-"""
+    🏓 The Apollo Team
+    """
         
-        # Envoyer à tous les destinataires
+        # Envoyer à tous
         success_count = 0
         for to_email in to_emails:
             try:
@@ -139,10 +119,13 @@ See you on the court! 🏓
                 server.send_message(msg)
                 server.quit()
                 
-                logger.info(f"✅ Notification sent to {to_email}")
+                logger.info(f"✅ Email sent to {to_email}")
+                print(f"✅ Email sent to {to_email}")
                 success_count += 1
                 
             except Exception as e:
-                logger.error(f"❌ Failed to send notification to {to_email}: {e}")
+                logger.error(f"❌ Failed: {to_email}: {e}")
+                print(f"❌ Failed: {to_email}: {e}")
         
+        print(f"📧 Total sent: {success_count}/{len(to_emails)}")
         return success_count > 0
