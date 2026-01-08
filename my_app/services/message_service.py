@@ -68,18 +68,18 @@ class MessageService:
             print(f"🔍 User posting - sending to admins: {to_emails}")  # ← AJOUTE
 
         if to_emails:
-            print(f"🔍 Calling email service...")  # ← AJOUTE
+            print(f"🔍 Calling email service DIRECTLY (no thread)...")
             try:
-                import threading
-                email_thread = threading.Thread(
-                    target=self.email_service.send_message_notification,
-                    args=(to_emails, user.display_name, content, False)
+                result = self.email_service.send_message_notification(
+                    to_emails, user.display_name, content, False
                 )
-                email_thread.daemon = True
-                email_thread.start()
-                print(f"✅ Email thread started")  # ← AJOUTE
+                print(f"✅ Email result: {result}")
             except Exception as e:
-                print(f"❌ Email notification failed: {e}")
+                print(f"❌ Email error: {e}")
+                import traceback
+                traceback.print_exc()
+
+
         
         result = {
             'id': new_message.id,
