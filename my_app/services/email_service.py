@@ -89,36 +89,6 @@ class EmailService:
             logger.error(f"❌ Failed to send reset email: {e}")
             raise
         
-    def send_reset_email(self, to_email: str, reset_link: str):
-        # Debug: affiche toujours dans console
-        print("\n" + "="*80)
-        print(f"📧 PASSWORD RESET EMAIL")
-        print(f"To: {to_email}")
-        print(f"🔗 Link: {reset_link}")
-        print(f"Resend key present: {bool(self.resend_key)}")
-        print("="*80 + "\n")
-        
-        # Si Resend configuré
-        if self.resend_key:
-            resend.api_key = self.resend_key
-            
-            params = {
-                "from": self.email_from,
-                "to": [to_email],
-                "subject": "Reset your Apollo password",
-                "html": f"""
-                <html><body>
-                    <p><a href="{reset_link}">Reset Password</a></p>
-                    <p>Link: {reset_link}</p>
-                </body></html>
-                """
-            }
-            
-            try:
-                resend.Emails.send(params)
-                logger.info(f"✅ Reset email sent to {to_email}")
-            except Exception as e:
-                logger.error(f"❌ Resend error: {e}")
 
     def send_message_notification(self, to_emails: list[str], author_name: str, message_content: str, is_comment: bool = False, original_author: str = None) -> bool:
         """
