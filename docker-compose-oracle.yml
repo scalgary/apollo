@@ -2,7 +2,7 @@
 services:
   web:
     build:
-      context: .
+      context: ./my_app
       dockerfile: Dockerfile
     container_name: apollo-web
     ports:

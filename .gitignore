@@ -51,3 +51,6 @@ __pycache__/
 env/
 venv/
 table_exports
+apollo.env
+ssh-key-2026-01-08.key
+ssh-key-2026-01-08.key.pub
