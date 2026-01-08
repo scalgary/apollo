@@ -1,0 +1,23 @@
+  1  docker --version
+    2  sudo ufw allow 8000/tcp
+    3  sudo ufw enable
+    4  git clone git@github.com:scalgary/apollo.git
+    5  git clone https://github.com/scalgary/apollo.git
+    6  cd apollo
+    7  nano .env
+    8  SECRET_KEY=$(openssl rand -hex 32)
+    9  sed -i "s/CHANGE_ME/$SECRET_KEY/" .env
+   10  docker compose up -d
+   11  # Lance avec le fichier principal uniquement
+   12  docker compose -f docker-compose.yml up -d
+   13  ls
+   14  docker compose -f docker-compose.yml up -d
+   15  sudo apt install docker-compose -y
+   16  docker-compose --version
+   17  docker-compose -f docker-compose.yml up -d
+   18  sudo apt remove docker-compose -y
+   19  sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   20  history > ~/setup-commands.txt
+
+docker-compose -f docker-compose.yml up -d --build
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
