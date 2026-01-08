@@ -52,18 +52,23 @@ class MessageService:
         self.db.add(new_message)
         self.db.commit()
         self.db.refresh(new_message)
+        print(f"🔍 Message created by user_id={user_id}")
+        print(f"🔍 Is admin? {self.admin_service.is_user_admin(user_id)}")
+
         
-        # Envoyer notifications email aux admins (async)
         # Envoyer notifications email
         if self.admin_service.is_user_admin(user_id):
             # Admin poste → notifier tous les users signés
             all_users = self.db.query(User).all()
             to_emails = list(set(u.email for u in all_users if u.id != user_id))
+            print(f"🔍 Admin posting - sending to {len(to_emails)} users: {to_emails}")  # ← AJOUTE
         else:
             # User normal poste → notifier admins seulement
             to_emails = self.admin_service.get_admin_emails()
-        
+            print(f"🔍 User posting - sending to admins: {to_emails}")  # ← AJOUTE
+
         if to_emails:
+            print(f"🔍 Calling email service...")  # ← AJOUTE
             try:
                 import threading
                 email_thread = threading.Thread(
@@ -72,8 +77,9 @@ class MessageService:
                 )
                 email_thread.daemon = True
                 email_thread.start()
+                print(f"✅ Email thread started")  # ← AJOUTE
             except Exception as e:
-                print(f"Email notification failed: {e}")
+                print(f"❌ Email notification failed: {e}")
         
         result = {
             'id': new_message.id,
