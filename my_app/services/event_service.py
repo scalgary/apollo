@@ -89,12 +89,15 @@ class EventService:
 
     def get_all_events_with_user_status(self, user_id: int):
         """RÃ©cupÃ¨re tous les Ã©vÃ©nements avec le statut de l'utilisateur"""
+        from datetime import timedelta
+
         today = date.today()
+        cutoff_date = today - timedelta(days=2) 
         
         # Joindre Event avec EventType pour avoir default_max_capacity
         events = self.db.query(Event, EventType).join(
             EventType, Event.event_type_id == EventType.id
-        ).filter(Event.date >= today).order_by(Event.date).all()
+        ).filter(Event.date >= cutoff_date).order_by(Event.date).all()
         
         result = []
     
