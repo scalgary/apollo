@@ -105,3 +105,27 @@ history > ~/setup-commands.txt
    docker-compose -f docker-compose-oracle.yml down
 docker-compose -f docker-compose-oracle.yml up -d --force-recreate
 docker exec apollo-web env | grep EMAIL
+ssh -i ssh-key-2026-01-08.key ubuntu@132.226.96.197
+
+docker exec apollo-web cat /app/message_service.py | grep "is_user_admin"
+# Force recreate complet
+docker-compose -f docker-compose-oracle.yml down
+docker-compose -f docker-compose-oracle.yml up -d --build --force-recreate
+
+# Re-vérifie
+docker exec apollo-web env | grep EMAIL
+# Trouve message_service.py
+docker exec apollo-web find / -name "message_service.py" 2>/dev/null
+
+# Ou liste la structure
+docker exec apollo-web ls -la /app/
+docker exec apollo-web ls -la /app/services/
+
+docker exec apollo-web cat /app/services/message_service.py | grep "is_user_admin"
+
+
+docker-compose -f docker-compose-oracle.yml up -d --build
+
+docker-compose -f docker-compose-oracle.yml logs -f
+
+docker-compose -f docker-compose.oracle.yml up -d --build
