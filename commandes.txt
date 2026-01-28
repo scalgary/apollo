@@ -129,3 +129,7 @@ docker-compose -f docker-compose-oracle.yml up -d --build
 docker-compose -f docker-compose-oracle.yml logs -f
 
 docker-compose -f docker-compose.oracle.yml up -d --build
+
+
+ssh -i ta_cle.pem ubuntu@<VM_IP>
+ssh -i ssh-key-2026-01-08.key ubuntu@132.226.96.197

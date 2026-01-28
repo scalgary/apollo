@@ -1,5 +1,22 @@
-
 services:
+  db:
+    image: postgres:15
+    container_name: apollo-db
+    environment:
+      POSTGRES_DB: apollo
+      POSTGRES_USER: apollo
+      POSTGRES_PASSWORD: apollo123  # Change en production!
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apollo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   web:
     build:
       context: ./my_app
@@ -9,6 +26,11 @@ services:
       - "8000:8000"
     env_file:
       - ./my_app/.env
+    environment:
+      DATABASE_URL: postgresql://apollo:apollo123@db:5432/apollo
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     healthcheck:
@@ -17,3 +39,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  postgres_data:
