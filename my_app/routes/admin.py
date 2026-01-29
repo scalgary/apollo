@@ -406,7 +406,7 @@ from utils import export_whitelist_to_csv, export_event_types_to_csv, export_eve
 
 # Ajouter ces endpoints dans admin.py
 # Dans admin.py
-@router.get("/export/whitelist")
+@router.get("/admin/export/whitelist")
 async def download_whitelist(
     request: Request,
     db: Session = Depends(get_db)
