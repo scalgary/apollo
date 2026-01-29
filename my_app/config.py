@@ -9,7 +9,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).parent
 
 # CSV paths
-CSV_DIR = BASE_DIR
+CSV_DIR = BASE_DIR /"data"
 EVENTS_CSV = CSV_DIR / "events.csv"
 USERS_CSV = CSV_DIR / "users.csv"
 MEMBERSHIPS_CSV = CSV_DIR / "memberships.csv"
