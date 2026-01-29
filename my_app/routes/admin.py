@@ -424,7 +424,7 @@ async def download_whitelist(
     return FileResponse(filepath, filename="whitelist.csv", media_type="text/csv")
 
 
-@router.get("/export/event-types")
+@router.get("/admin/export/event-types")
 async def download_event_types(
     request: Request,
     db: Session = Depends(get_db)
@@ -442,7 +442,7 @@ async def download_event_types(
     return FileResponse(filepath, filename="event_types.csv", media_type="text/csv")
 
 
-@router.get("/export/events")
+@router.get("/admin/export/events")
 async def download_events(
     request: Request,
     db: Session = Depends(get_db)
@@ -462,7 +462,7 @@ from fastapi.responses import StreamingResponse
 import zipfile
 from io import BytesIO
 
-@router.get("/export/all")
+@router.get("/admin/export/all")
 async def download_all_data(
     request: Request,
     db: Session = Depends(get_db)
