@@ -480,8 +480,20 @@ function showFilterColor(select) {
     const selectedTable = document.getElementById('membershipTable' + selectedIdx);
     if (selectedTable) {
         selectedTable.style.display = 'table';
+        localStorage.setItem('selectedEventType', selectedIdx);
+
     }
 }
+// ✅ AJOUTE CE CODE - Restore selection on page load
+window.addEventListener('load', function() {
+    const savedIdx = localStorage.getItem('selectedEventType');
+    const filterSelect = document.getElementById('filterEventType');
+    
+    if (savedIdx && filterSelect) {
+        filterSelect.value = savedIdx;
+        showFilterColor(filterSelect);
+    }
+});
 
 // ============================================
 // TAB SWITCHING LOGIC
