@@ -186,10 +186,17 @@ def export_event_types_to_csv(db: Session) -> str:
     filepath = CSV_DIR / "event_types.csv"
     with open(filepath, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['name', 'emoji', 'color', 'max_participants'])
+        writer.writerow(['event_type_name', 'display_name', 'default_location', 'default_time_start', 'default_time_end', 'default_max_capacity', 'color'])
         for et in event_types:
-            writer.writerow([et.name, et.emoji, et.color, et.max_participants])
-    
+            writer.writerow([
+                et.event_type_name,
+                et.display_name,
+                et.default_location,
+                et.default_time_start,
+                et.default_time_end,
+                et.default_max_capacity,
+                et.color
+            ])
     return str(filepath)
 
 def export_events_to_csv(db: Session) -> str:
@@ -199,8 +206,10 @@ def export_events_to_csv(db: Session) -> str:
     filepath = CSV_DIR / "events.csv"
     with open(filepath, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['date', 'time', 'event_type_id', 'max_participants'])
+        writer.writerow(['event_type_name', 'date'])
         for event in events:
-            writer.writerow([event.date, event.time, event.event_type_id, event.max_participants])
+            # Get event_type_name from EventType
+            et = db.query(EventType).filter(EventType.id == event.event_type_id).first()
+            writer.writerow([et.event_type_name if et else 'unknown', event.date])
     
     return str(filepath)

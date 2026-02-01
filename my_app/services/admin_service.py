@@ -473,6 +473,29 @@ class AdminService:
                 )
                 self.db.add(new_friend)
                 added_count += 1
+            # Check if user is signed up and create UserEventTypeMembership
+            user = self.db.query(User).filter(User.email == email).first()
+            if user:
+                user_membership = self.db.query(UserEventTypeMembership).filter(
+                    UserEventTypeMembership.user_id==user.id,
+                    UserEventTypeMembership.event_type_id==event_type_id
+                ).first()
+                if not user_membership:
+                    user_membership=UserEventTypeMembership(
+                        user_id=user.id,
+                        event_type_id=event_type_id,
+                        membership_type=membership_type,
+                        total_credits_purchased=credits if membership_type=='punch_card' else None,
+                        remaining_credits = credits if membership_type =='punch_card' else None
+                    )
+                    self.db.add(user_membership)
+                else:
+                    if membership_type=='punch_card':
+                        user_membership.total_credits_purchased += credits
+                        user_membership.remaining_credits += credits
+                
+
+
         
         self.db.commit()
         
