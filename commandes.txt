@@ -128,8 +128,35 @@ docker-compose -f docker-compose-oracle.yml up -d --build
 
 docker-compose -f docker-compose-oracle.yml logs -f
 
-docker-compose -f docker-compose.oracle.yml up -d --build
+docker-compose -f docker-compose-oracle.yml build --no-cache
+docker-compose -f docker-compose-oracle.yml up -d
 
 
 ssh -i ta_cle.pem ubuntu@<VM_IP>
 ssh -i ssh-key-2026-01-08.key ubuntu@132.226.96.197
+
+
+scp ubuntu@132.226.96.197:~/new.txt ~/Downloads/
+
+
+scp -i ssh-key-2026-01-08.key ubuntu@132.226.96.197:~/new.txt ~/Users/Euclide/DS/apollo/
+
+scp -i ssh-key-2026-01-08.key ubuntu@132.226.96.197:~/apollo/my_app/.env ~/DS/apollo/copie_env_oracle
+
+
+
+docker-compose -f docker-compose-oracle.yml up -d
+# 1. Stop
+docker-compose -f docker-compose-oracle.yml down
+
+# 2. Pull
+git pull origin main
+
+# 3. Rebuild (le service s'appelle "web" dans ton compose file)
+docker-compose -f docker-compose-oracle.yml build --no-cache
+
+# 4. Restart
+docker-compose -f docker-compose-oracle.yml up -d
+
+# 5. Check logs
+docker-compose -f docker-compose-oracle.yml logs -f web

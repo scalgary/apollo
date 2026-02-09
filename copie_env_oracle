@@ -1,0 +1,17 @@
+
+SECRET_KEY=8vKjKcdMtli6Eq2gTFPxImJ6QmFPcIY1I6dOY_2x2mU
+RESEND_API_KEY=re_SrzzRDCg_KQZ3U3azdnXWv8b2CVserMbT
+ADMIN_EMAIL_1=play.pickleball.calgary@gmail.com
+ADMIN_EMAIL_2=respectmyprivacy007@gmail.com
+ADMIN_PASSWORD_1=Pass123
+ADMIN_PASSWORD_2=Pass123
+DATABASE_URL=postgresql://postgres.qemwtqulsapjhaflcrbw:OcQrZTqYN6rEPeWp@aws-0-us-west-2.pooler.supabase.com:6543/postgres
+EMAIL_FROM=onboarding@resend.dev
+ENVIRONMENT=production
+BASE_URL=http://132.226.96.197:8000
+EMAIL_FROM=play.pickleball.calgary@gmail.com
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+EMAIL_PASSWORD='jzqs zaan bqgx ayph'
+DATABASE_URL=postgresql://apollo:apollo123@db:5432/apollo
+

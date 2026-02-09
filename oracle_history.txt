@@ -1,0 +1,153 @@
+    1  docker --version
+    2  sudo ufw allow 8000/tcp
+    3  sudo ufw enable
+    4  git clone git@github.com:scalgary/apollo.git
+    5  git clone https://github.com/scalgary/apollo.git
+    6  cd apollo
+    7  nano .env
+    8  SECRET_KEY=$(openssl rand -hex 32)
+    9  sed -i "s/CHANGE_ME/$SECRET_KEY/" .env
+   10  docker compose up -d
+   11  # Lance avec le fichier principal uniquement
+   12  docker compose -f docker-compose.yml up -d
+   13  ls
+   14  docker compose -f docker-compose.yml up -d
+   15  sudo apt install docker-compose -y
+   16  docker-compose --version
+   17  docker-compose -f docker-compose.yml up -d
+   18  sudo apt remove docker-compose -y
+   19  sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   20  history > ~/setup-commands.txt
+   21  cat ~/setup-commands.txt
+   22  sudo apt update
+   23  sudo apt install -y docker.io docker-compose git
+   24  sudo systemctl start docker
+   25  sudo systemctl enable docker
+   26  sudo usermod -aG docker ubuntu
+   27  newgrp docker
+   28  docker-compose -f docker-compose.prod.yml up -d --build
+   29  docker-compose -f docker-compose.yml up -d --build
+   30  which docker-compose
+   31  docker-compose --version
+   32  sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   33  sudo chmod +x /usr/local/bin/docker-compose
+   34  docker-compose --version
+   35  docker-compose -f docker-compose.yml up -d --build
+   36  ls
+   37  cd apollo
+   38  docker-compose -f docker-compose.yml up -d --build
+   39  docker-compose ps
+   40  nano .env
+   41  docker-compose logs -f
+   42  cd apollo
+   43  nano .env
+   44  git status
+   45  git branch
+   46  git pull
+   47  docker-compose -f docker-compose-oracle.yml up -d
+   48  ls
+   49  git pull
+   50  docker-compose -f docker-compose-oracle.yml up -d
+   51  docker-compose down
+   52  docker stop $(docker ps -aq)
+   53  docker-compose -f docker-compose.oracle.yml down --remove-orphans
+   54  docker-compose -f docker-compose-oracle.yml down --remove-orphans
+   55  docker ps -a
+   56  docker-compose -f docker-compose-oracle.yml up -d
+   57  docker-compose -f docker-compose.oracle.yml logs -f
+   58  docker-compose -f docker-compose-oracle.yml logs -f
+   59  ls
+   60  docker-compose -f docker-compose-oracle.yml up -d
+   61  docker-compose -f docker-compose-oracle.yml logs -f
+   62  sudo ufw status
+   63  docker-compose down -v
+   64  cd apollo
+   65  docker ps
+   66  docker-compose down -v
+   67  docker ps
+   68  docker stop apollo-web
+   69  docker rm  apollo-web
+   70  nano .env
+   71  docker ps
+   72  docker exec apollo-web env | grep -E "EMAIL|RESEND"
+   73  cp .env my_app/.env
+   75  docker-compose -f docker-compose-oracle.yml down
+   77  docker-compose -f docker-compose-oracle.yml up -d
+   78  docker-compose logs -f
+   79  pip install requests
+   80  sudo apt install python3-pip
+   81  sudo apt remove python3-pip
+   82  sudo apt autoremove  # Nettoie les dépendances inutiles
+   83  docker ps
+   84  docker exec apollo-web pip list
+   85  docker exec apollo-web pip install requests
+   86  docker exec apollo-web pip list
+   87  git pull
+   89  docker-compose -f docker-compose-oracle.yml restart
+   91  docker-compose -f docker-compose-oracle.yml logs -f
+   92  history > ~/setup-commands.txt
+   93  nano .setup-commands.txt
+   94  ls
+   95  history > ~/setup-oracle.txt
+   96  cat ~/setup-oracle.txt
+   97  cat docker-compose.oracle.yml
+   98  cat docker-compose-oracle.yml
+   99  cat ./my_app/.env | grep EMAIL
+  100  docker exec apollo-web env | grep EMAIL
+  101  docker-compose -f docker-compose-oracle.yml up -d --force-recreate
+  102  docker exec apollo-web env | grep EMAIL
+  103  git pull
+  105  docker-compose -f docker-compose-oracle.yml down
+  110  docker-compose -f docker-compose-oracle.yml up -d --build
+  111  cd apollo
+  112  docker-compose -f docker-compose-oracle.yml up -d --build
+  113  docker-compose -f docker-compose-oracle.yml logs -f
+  114  docker exec apollo-web cat /app/message_service.py | grep "is_user_admin"
+  115  cd apollo
+  116  docker exec apollo-web cat /app/message_service.py | grep "is_user_admin"
+  117  ls
+  118  docker exec apollo-web cat /my_app/message_service.py | grep "is_user_admin"
+  119  ls
+  120  cd my_app
+  121  ls
+  122  cd services
+  123  docker exec apollo-web cat message_service.py | grep "is_user_admin"
+  124  ls
+  125  git pull
+  126  cd ..
+  127  git pull
+  128  docker-compose -f docker-compose-oracle.yml down
+  130  docker-compose -f docker-compose-oracle.yml up -d --build --force-recreate
+  131  docker exec apollo-web env | grep EMAIL
+  132  docker exec apollo-web cat /app/message_service.py | grep "is_user_admin"
+  133  docker exec apollo-web find / -name "message_service.py" 2>/dev/null
+  134  docker exec apollo-web cat /app/services/message_service.py | grep "is_user_admin"
+  135  docker-compose -f docker-compose-oracle.yml up -d --build
+  136  docker-compose -f docker-compose-oracle.yml logs -f
+  137  cd apollo
+  138  nano .env
+  139  git pull
+  141  docker-compose -f docker-compose-oracle.yml down
+  142  docker-compose -f docker-compose.oracle.yml up -d --build
+  143  docker-compose -f docker-compose-oracle.yml up -d --build
+  144  docker exec apollo-web env | grep -E "EMAIL|SMTP"
+  145  nano my_app/.env
+  146  nano .env
+  147  nano my_app/.env
+  148  docker ps -a
+  149  docker-compose -f docker-compose-oracle.yml restart
+  152  docker-compose -f docker-compose-oracle.yml logs -f
+  153  git pull
+  155  docker-compose -f docker-compose-oracle.yml logs -f
+  156  git pull
+  157  docker-compose -f docker-compose-oracle.yml up -d --build
+  158  docker-compose -f docker-compose-oracle.yml logs -f
+  159  cd apollo
+  160  git pull
+  161  docker-compose -f docker-compose-oracle.yml up -d --build
+  162  docker-compose -f docker-compose-oracle.yml logs -f
+  163  cd apollo
+  164  git pull
+  166  docker-compose -f docker-compose-oracle.yml up -d --build
+  167  ls
+  168  history > new.txt
