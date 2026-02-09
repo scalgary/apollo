@@ -184,9 +184,26 @@
             </div>
         </div>
 
-        <!-- TAB 2: USERS & MEMBERSHIPS -->
+      <!-- TAB 2: USERS & MEMBERSHIPS -->
         <div class="admin-content" id="tab-users" style="display: none;">
             
+            <!-- SHARED EVENT TYPE SELECTOR -->
+            <div class="admin-section" style="padding-bottom: 10px;">
+                <div class="form-group" style="max-width: 400px;">
+                    <label><strong>Select Event Type</strong></label>
+                    <select id="sharedEventTypeSelect" onchange="onSharedEventTypeChange(this)" required>
+                        {% for item in event_types_with_info %}
+                        <option value="{{ item.event_type.id }}" 
+                                data-color="{{ item.event_type.color }}"
+                                data-index="{{ loop.index0 }}">
+                            {{ item.event_type.display_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <span id="shared_color_indicator" class="event-type-indicator" style="display:none;"></span>
+                </div>
+            </div>
+
             <!-- Bulk Add Form -->
             <div class="admin-section">
                 <h2>Add Memberships (Bulk)</h2>
@@ -195,19 +212,8 @@
                 </p>
                 
                 <form method="POST" action="/api/admin/memberships/bulk-add" class="admin-form">
-                    
-                    <div class="form-group">
-                        <label>Event Type</label>
-                        <select name="event_type_id" id="eventTypeSelect" required onchange="showEventTypeColor(this)">
-                            <option value="">Select event type</option>
-                            {% for item in event_types_with_info %}
-                            <option value="{{ item.event_type.id }}" data-color="{{ item.event_type.color }}">
-                                {{ item.event_type.display_name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                        <span id="event_type_color_indicator" class="event-type-indicator" style="display:none;"></span>
-                    </div>
+                    <!-- Hidden input synced with shared selector -->
+                    <input type="hidden" name="event_type_id" id="bulkAddEventTypeId">
                     
                     <div class="form-group">
                         <label>Membership Type</label>
@@ -217,141 +223,123 @@
                         </select>
                     </div>
                     <div class="form-group" id="creditsGroup" style="grid-column: 1 / -1;">
-    <label>Credits (for punch cards)</label>
-    <input type="number" name="credits" id="creditsInput" value="10" min="0" style="max-width: 200px;">
-    <small>Credits to ADD to existing total (not replace)</small>
-</div>
+                        <label>Credits (for punch cards)</label>
+                        <input type="number" name="credits" id="creditsInput" value="10" min="0" style="max-width: 200px;">
+                        <small>Credits to ADD to existing total (not replace)</small>
+                    </div>
 
-<div class="form-group" style="grid-column: 1 / -1;">
-    <label>Emails (one per line or comma-separated)</label>
-    <textarea name="emails" rows="8"
-              maxlength="10000"
-              style="width: 100%; max-width: 100%;"
-              placeholder="user1@example.com&#10;user2@example.com" 
-              required></textarea>
-</div>
- 
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label>Emails (one per line or comma-separated)</label>
+                        <textarea name="emails" rows="8"
+                                  maxlength="10000"
+                                  style="width: 100%; max-width: 100%;"
+                                  placeholder="user1@example.com&#10;user2@example.com" 
+                                  required></textarea>
+                    </div>
                     
                     <button type="submit" class="btn-submit btn-add-memberships">Add/Update Memberships</button>
                 </form>
             </div>
             
-            <!-- All Users Table - Filtered by Event Type -->
-  <!-- All Users Table - Filtered by Event Type -->
-<div class="admin-section">
-    <h2>All Memberships & Signups</h2>
-    
-    <!-- Event Type Filter -->
-    <div class="form-group" style="max-width: 300px; margin-bottom: 20px;">
-        <label>Filter by Event Type</label>
-        <select id="filterEventType" onchange="showFilterColor(this)">
-            {% for item in event_types_with_info %}
-            <option value="{{ loop.index0 }}" data-color="{{ item.event_type.color }}">
-                {{ item.event_type.display_name }}
-            </option>
-            {% endfor %}
-        </select>
-        <span id="filter_color_indicator" class="event-type-indicator" style="display:none;"></span>
-    </div>
-    
-    <p style="color: #666; margin-bottom: 15px;">
-        ⚠️ Users in <span style="color: #dc3545; font-weight: bold;">(Not signed up)</span> have memberships but haven't created their account yet.
-    </p>
-    
-    {% if users_with_memberships|length == 0 %}
-        <p class="empty-state">No memberships created yet.</p>
-    {% else %}
-        <!-- Table for each event type -->
-        {% for idx in range(event_types_with_info|length) %}
-        {% set event_item = event_types_with_info[idx] %}
-        
-        <table class="admin-table membership-table" id="membershipTable{{ idx }}" 
-               style="{% if idx > 0 %}display: none;{% endif %}">
-            <thead style="background-color: {{ event_item.event_type.color }}; color: white;">
-                <tr>
-                    <th>Status</th>
-                    <th>Email</th>
-                    <th>Display Name</th>
-                    <th>Membership</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users_with_memberships %}
-                {% set membership = user.memberships[idx] %}
+            <!-- All Users Table -->
+            <div class="admin-section">
+                <h2>All Memberships & Signups</h2>
                 
-                {% if membership.membership_type %}
-                <tr style="background-color: {{ event_item.event_type.color }}15; {% if not user.signed_up %}opacity: 0.7;{% endif %}">
-                    <td>
-                        {% if user.signed_up %}
-                            <span class="badge-signed-up">✓ Signed up</span>
-                        {% else %}
-                            <span class="badge-not-signed-up">✗ Not signed up</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.display_name }}</td>
-                    <td>
-                        {% if membership.membership_type == 'full_member' %}
-                            <span class="badge-full-member">Full Member</span>
-                        {% elif membership.membership_type == 'punch_card' %}
-                            <span class="badge-punch-card">
-                                Punch Card: {{ membership.remaining_credits }}/{{ membership.total_credits }}
-                            </span>
-                            {% if user.signed_up %}
-           <div style="margin-top: 5px;">
-            <form method="POST" action="/api/admin/memberships/add-credits" 
-                  style="display: inline-block; margin-right: 5px;">
-                <input type="hidden" name="user_id" value="{{ user.user_id }}">
-                <input type="hidden" name="event_type_id" value="{{ membership.event_type_id }}">
-                <input type="hidden" name="credits_to_add" value="5">
-                <button type="submit" class="btn-add-credits-small">+5</button>
-            </form>
-            <form method="POST" action="/api/admin/memberships/add-credits" 
-                  style="display: inline-block; margin-right: 5px;">
-                <input type="hidden" name="user_id" value="{{ user.user_id }}">
-                <input type="hidden" name="event_type_id" value="{{ membership.event_type_id }}">
-                <input type="hidden" name="credits_to_add" value="10">
-                <button type="submit" class="btn-add-credits-small">+10</button>
-            </form>
-
-        </div>
+                <p style="color: #666; margin-bottom: 15px;">
+                    ⚠️ Users in <span style="color: #dc3545; font-weight: bold;">(Not signed up)</span> have memberships but haven't created their account yet.
+                </p>
+                
+                {% if users_with_memberships|length == 0 %}
+                    <p class="empty-state">No memberships created yet.</p>
+                {% else %}
+                    <!-- Table for each event type -->
+                    {% for idx in range(event_types_with_info|length) %}
+                    {% set event_item = event_types_with_info[idx] %}
+                    
+                    <table class="admin-table membership-table" id="membershipTable{{ idx }}" 
+                           style="{% if idx > 0 %}display: none;{% endif %}">
+                        <thead style="background-color: {{ event_item.event_type.color }}; color: white;">
+                            <tr>
+                                <th>Status</th>
+                                <th>Email</th>
+                                <th>Display Name</th>
+                                <th>Membership</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users_with_memberships %}
+                            {% set membership = user.memberships[idx] %}
+                            
+                            {% if membership.membership_type %}
+                            <tr style="background-color: {{ event_item.event_type.color }}15; {% if not user.signed_up %}opacity: 0.7;{% endif %}">
+                                <td>
+                                    {% if user.signed_up %}
+                                        <span class="badge-signed-up">✓ Signed up</span>
+                                    {% else %}
+                                        <span class="badge-not-signed-up">✗ Not signed up</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.display_name }}</td>
+                                <td>
+                                    {% if membership.membership_type == 'full_member' %}
+                                        <span class="badge-full-member">Full Member</span>
+                                    {% elif membership.membership_type == 'punch_card' %}
+                                        <span class="badge-punch-card">
+                                            Punch Card: {{ membership.remaining_credits }}/{{ membership.total_credits }}
+                                        </span>
+                                        {% if user.signed_up %}
+                                        <div style="margin-top: 5px;">
+                                            <form method="POST" action="/api/admin/memberships/add-credits" 
+                                                  style="display: inline-block; margin-right: 5px;">
+                                                <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                                                <input type="hidden" name="event_type_id" value="{{ membership.event_type_id }}">
+                                                <input type="hidden" name="credits_to_add" value="5">
+                                                <button type="submit" class="btn-add-credits-small">+5</button>
+                                            </form>
+                                            <form method="POST" action="/api/admin/memberships/add-credits" 
+                                                  style="display: inline-block; margin-right: 5px;">
+                                                <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                                                <input type="hidden" name="event_type_id" value="{{ membership.event_type_id }}">
+                                                <input type="hidden" name="credits_to_add" value="10">
+                                                <button type="submit" class="btn-add-credits-small">+10</button>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if membership.membership_type %}
+                                        {% if user.signed_up %}
+                                        <form method="POST" 
+                                              action="/api/admin/users/{{ user.user_id }}/event-type/{{ membership.event_type_id }}/delete"
+                                              onsubmit="return confirm('Remove {{ user.email }} from {{ membership.event_type_name }}?');"
+                                              style="display: inline;">
+                                            <button type="submit" class="btn-delete-small">🗑️ Remove</button>
+                                        </form>
+                                        {% else %}
+                                        <form method="POST" 
+                                              action="/api/admin/friends/delete"
+                                              onsubmit="return confirm('Remove {{ user.email }} from {{ membership.event_type_name }} whitelist?');"
+                                              style="display: inline;">
+                                            <input type="hidden" name="email" value="{{ user.email }}">
+                                            <input type="hidden" name="event_type_id" value="{{ membership.event_type_id }}">
+                                            <button type="submit" class="btn-delete-small">🗑️ Remove</button>
+                                        </form>
+                                        {% endif %}
+                                    {% else %}
+                                        <span style="color: #ccc;">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
                             {% endif %}
-                        {% endif %}
-                    </td>
-<td>
-    {% if membership.membership_type %}
-        {# Only show remove button if user is signed up #}
-        {% if user.signed_up %}
-        <form method="POST" 
-              action="/api/admin/users/{{ user.user_id }}/event-type/{{ membership.event_type_id }}/delete"
-              onsubmit="return confirm('Remove {{ user.email }} from {{ membership.event_type_name }}?\n\nThis will:\n• Delete their membership\n• Cancel all future registrations\n\nContinue?');"
-              style="display: inline;">
-            <button type="submit" class="btn-delete-small">🗑️ Remove</button>
-        </form>
-        {% else %}
-        {# User not signed up - delete from Friends table only #}
-        <form method="POST" 
-              action="/api/admin/friends/delete"
-              onsubmit="return confirm('Remove {{ user.email }} from {{ membership.event_type_name }} whitelist?');"
-              style="display: inline;">
-            <input type="hidden" name="email" value="{{ user.email }}">
-            <input type="hidden" name="event_type_id" value="{{ membership.event_type_id }}">
-            <button type="submit" class="btn-delete-small">🗑️ Remove</button>
-        </form>
-        {% endif %}
-    {% else %}
-        <span style="color: #ccc;">-</span>
-    {% endif %}
-</td>
-                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endfor %}
                 {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
-        {% endfor %}
-    {% endif %}
-</div>
+            </div>
         </div>
 
 <!-- TAB 3: EVENT DATES -->
@@ -548,15 +536,10 @@ if (membershipTypeSelect && creditsGroup && creditsInput) {
 // FILTER MEMBERSHIP TABLES BY EVENT TYPE
 // Au chargement, affiche la première table et sa couleur
 // ============================================
-const filterEventType = document.getElementById('filterEventType');
-
-if (filterEventType) {
-    // Afficher la couleur du premier event type au chargement
-    showFilterColor(filterEventType);
-    
-    filterEventType.addEventListener('change', function() {
-        showFilterColor(this);
-    });
+// Init shared event type selector on page load
+const sharedSelect = document.getElementById('sharedEventTypeSelect');
+if (sharedSelect) {
+    onSharedEventTypeChange(sharedSelect);
 }
 
 // ============================================
@@ -740,6 +723,41 @@ function renderExistingDates() {
     html += '</div>';
     container.innerHTML = html;
 }
+// ============================================
+// SHARED EVENT TYPE SELECTOR
+// Controls both Bulk Add form and Membership table
+// ============================================
+function onSharedEventTypeChange(select) {
+    const selectedOption = select.options[select.selectedIndex];
+    const color = selectedOption.dataset.color;
+    const tableIndex = selectedOption.dataset.index;
+    const eventTypeId = select.value;
+    
+    // 1. Update color indicator
+    const indicator = document.getElementById('shared_color_indicator');
+    if (color) {
+        indicator.style.backgroundColor = color;
+        indicator.style.display = 'inline-block';
+    } else {
+        indicator.style.display = 'none';
+    }
+    
+    // 2. Sync hidden input in Bulk Add form
+    const hiddenInput = document.getElementById('bulkAddEventTypeId');
+    if (hiddenInput) {
+        hiddenInput.value = eventTypeId;
+    }
+    
+    // 3. Filter membership tables
+    document.querySelectorAll('.membership-table').forEach(table => {
+        table.style.display = 'none';
+    });
+    const selectedTable = document.getElementById('membershipTable' + tableIndex);
+    if (selectedTable) {
+        selectedTable.style.display = 'table';
+    }
+}
 </script>
 </body>
 </html>
+
