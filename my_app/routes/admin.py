@@ -490,12 +490,23 @@ async def download_all_data(
         zip_file.write(events_path, 'events.csv')
     
     zip_buffer.seek(0)
+     # Email the ZIP to the admin
+    from services.email_service import EmailService
+    email_service = EmailService()
+    success = email_service.send_export_email(user.email, zip_buffer)
+    if success:
+        return RedirectResponse(
+            url=f"/admin?success=Export sent to {user.email}#download",
+            status_code=303
+        )
+    else:
+        return RedirectResponse(
+            url="/admin?error=Failed to send export email. Check email configuration.#download",
+            status_code=303
+        )
     
-    return StreamingResponse(
-        zip_buffer,
-        media_type="application/zip",
-        headers={"Content-Disposition": "attachment; filename=apollo_data_export.zip"}
-    )
+    
+
 
 @router.post("/api/admin/users/{user_id}/event-type/{event_type_id}/delete")
 def delete_user_membership(

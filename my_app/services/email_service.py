@@ -129,3 +129,61 @@ class EmailService:
         
         print(f"📧 Total sent: {success_count}/{len(to_emails)}")
         return success_count > 0
+    def send_export_email(self, to_email: str, zip_buffer) -> bool:
+        """
+        Send data export ZIP as email attachment to admin.
+        
+        Args:
+            to_email: Admin's email
+            zip_buffer: BytesIO containing the ZIP file
+            
+        Returns:
+            bool: True if sent successfully
+        """
+        if not self.email_from or not self.email_password:
+            logger.error("Email configuration missing for export")
+            return False
+        
+        try:
+            from email.mime.base import MIMEBase
+            from email import encoders
+            
+            msg = MIMEMultipart()
+            msg['From'] = self.email_from
+            msg['To'] = to_email
+            msg['Subject'] = "Apollo - Data Export"
+            
+            body = """Hello,
+
+Here is your Apollo data export.
+
+The attached ZIP contains:
+- whitelist.csv
+- event_types.csv
+- events.csv
+
+🏓 The Apollo Team
+"""
+            msg.attach(MIMEText(body, 'plain'))
+            
+            # Attach ZIP
+            part = MIMEBase('application', 'zip')
+            part.set_payload(zip_buffer.getvalue())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment', filename='apollo_data_export.zip')
+            msg.attach(part)
+            
+            server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=15)
+            server.starttls()
+            server.login(self.email_from, self.email_password)
+            server.send_message(msg)
+            server.quit()
+            
+            logger.info(f"✅ Export email sent to {to_email}")
+            print(f"✅ Export email sent to {to_email}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ Export email failed: {e}")
+            print(f"❌ Export email failed: {e}")
+            return False
